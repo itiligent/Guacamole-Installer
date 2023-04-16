@@ -1,0 +1,39 @@
+kill Nginx!! (slow loris load testing)
+
+https://ourcodeworld.com/articles/read/949/how-to-perform-a-dos-attack-slow-http-with-slowhttptest-test-your-server-slowloris-protection-in-kali-linux
+
+slowhttptest -c 10000 -H -g -o ./output_file -i 3 -r 500 -t GET -u http://jumpbox.domain.com -x 24 -p 2
+
+
+## UAudit Guacamole Connections and User access.##
+
+Query current connection profile allocations
+
+mysql -u root -p guacamole_db
+
+select 
+    guacamole_entity.name, 
+    guacamole_connection.connection_name, 
+    guacamole_connection_permission.permission 
+from 
+    guacamole_connection 
+    left join guacamole_connection_permission on guacamole_connection_permission.connection_id = guacamole_connection.connection_id 
+    left join guacamole_entity on guacamole_entity.entity_id = guacamole_connection_permission.entity_id 
+where 
+    guacamole_connection_permission.permission = 'READ' 
+    and guacamole_entity.name != 'guacadmin';
+
+Quit to exit
+
+
+## Reset TOTP configuration for a user account 
+## This is likely not needed in Gucamole 1.40 as the gui provides an option to reset. Kept for reference.
+
+mysql -u root -p
+
+use guacamol_db;
+
+SELECT user_id FROM guacamole_user INNER JOIN guacamole_entity ON guacamole_entity.entity_id = guacamole_user.entity_id WHERE guacamole_entity.name = 'guacadmin';
+
+UPDATE guacamole_user_attribute SET attribute_value='false' WHERE attribute_name = 'guac-totp-key-confirmed' and user_id = '1';
+quit;
