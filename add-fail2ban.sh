@@ -104,8 +104,8 @@ fi
 if [ "${FAIL2BAN_BASE}" = true ]; then
 
 #Update and install fail2ban (and john for management of config file updates)
-sudo apt-get update  > /dev/null 2>&1
-sudo apt-get install fail2ban john -y > /dev/null 2>&1
+sudo apt-get update -qq > /dev/null 2>&1
+sudo apt-get install fail2ban john -qq -y > /dev/null 2>&1
 
 # Create the basic jail.local template
 cat > /tmp/fail2ban.conf <<EOF
@@ -208,7 +208,7 @@ sudo systemctl restart fail2ban
 
 # Done
 echo
-echo -e "${LGREEN}Fail2ban installed.${GREY}"
+echo -e "${LGREEN}Fail2ban installed...${GREY}"
 echo
 
 else
@@ -256,7 +256,7 @@ rm -f /tmp/netaddr.txt
 rm -f /tmp/fail2ban.update
 
 # Done
-echo -e "${LGREEN}Guacamole security policy applied${GREY}\n-${SED_NETADDR}are whitelisted from all IP bans.\n- To alter the whitelist edit /etc/fail2ban/jail.local & sudo systemctl restart fail2ban"
+echo -e "${LGREEN}Guacamole security policy applied${GREY}\n-${SED_NETADDR}are whitelisted from all IP bans.\n- To alter this whitelist, edit /etc/fail2ban/jail.local & sudo systemctl restart fail2ban"
 echo
 
 

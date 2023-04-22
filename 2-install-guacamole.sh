@@ -8,7 +8,35 @@
 # pls see https://github.com/MysticRyuujin/guac-install for more
 #######################################################################################################################
 
+# Prepare text output colours
+GREY='\033[0;37m'
+DGREY='\033[0;90m'
+GREYB='\033[1;37m'
+RED='\033[0;31m'
+LRED='\033[0;91m'
+GREEN='\033[0;32m'
+LGREEN='\033[0;92m'
+YELLOW='\033[0;33m'
+LYELLOW='\033[0;93m'
+BLUE='\033[0;34m'
+LBLUE='\033[0;94m'
+CYAN='\033[0;36m'
+LCYAN='\033[0;96m'
+MAGENTA='\033[0;35m'
+LMAGENTA='\033[0;95m'
+NC='\033[0m' #No Colour
+
 clear
+
+#Script branding header
+echo
+echo -e "${GREYB}Itiligent Virtual Desktop Appliance Setup."
+echo -e "                    ${LGREEN}Powered by Guacamole"
+
+echo
+echo
+echo -e "Beginning Guacamole setup...${GREY}"
+echo
 
 # Pre-seed MySQL install values
 if [ "${INSTALL_MYSQL}" = true ]; then
@@ -26,11 +54,10 @@ if [ "${INSTALL_MYSQL}" = true ]; then
 fi
 
 # Don't do annoying prompts during apt installs
-echo
 echo -e "${GREY}Updating base Linux OS..."
-export DEBIAN_FRONTEND=noninteractive &>> ${LOG_LOCATION}
-sudo apt-get update &>> ${LOG_LOCATION}
-sudo apt-get upgrade -y &>> ${LOG_LOCATION}
+export DEBIAN_FRONTEND=noninteractive
+sudo apt-get update -qq &>> ${LOG_LOCATION}
+sudo apt-get upgrade -qq -y &>> ${LOG_LOCATION}
 if [ $? -ne 0 ]; then
 	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
@@ -41,10 +68,9 @@ fi
 # Install Guacamole build dependencies.
 echo
 echo -e "${GREY}Installing dependencies required for building Guacamole, this might take a few minutes..."
-apt-get -y install ${JPEGTURBO} ${LIBPNG} ufw htop pwgen wget crudini build-essential libcairo2-dev libtool-bin uuid-dev libavcodec-dev libavformat-dev libavutil-dev \
+apt-get -qq -y install ${JPEGTURBO} ${LIBPNG} ufw htop pwgen wget crudini build-essential libcairo2-dev libtool-bin uuid-dev libavcodec-dev libavformat-dev libavutil-dev \
 libswscale-dev freerdp2-dev libpango1.0-dev libssh2-1-dev libtelnet-dev libvncserver-dev libwebsockets-dev libpulse-dev libssl-dev \
-libvorbis-dev libwebp-dev ghostscript \
-${MYSQL} ${TOMCAT_VERSION} &>> ${LOG_LOCATION}
+libvorbis-dev libwebp-dev ghostscript ${MYSQL} ${TOMCAT_VERSION} &>> ${LOG_LOCATION}
 if [ $? -ne 0 ]; then
 	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
@@ -52,20 +78,17 @@ if [ $? -ne 0 ]; then
 	echo -e "${LGREEN}OK${GREY}"
 fi
 
-# Setup email relay
+# Install Postfix with default settings for smtp email relay
 echo
-echo -e "${GREY}Setting up SMTP for backup alerts (requires SMTP relay be permitted from this server's IP address)..."
-echo "postfix postfix/mailname string ${EMAIL_DOMAIN} | debconf-set-selections" &>> ${LOG_LOCATION}
-DEBIAN_FRONTEND="noninteractive" apt-get install postfix -y &>> ${LOG_LOCATION}
-apt-get install mailutils -y &>> ${LOG_LOCATION}
-sed -i 's/inet_interfaces = all/inet_interfaces = loopback-only/g' /etc/postfix/main.cf &>> ${LOG_LOCATION}
-service postfix restart &>> ${LOG_LOCATION}
+echo -e "${GREY}Installing SMTP email for backup email notifications, for SMTP realy with Office365, see separate configuration script..."
+DEBIAN_FRONTEND="noninteractive" apt-get install postfix mailutils -qq -y &>> ${LOG_LOCATION}
 if [ $? -ne 0 ]; then
 	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
 fi
+service postfix restart 
 
 # Download Guacamole Server
 echo
@@ -150,7 +173,6 @@ if [ $? -ne 0 ]; then
 fi
 echo -e "${LGREEN}Downloaded mysql-connector-java-${MYSQLJCON}.tar.gz${GREY}"
 
-echo
 echo -e "${LGREEN}Source download complete.${GREY}"
 
 # Option to pause script here as we might want to make final tweaks to source code just before compiling
@@ -181,7 +203,7 @@ echo -e "${GREY}Compiling Guacamole-Server from source with with GCC $( gcc --ve
 export CFLAGS="-Wno-error"
 
 # Configure Guacamole Server source
-./configure --with-systemd-dir=/etc/systemd/system  &>> ${LOG_LOCATION}
+./configure --with-systemd-dir=/etc/systemd/system &>> ${LOG_LOCATION}
 if [ $? -ne 0 ]; then
 	echo "Failed to configure guacamole-server"
 	echo "Trying again with --enable-allow-freerdp-snapshots"
@@ -227,7 +249,13 @@ ln -sf /etc/guacamole/guacamole.war /var/lib/${TOMCAT_VERSION}/webapps/
 # Move MySQL connector/j files
 echo -e "${GREY}Moving mysql-connector-java-${MYSQLJCON}.jar (/etc/guacamole/lib/mysql-connector-java.jar)..."
 mv -f mysql-connector-java-${MYSQLJCON}/mysql-connector-java-${MYSQLJCON}.jar /etc/guacamole/lib/mysql-connector-java.jar
-echo
+if [ $? -ne 0 ]; then
+	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	exit 1
+	else
+	echo -e "${LGREEN}OK${GREY}"
+	echo
+fi
 
 # Move TOTP files
 if [ "${INSTALL_TOTP}" = true ]; then
@@ -467,7 +495,6 @@ if [ $? -ne 0 ]; then
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
-	echo
 fi
 
 # Done
