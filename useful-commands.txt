@@ -4,11 +4,7 @@ https://ourcodeworld.com/articles/read/949/how-to-perform-a-dos-attack-slow-http
 
 slowhttptest -c 10000 -H -g -o ./output_file -i 3 -r 500 -t GET -u http://jumpbox.domain.com -x 24 -p 2
 
-
-## UAudit Guacamole Connections and User access.##
-
-Query current connection profile allocations
-
+## Audit Guacamole Connections and User access.##
 mysql -u root -p guacamole_db
 
 select 
@@ -26,14 +22,11 @@ where
 Quit to exit
 
 
-## Reset TOTP configuration for a user account 
-## This is likely not needed in Gucamole 1.40 as the gui provides an option to reset. Kept for reference.
-
+# Reset TOTP configuration for a user account 
+#This is likely not needed in Gucamole 1.40 as the gui provides an option to reset. Kept for reference.
 mysql -u root -p
 
 use guacamol_db;
-
 SELECT user_id FROM guacamole_user INNER JOIN guacamole_entity ON guacamole_entity.entity_id = guacamole_user.entity_id WHERE guacamole_entity.name = 'guacadmin';
-
 UPDATE guacamole_user_attribute SET attribute_value='false' WHERE attribute_name = 'guac-totp-key-confirmed' and user_id = '1';
 quit;

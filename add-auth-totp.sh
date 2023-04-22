@@ -35,6 +35,7 @@ fi
 GUAC_VERSION=
 TOMCAT_VERSION=
 GUAC_SOURCE_LINK=
+
 echo
 wget -q --show-progress -O guacamole-auth-totp-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-totp-${GUAC_VERSION}.tar.gz
 tar -xzf guacamole-auth-totp-${GUAC_VERSION}.tar.gz

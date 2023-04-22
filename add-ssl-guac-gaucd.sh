@@ -24,6 +24,12 @@ MAGENTA='\033[0;35m'
 LMAGENTA='\033[0;95m'
 NC='\033[0m' #No Colour
 
+CERT_COUNTRY=
+CERT_STATE=
+CERT_LOCATION=
+CERT_ORG=
+CERT_OU=
+
 clear
 
 if ! [ $( id -u ) = 0 ]; then
@@ -43,11 +49,11 @@ prompt              = no
 string_mask         = utf8only
 
 [req_distinguished_name]
-C                   = AU
-ST                  = Victoria
-L                   = Melbourne
-O                   = Itiligent
-OU                  = I.T.
+C                   = $CERT_COUNTRY
+ST                  = $CERT_STATE
+L                   = $CERT_LOCATION
+O                   = $CERT_ORG
+OU                  = $CERT_OU
 CN                  = localhost
 
 [v3_req]

@@ -34,11 +34,11 @@ GUAC_USER=
 GUAC_PWD=
 GUAC_DB=
 DB_BACKUP_DIR=
-ALERT_EMAIL=
-BACKUP_RETAIN_DAYS=
+BACKUP_EMAIL=
+BACKUP_RETENTION=
 
-# Protect disk space and remove backups older than {BACKUP_RETAIN_DAYS} days
-find ${DB_BACKUP_DIR} -mtime +${BACKUP_RETAIN_DAYS} -delete
+# Protect disk space and remove backups older than {BACKUP_RETENTION} days
+find ${DB_BACKUP_DIR} -mtime +${BACKUP_RETENTION} -delete
 
 # Backup code
 mkdir -p ${DB_BACKUP_DIR}
@@ -68,8 +68,8 @@ if [ $? -ne 0 ]; then
 	exit 1
 	else
 	echo -e "${LGREEN}${GUAC_DB} backup was successfully copied to ${DB_BACKUP_DIR}"
-	#mailx -s "Guacamomle Database Backup Success" ${ALERT_EMAIL}
-	echo "${GUAC_DB} backup was successfully copied to $DB_BACKUP_DIR}" | mailx -s "Guacamole backup " ${ALERT_EMAIL}
+	#mailx -s "Guacamomle Database Backup Success" ${BACKUP_EMAIL}
+	echo "${GUAC_DB} backup was successfully copied to $DB_BACKUP_DIR" | mailx -s "Guacamole backup " ${BACKUP_EMAIL}
 fi
 
 echo -e ${NC}
