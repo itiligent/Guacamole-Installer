@@ -7,11 +7,35 @@
 # August 2023
 #######################################################################################################################
 
-# Install Nginx
-sudo apt-get install nginx -y &>> ${LOG_LOCATION}
+# Prepare text output colours
+GREY='\033[0;37m'
+DGREY='\033[0;90m'
+GREYB='\033[1;37m'
+RED='\033[0;31m'
+LRED='\033[0;91m'
+GREEN='\033[0;32m'
+LGREEN='\033[0;92m'
+YELLOW='\033[0;33m'
+LYELLOW='\033[0;93m'
+BLUE='\033[0;34m'
+LBLUE='\033[0;94m'
+CYAN='\033[0;36m'
+LCYAN='\033[0;96m'
+MAGENTA='\033[0;35m'
+LMAGENTA='\033[0;95m'
+NC='\033[0m' #No Colour
 
+echo
+echo
+echo -e "${LGREEN}Installing Nginx...${DGREY}"
+echo
+
+# Install Nginx
+sudo apt-get install nginx -qq -y &>> ${LOG_LOCATION}
+
+echo -e "${GREY}Configuring Nginx as a proxy for Guacamole's Apache Tomcat front end...${DGREY}"
 # Configure /etc/nginx/sites-available/(local dns site name)
-cat >/etc/nginx/sites-available/$PROXY_SITE <<EOL
+cat <<EOF | tee /etc/nginx/sites-available/$PROXY_SITE
 server {
     listen 80 default_server;
     root /var/www/html;
@@ -27,10 +51,7 @@ server {
         access_log off;
     }
 }
-EOL
-
-echo
-echo -e "${GREY}Configuring Nginx proxy to connect to Guacamole's Apache front end..."
+EOF
 if [ $? -ne 0 ]; then
 	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
@@ -46,8 +67,9 @@ ln -s /etc/nginx/sites-available/$PROXY_SITE /etc/nginx/sites-enabled/
 unlink /etc/nginx/sites-enabled/default
 
 # Do mandatory Nginx tweaks for logging actual client IPs through a proxy IP of 127.0.0.1 - DO NOT CHANGE COMMAND FORMATING!
+echo -e "${GREY}Configuring Apache Tomcat's valve to support for pass through of client IPs to Guacamole logs...${GREY}"
 sudo sed -i '/pattern="%h %l %u %t &quot;%r&quot; %s %b"/a        \        <!-- Allow host IP to pass through to guacamole.-->\n        <Valve className="org.apache.catalina.valves.RemoteIpValve"\n               internalProxies="127\.0\.0\.1|0:0:0:0:0:0:0:1"\n               remoteIpHeader="x-forwarded-for"\n               remoteIpProxiesHeader="x-forwarded-by"\n               protocolHeader="x-forwarded-proto" />' /etc/$TOMCAT_VERSION/server.xml
-echo -e "${GREY}Configuring Apache Tomcat's internal proxy valve to support proxy client IP4 & IPv6 address passthough for correct logging and ACL support...${GREY}"
+
 if [ $? -ne 0 ]; then
 	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
@@ -85,13 +107,12 @@ fi
 
 # Update general ufw rules so force traffic via reverse proxy. Only Nginx and SSH will be available over the network.
 echo -e "${GREY}Updating firewall rules to allow only SSH and tcp 80/443..."
-sudo ufw default allow outgoing &>> ${LOG_LOCATION}
-sudo ufw default deny incoming &>> ${LOG_LOCATION}
-sudo ufw delete allow 8080/tcp &>> ${LOG_LOCATION}
-sudo ufw allow OpenSSH &>> ${LOG_LOCATION}
-sudo ufw allow 80/tcp &>> ${LOG_LOCATION}
-sudo ufw allow 443/tcp &>> ${LOG_LOCATION}
-echo "y" | sudo ufw enable &>> ${LOG_LOCATION}
+sudo ufw default allow outgoing > /dev/null 2>&1
+sudo ufw default deny incoming > /dev/null 2>&1
+sudo ufw allow OpenSSH > /dev/null 2>&1
+sudo ufw allow 80/tcp > /dev/null 2>&1
+sudo ufw allow 443/tcp > /dev/null 2>&1
+echo "y" | sudo ufw enable > /dev/null 2>&1
 if [ $? -ne 0 ]; then
 	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
@@ -102,15 +123,14 @@ fi
 
 # Reload everything
 echo -e "${GREY}Restaring Guacamole & Ngnix..."
-sudo systemctl restart $TOMCAT_VERSION &>> ${LOG_LOCATION}
-sudo systemctl restart guacd &>> ${LOG_LOCATION}
-sudo systemctl restart nginx &>> ${LOG_LOCATION}
+sudo systemctl restart $TOMCAT_VERSION
+sudo systemctl restart guacd
+sudo systemctl restart nginx
 if [ $? -ne 0 ]; then
 	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
-	echo
 fi
 
 # Done

@@ -7,61 +7,32 @@
 # April 2023
 #######################################################################################################################
 
+# Prepare text output colours
 GREY='\033[0;37m'
+DGREY='\033[0;90m'
+GREYB='\033[1;37m'
 RED='\033[0;31m'
+LRED='\033[0;91m'
+GREEN='\033[0;32m'
 LGREEN='\033[0;92m'
+YELLOW='\033[0;33m'
+LYELLOW='\033[0;93m'
+BLUE='\033[0;34m'
+LBLUE='\033[0;94m'
+CYAN='\033[0;36m'
+LCYAN='\033[0;96m'
+MAGENTA='\033[0;35m'
+LMAGENTA='\033[0;95m'
 NC='\033[0m' #No Colour
 
-# Announce which script you're running
-echo -e "${GREY}"
-echo -e "Let's Encrypt SSL configuration for Nginx.."
-
-############################################################################
-# If running this script standalone un-comment entire below section as we need
-# the correct $PROXY_SITE, LE_DNS_NAME and LE_EMAIL values to reconfigure Nginx
-
-#TOMCAT_VERSION="tomcat9"
-#LOG_LOCATION=$(eval echo ~${SUDO_USER})/lets-encrypt-inst.log
-#DOWNLOAD_DIR=$(eval echo ~${SUDO_USER})
-#GUAC_URL=http://localhost:8080/guacamole/
-#for file in "/etc/nginx/sites-enabled"/*
-#do
-#PROXY_SITE="${file##*/}"
-#done
-#echo
-#echo -e "${GREY}Discovering exising proxy sites to configure with SSL...${GREY}"
-#if [ $? -ne 0 ]; then
-#	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
-#	exit 1
-#	else
-#	echo -e "${LGREEN}OK${GREY}"
-#fi
-
-# Get domain name for new Let's encrypt certificate
-#while true
-#do
-#echo -e "${LGREEN}"
-#read -p "Enter the public FQDN for your proxy site: " LE_DNS_NAME
-#echo
-# [ "${LE_DNS_NAME}" != "" ] && break
-#done
-
-# Get admin email for Let's encrypt certificate notifications
-#while true
-#do
-#echo -e "${LGREEN}"
-#read -p "Enter the email address for Let's Encrypt notifications : " LE_EMAIL
-#echo
-# [ "${LE_EMAIL}" != "" ] && break
-#done
-
-#echo -e "${GREY}"
-
-############################################################################
+echo
+echo
+echo -e "${LGREEN}Installing Let's Encrypt SSL configuration for Nginx...${GREY}"
+echo
 
 # Install nginx
-apt-get update
-apt-get install nginx certbot python3-certbot-nginx -y &>> ${LOG_LOCATION}
+apt-get update -qq &>> ${LOG_LOCATION}
+apt-get install nginx certbot python3-certbot-nginx -qq -y &>> ${LOG_LOCATION}
 
 # Backup the current Nginx config
 	cp /etc/nginx/sites-enabled/${PROXY_SITE}  $DOWNLOAD_DIR/${PROXY_SITE}-nginx.bak
@@ -76,6 +47,7 @@ else
 fi
 
 # Configure Nginx to accept the new certificates
+echo -e "${GREY}Configuring Nginx proxy for Let's Encrypt SSL and setting up automatic HTTP redirect...${GREY}"
 cat > /etc/nginx/sites-available/$PROXY_SITE <<EOL
 server {
     listen 80 default_server;
@@ -94,8 +66,6 @@ server {
     }
 }
 EOL
-
-	echo -e "${GREY}Configuring Nginx proxy for Let's Encrypt SSL and setting up automatic HTTP redirect...${GREY}"
 if [ $? -ne 0 ]; then
 	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
@@ -110,7 +80,7 @@ systemctl restart nginx
 # Run certbot to create and associate certificates with currenly public IP (must have tcp 80 and 443 open to work)
 certbot --nginx -n -d $LE_DNS_NAME --email $LE_EMAIL --agree-tos --redirect --hsts
 echo -e 
-echo -e "${GREY}Let's Encrypt successfully installed. Check for errors above (DNS & firewall are usual culprits).${GREY}"
+echo -e "${GREY}Let's Encrypt successfully installed, but check for any errors above (DNS & firewall are the usual culprits).${GREY}"
 if [ $? -ne 0 ]; then
 	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
@@ -123,7 +93,7 @@ fi
 # If are any due to expire within a 30 day window, Certbot will attempt to renew automatically renew.
 echo -e "${GREY}Scheduling automatic certificate renewals for certificates with < 30 days till expiry.)${GREY}"
 #Dump out the current crontab
-crontab -l > cron_1 &>> ${LOG_LOCATION}
+crontab -l > cron_1
 # Remove any previosly added certbot renewal entries
 sed -i '/# certbot renew/d' cron_1
 # Randomly choose a daily update schedule and append this to the cron schedule
@@ -131,7 +101,7 @@ HOUR=$(shuf -i 0-23 -n 1)
 MINUTE=$(shuf -i 0-59 -n 1)
 echo "${MINUTE} ${HOUR} * * * /usr/bin/certbot renew --quiet --pre-hook 'service nginx stop' --post-hook 'service nginx start'" >> cron_1
 # Overwrite old cron settings and cleanup
-crontab cron_1 &>> ${LOG_LOCATION}
+crontab cron_1
 rm cron_1
 if [ $? -ne 0 ]; then
 	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
@@ -151,7 +121,6 @@ if [ $? -ne 0 ]; then
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
-	echo
 fi
 
 # Done

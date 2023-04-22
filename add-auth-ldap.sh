@@ -37,6 +37,7 @@ fi
 GUAC_VERSION=
 TOMCAT_VERSION=
 GUAC_SOURCE_LINK=
+
 echo
 echo -e "${LYELLOW}Have you updated this script to reflect your Active Directory settings?${NC}"
 
