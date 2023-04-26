@@ -12,20 +12,10 @@
 GREY='\033[0;37m'
 DGREY='\033[0;90m'
 GREYB='\033[1;37m'
-RED='\033[0;31m'
 LRED='\033[0;91m'
-GREEN='\033[0;32m'
 LGREEN='\033[0;92m'
-YELLOW='\033[0;33m'
 LYELLOW='\033[0;93m'
-BLUE='\033[0;34m'
-LBLUE='\033[0;94m'
-CYAN='\033[0;36m'
-LCYAN='\033[0;96m'
-MAGENTA='\033[0;35m'
-LMAGENTA='\033[0;95m'
 NC='\033[0m' #No Colour
-
 clear
 
 #Script branding header
@@ -59,7 +49,7 @@ export DEBIAN_FRONTEND=noninteractive
 sudo apt-get update -qq &>> ${LOG_LOCATION}
 sudo apt-get upgrade -qq -y &>> ${LOG_LOCATION}
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -72,7 +62,7 @@ apt-get -qq -y install ${JPEGTURBO} ${LIBPNG} ufw htop pwgen wget crudini build-
 libswscale-dev freerdp2-dev libpango1.0-dev libssh2-1-dev libtelnet-dev libvncserver-dev libwebsockets-dev libpulse-dev libssl-dev \
 libvorbis-dev libwebp-dev ghostscript ${MYSQL} ${TOMCAT_VERSION} &>> ${LOG_LOCATION}
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -80,10 +70,10 @@ fi
 
 # Install Postfix with default settings for smtp email relay
 echo
-echo -e "${GREY}Installing SMTP email for backup email notifications, for SMTP realy with Office365, see separate configuration script..."
+echo -e "${GREY}Installing SMTP email for backup email notifications, see separate SMTP relay configuration script..."
 DEBIAN_FRONTEND="noninteractive" apt-get install postfix mailutils -qq -y &>> ${LOG_LOCATION}
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -95,7 +85,7 @@ echo
 echo -e "${GREY}Downloading Guacamole source files..."
 wget -q --show-progress -O guacamole-server-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/source/guacamole-server-${GUAC_VERSION}.tar.gz
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed to download guacamole-server-${GUAC_VERSION}.tar.gz" 1>&2
+	echo -e "${LRED}Failed to download guacamole-server-${GUAC_VERSION}.tar.gz" 1>&2
 	echo -e "${GUAC_SOURCE_LINK}/source/guacamole-server-${GUAC_VERSION}.tar.gz${GREY}"
 	exit 1
 	else
@@ -106,7 +96,7 @@ echo -e "${LGREEN}Downloaded guacamole-server-${GUAC_VERSION}.tar.gz${GREY}"
 # Download Guacamole Client
 wget -q --show-progress -O guacamole-${GUAC_VERSION}.war ${GUAC_SOURCE_LINK}/binary/guacamole-${GUAC_VERSION}.war
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed to download guacamole-${GUAC_VERSION}.war" 1>&2
+	echo -e "${LRED}Failed to download guacamole-${GUAC_VERSION}.war" 1>&2
 	echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-${GUAC_VERSION}.war${GREY}"
 	exit 1
 fi
@@ -115,7 +105,7 @@ echo -e "${LGREEN}Downloaded guacamole-${GUAC_VERSION}.war${GREY}"
 # Download Guacamole authentication extensions
 wget -q --show-progress -O guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed to download guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz" 1>&2
+	echo -e "${LRED}Failed to download guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz" 1>&2
 	echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz"
 	exit 1
 	else
@@ -127,7 +117,7 @@ echo -e "${LGREEN}Downloaded guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz${GREY}"
 if [ "${INSTALL_TOTP}" = true ]; then
 	wget -q --show-progress -O guacamole-auth-totp-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-totp-${GUAC_VERSION}.tar.gz
 	if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed to download guacamole-auth-totp-${GUAC_VERSION}.tar.gz" 1>&2
+	echo -e "${LRED}Failed to download guacamole-auth-totp-${GUAC_VERSION}.tar.gz" 1>&2
 	echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-totp-${GUAC_VERSION}.tar.gz"
 	exit 1
 	else
@@ -140,7 +130,7 @@ fi
 if [ "${INSTALL_DUO}" = true ]; then
 	wget -q --show-progress -O guacamole-auth-duo-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-duo-${GUAC_VERSION}.tar.gz
 	if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed to download guacamole-auth-duo-${GUAC_VERSION}.tar.gz" 1>&2
+	echo -e "${LRED}Failed to download guacamole-auth-duo-${GUAC_VERSION}.tar.gz" 1>&2
 	echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-duo-${GUAC_VERSION}.tar.gz"
 	exit 1
 	else
@@ -153,7 +143,7 @@ fi
 if [ "${INSTALL_LDAP}" = true ]; then
 	wget -q --show-progress -O guacamole-auth-ldap-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-ldap-${GUAC_VERSION}.tar.gz
 	if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed to download guacamole-auth-ldap-${GUAC_VERSION}.tar.gz" 1>&2
+	echo -e "${LRED}Failed to download guacamole-auth-ldap-${GUAC_VERSION}.tar.gz" 1>&2
 	echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-ldap-${GUAC_VERSION}.tar.gz"
 	exit 1
 	else
@@ -165,7 +155,7 @@ fi
 # Download MySQL connector/j
 wget -q --show-progress -O mysql-connector-java-${MYSQLJCON}.tar.gz https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-${MYSQLJCON}.tar.gz
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed to download mysql-connector-java-${MYSQLJCON}.tar.gz" 1>&2
+	echo -e "${LRED}Failed to download mysql-connector-java-${MYSQLJCON}.tar.gz" 1>&2
 	echo -e "https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-${MYSQLJCON}}.tar.gz${GREY}"
 	exit 1
 	else
@@ -220,7 +210,7 @@ fi
 echo -e "${GREY}Running Make and building the Guacamole-Server application..."
 make &>> ${LOG_LOCATION}
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -230,7 +220,7 @@ fi
 echo -e "${GREY}Installing Guacamole-Server..."
 make install &>> ${LOG_LOCATION}
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -250,7 +240,7 @@ ln -sf /etc/guacamole/guacamole.war /var/lib/${TOMCAT_VERSION}/webapps/
 echo -e "${GREY}Moving mysql-connector-java-${MYSQLJCON}.jar (/etc/guacamole/lib/mysql-connector-java.jar)..."
 mv -f mysql-connector-java-${MYSQLJCON}/mysql-connector-java-${MYSQLJCON}.jar /etc/guacamole/lib/mysql-connector-java.jar
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -296,11 +286,11 @@ if [ "${INSTALL_DUO}" = true ]; then
 	echo -e "${YELLOW}Duo is installed, it will need to be configured via guacamole.properties${GREY}"
 fi
 
-echo -e "${GREY}Applying branded Guacamole login page and favicons."
+echo -e "${GREY}Applying branded Guacamole login page and favicons..."
 # For details on how to brand Guacamole, see https://github.com/Zer0CoolX/guacamole-customize-loginscreen-extension
 sudo mv branding.jar /etc/guacamole/extensions
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -311,7 +301,7 @@ fi
 echo -e "${GREY}Restarting Tomcat service & enable at boot..."
 service ${TOMCAT_VERSION} restart
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed${GREY}" 1>&2
+	echo -e "${LRED}Failed${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -329,7 +319,7 @@ if [ "${INSTALL_MYSQL}" = true ]; then
 	service mysql restart
 fi
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed${GREY}" 1>&2
+	echo -e "${LRED}Failed${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -375,7 +365,7 @@ fi
 fi
 fi
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed${GREY}" 1>&2
+	echo -e "${LRED}Failed${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -398,8 +388,8 @@ SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='${GUAC_DB
 # Execute SQL code
 MYSQL_RESULT=$( echo ${SQLCODE} | mysql -u root -D information_schema -h ${MYSQL_HOST} -P ${MYSQL_PORT} )
 if [[ $MYSQL_RESULT != "" ]]; then
-	echo -e "${RED}It appears there is already a MySQL database (${GUAC_DB}) on ${MYSQL_HOST}${GREY}" 1>&2
-	echo -e "${RED}Try:    mysql -e 'DROP DATABASE ${GUAC_DB}'${GREY}" 1>&2
+	echo -e "${LRED}It appears there is already a MySQL database (${GUAC_DB}) on ${MYSQL_HOST}${GREY}" 1>&2
+	echo -e "${LRED}Try:    mysql -e 'DROP DATABASE ${GUAC_DB}'${GREY}" 1>&2
 	#exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -414,8 +404,8 @@ SELECT COUNT(*) FROM mysql.user WHERE user = '${GUAC_USER}';"
 # Execute SQL code
 MYSQL_RESULT=$( echo ${SQLCODE} | mysql -u root -D mysql -h ${MYSQL_HOST} -P ${MYSQL_PORT} | grep '0' )
 if [[ $MYSQL_RESULT == "" ]]; then
-	echo -e "${RED}It appears there is already a MySQL user (${GUAC_USER}) on ${MYSQL_HOST}${GREY}" 1>&2
-	echo -e "${RED}Try:    mysql -e \"DROP USER '${GUAC_USER}'@'${GUAC_USERHost}'; FLUSH PRIVILEGES;\"${GREY}" 1>&2
+	echo -e "${LRED}It appears there is already a MySQL user (${GUAC_USER}) on ${MYSQL_HOST}${GREY}" 1>&2
+	echo -e "${LRED}Try:    mysql -e \"DROP USER '${GUAC_USER}'@'${GUAC_USERHost}'; FLUSH PRIVILEGES;\"${GREY}" 1>&2
 	#exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -437,7 +427,7 @@ echo ${SQLCODE} | mysql -u root -D mysql -h ${MYSQL_HOST} -P ${MYSQL_PORT}
 echo -e "${GREY}Adding database tables..."
 cat guacamole-auth-jdbc-${GUAC_VERSION}/mysql/schema/*.sql | mysql -u root -D ${GUAC_DB} -h ${MYSQL_HOST} -P ${MYSQL_PORT}
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed${GREY}" 1>&2
+	echo -e "${LRED}Failed${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -452,7 +442,7 @@ bind_host = 0.0.0.0
 bind_port = 4822
 EOF
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -465,7 +455,7 @@ systemctl enable guacd
 service guacd stop 2>/dev/null
 service guacd start
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -478,7 +468,7 @@ rm -rf guacamole-*
 rm -rf mysql-connector-java-*
 unset MYSQL_PWD
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -488,10 +478,10 @@ fi
 # Apply Secure MySQL installation settings
 if [ "${SECURE_MYSQL}" = true ]; then
 echo -e "${GREY}Applying mysql_secure_installation settings...${GREY}"
-printf "${MYSQL_ROOT_PWD}\n n\n n\n y\n y\n y\n y\n y\n" | mysql_secure_installation -u root --password="${MYSQL_ROOT_PWD}" &>> ${LOG_LOCATION}
+printf "${MYSQL_ROOT_PWD}\n n\n n\n y\n y\n y\n y\n y\n" | sudo mysql_secure_installation &>> ${LOG_LOCATION}
 fi
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"

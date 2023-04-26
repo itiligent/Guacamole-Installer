@@ -10,18 +10,9 @@
 GREY='\033[0;37m'
 DGREY='\033[0;90m'
 GREYB='\033[1;37m'
-RED='\033[0;31m'
 LRED='\033[0;91m'
-GREEN='\033[0;32m'
 LGREEN='\033[0;92m'
-YELLOW='\033[0;33m'
 LYELLOW='\033[0;93m'
-BLUE='\033[0;34m'
-LBLUE='\033[0;94m'
-CYAN='\033[0;36m'
-LCYAN='\033[0;96m'
-MAGENTA='\033[0;35m'
-LMAGENTA='\033[0;95m'
 NC='\033[0m' #No Colour
 
 clear
@@ -37,7 +28,7 @@ FAIL2BAN_BASE=""
 FAIL2BAN_GUAC=""
 FAIL2BAN_NGINX=""
 FAIL2BAN_SSH=""
-TOMCAT_VERSION=
+TOMCAT_VERSION=$(ls /etc/ | grep tomcat)
 
 #Clean up from any previous runs
 rm -f /tmp/fail2ban.conf

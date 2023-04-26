@@ -15,7 +15,7 @@
 GREY='\033[0;37m'
 DGREY='\033[0;90m'
 GREYB='\033[1;37m'
-RED='\033[0;31m'
+LRED='\033[0;91m'
 LGREEN='\033[0;92m'
 LYELLOW='\033[0;93m'
 NC='\033[0m' #No Colour
@@ -42,7 +42,7 @@ echo -e "${GREY}Installing Postfix with non-interactive defaults..."
 sudo apt update -qq > /dev/null 2>&1
 DEBIAN_FRONTEND="noninteractive" apt-get install postfix mailutils -qq -y > /dev/null 2>&1
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Postfix install failed. ${GREY}" 1>&2
+	echo -e "${LRED}Postfix install failed. ${GREY}" 1>&2
 	exit 1
 else
 	echo -e "${LGREEN}OK${GREY}"
@@ -80,7 +80,7 @@ smtp_generic_maps = hash:/etc/postfix/generic
 smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
 EOF
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Postfix restart failed. ${GREY}" 1>&2
+	echo -e "${LRED}Postfix restart failed. ${GREY}" 1>&2
 	exit 1
 else
 	echo -e "${LGREEN}OK${GREY}"
@@ -111,7 +111,7 @@ sudo postmap /etc/postfix/generic
 echo -e "${GREY}Restarting Postfix..."
 sudo service postfix restart
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Postfix restart failed. ${GREY}" 1>&2
+	echo -e "${LRED}Postfix restart failed. ${GREY}" 1>&2
 	exit 1
 else
 	echo -e "${LGREEN}OK${GREY}"

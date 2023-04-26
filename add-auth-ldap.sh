@@ -10,18 +10,9 @@
 GREY='\033[0;37m'
 DGREY='\033[0;90m'
 GREYB='\033[1;37m'
-RED='\033[0;31m'
 LRED='\033[0;91m'
-GREEN='\033[0;32m'
 LGREEN='\033[0;92m'
-YELLOW='\033[0;33m'
 LYELLOW='\033[0;93m'
-BLUE='\033[0;34m'
-LBLUE='\033[0;94m'
-CYAN='\033[0;36m'
-LCYAN='\033[0;96m'
-MAGENTA='\033[0;35m'
-LMAGENTA='\033[0;95m'
 NC='\033[0m' #No Colour
 
 clear
@@ -34,9 +25,9 @@ if ! [ $( id -u ) = 0 ]; then
 	exit 1
 fi
 
-GUAC_VERSION=
-TOMCAT_VERSION=
-GUAC_SOURCE_LINK=
+TOMCAT_VERSION=$(ls /etc/ | grep tomcat)
+GUAC_VERSION=$(grep -oP 'Guacamole.API_VERSION = "\K[0-9\.]+' /var/lib/${TOMCAT_VERSION}/webapps/guacamole/guacamole-common-js/modules/Version.js)
+GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
 
 echo
 echo -e "${LYELLOW}Have you updated this script to reflect your Active Directory settings?${NC}"

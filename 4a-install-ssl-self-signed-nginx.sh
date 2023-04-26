@@ -7,26 +7,13 @@
 # April 2023
 #######################################################################################################################
 
-# To run manually and regenerate certificates, this script must be run in the current user enviroment [-E switch]
-# to provide certifacate outputs correctly. Runing just as sudo will save certs to sudo's home path
-# sudo -E ./4a-install-ssl-self-signed-nginx.sh [your-dns-name.local] [3650]
-
 # Prepare text output colours
 GREY='\033[0;37m'
 DGREY='\033[0;90m'
 GREYB='\033[1;37m'
-RED='\033[0;31m'
 LRED='\033[0;91m'
-GREEN='\033[0;32m'
 LGREEN='\033[0;92m'
-YELLOW='\033[0;33m'
 LYELLOW='\033[0;93m'
-BLUE='\033[0;34m'
-LBLUE='\033[0;94m'
-CYAN='\033[0;36m'
-LCYAN='\033[0;96m'
-MAGENTA='\033[0;35m'
-LMAGENTA='\033[0;95m'
 NC='\033[0m' #No Colour
 
 echo
@@ -34,30 +21,41 @@ echo
 echo -e "${LGREEN}Setting up self signed SSL certificates for Nginx...${GREY}"
 echo
 
-# Hack to assist with displaying "$" symbols and " ' quotes in a (cut/pasteable) bash screen output format for Nginx configs
-SHOWASTEXT1='$mypwd'
-SHOWASTEXT2='"Cert:\LocalMachine\Root"'
+# Setup script cmd line arguments for proxy site and certificate days
+SSLNAME=$1
+SSLDAYS=$2
 
-# Discover all IPv4 interfaces addresses to bind to new SSL certficates
-	echo -e "${GREY}Discovering the default route interface and DNS names to bind with the new SSL certificate..."
-	# Dump interface info and copy this output to a temp file
-	DUMP_IPS=$(ip -o addr show up primary scope global | while read -r num dev fam addr rest; do echo ${addr%/*}; done)
-	echo $DUMP_IPS > $TMP_DIR/dump_ips.txt
+#######################################################################################################################
+# If you wish to add/regenerate self signed SSL to a pre-existing Nginx install, this script can be adapted to be run 
+# standalone. To run as standalone, simply un-comment this entire section and provide the desired variable 
+# values to complete the reconfiguration of Nginx.
 
-	# Filter out anything but numerical characters, then add output to a temporary list
-	grep -E -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}" $TMP_DIR/dump_ips.txt > $TMP_DIR/ip_list.txt
+# Variable inputs
+#TOMCAT_VERSION="tomcat9" # Not needed for general SSL install(if Guacamole not present, also comment the tomcat restart)
+#DOWNLOAD_DIR=$(eval echo ~${SUDO_USER})
+#LOG_LOCATION="${DOWNLOAD_DIR}/ssl_install.log"
+#TMP_DIR=/tmp
+#GUAC_URL=http://localhost:8080/guacamole/ # substitute for whatever url that nginx is proxying
+#CERT_COUNTRY="AU" # must be two letter code!
+#CERT_STATE="Victoria"
+#CERT_LOCATION="Melbourne"
+#CERT_ORG="Itiligent"
+#CERT_OU="I.T. dept"
+#PROXY_SITE=$SSLNAME
 
-	# Separate each row in the temporary ip_list.txt file and further split each single row into a separate new temp file for each individual IP address found
-	sed -n '1p' $TMP_DIR/ip_list.txt > $TMP_DIR/1st_ip.txt
-	#sed -n '2p' $TMP_DIR/ip_list.txt > $TMP_DIR/2nd_ip.txt # uncomment for 2nd interface
-	#sed -n '3p' $TMP_DIR/ip_list.txt > $TMP_DIR/3rd_ip.txt # uncomment for 3rd interface etc
+# To run manually or to regenerate SSL certificates, this script must be run in the current user enviroment [-E switch]
+# Be aware that runing this script just as sudo will save certs to sudo's home path with incorrect permissions, 
+# plus the custom certifcate install instructions shown after running will be invalid. 
 
-	# Assign each individual IP address temp file a discreet variable for use in the certificate parameters setup
-	IP1=$(cat $TMP_DIR/1st_ip.txt)
-	#IP2=$(cat $TMP_DIR/2nd_ip.txt) # uncomment for 2nd interface
-	#IP3=$(cat $TMP_DIR/3rd_ip.txt) # uncomment for 3rd interface etc
+# e.g. sudo -E ./4a-install-ssl-self-signed-nginx.sh proxy-site-name 3650
+
+#######################################################################################################################
+
+# Discover IPv4 interface
+echo -e "${GREY}Discovering the default route interface and Proxy DNS name to bind with the new SSL certificate..."
+DEFAULT_IP=$(ip addr show $(ip route | awk '/default/ { print $5 }') | grep "inet" | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1)
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -88,7 +86,7 @@ subjectAltName      = @alt_names
 
 [alt_names]
 DNS.1               = $PROXY_SITE
-IP.1                = $IP1
+IP.1                = $DEFAULT_IP
 EOF
 # Add IP.2 & IP.3 into the above cat <<EOF as needed.
 #IP.2                = $IP3
@@ -100,10 +98,6 @@ EOF
 # Set default certificate file destinations. These can be adapted for any other SSL application.
 DIR_SSL_CERT="/etc/nginx/ssl/cert"
 DIR_SSL_KEY="/etc/nginx/ssl/private"
-
-# Setup SSL certificate variables
-SSLNAME=$1
-SSLDAYS=$2
 
 # Make directories to place SSL Certificate if they don't exist
 if [[ ! -d $DIR_SSL_KEY ]]; then
@@ -122,7 +116,7 @@ echo
 echo "{$GREY}Creating a new Nginx SSL Certificate ..."
 openssl req -x509 -nodes -newkey rsa:2048 -keyout $SSLNAME.key -out $SSLNAME.crt -days $SSLDAYS -config $TMP_DIR/cert_attributes.txt
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -138,7 +132,7 @@ fi
 	sudo openssl pkcs12 -export -out $SSLNAME.pfx -inkey $SSLNAME.key -in $SSLNAME.crt -password pass:1234
 	sudo chmod 0774 $SSLNAME.pfx
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -146,10 +140,10 @@ if [ $? -ne 0 ]; then
 fi
 
 # Backup the current Nginx config before update
-cp /etc/nginx/sites-enabled/${PROXY_SITE} $DOWNLOAD_DIR/${PROXY_SITE}-nginx.bak
 echo -e "${GREY}Backing up previous Nginx proxy to $DOWNLOAD_DIR/$PROXY_SITE-nginx.bak"
+cp /etc/nginx/sites-enabled/${PROXY_SITE} $DOWNLOAD_DIR/${PROXY_SITE}-nginx.bak
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -198,13 +192,16 @@ server {
 }
 EOF
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
 	echo
 fi
 
+# Hack to assist with displaying "$" symbols and " ' quotes in a (cut/pasteable) bash screen output format for Nginx configs
+SHOWASTEXT1='$mypwd'
+SHOWASTEXT2='"Cert:\LocalMachine\Root"'
 
 printf "${GREY}+-------------------------------------------------------------------------------------------------------------
 ${LGREEN}+ WINDOWS CLIENT SELF SIGNED SSL BROWSER CONFIG - SAVE THIS BEFORE CONTINUING!${GREY}
@@ -236,7 +233,7 @@ sudo systemctl restart $TOMCAT_VERSION
 sudo systemctl restart guacd
 sudo systemctl restart nginx
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 else
 	echo -e "${LGREEN}OK${GREY}"

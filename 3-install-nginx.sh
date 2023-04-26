@@ -11,18 +11,9 @@
 GREY='\033[0;37m'
 DGREY='\033[0;90m'
 GREYB='\033[1;37m'
-RED='\033[0;31m'
 LRED='\033[0;91m'
-GREEN='\033[0;32m'
 LGREEN='\033[0;92m'
-YELLOW='\033[0;33m'
 LYELLOW='\033[0;93m'
-BLUE='\033[0;34m'
-LBLUE='\033[0;94m'
-CYAN='\033[0;36m'
-LCYAN='\033[0;96m'
-MAGENTA='\033[0;35m'
-LMAGENTA='\033[0;95m'
 NC='\033[0m' #No Colour
 
 echo
@@ -53,7 +44,7 @@ server {
 }
 EOF
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -70,7 +61,7 @@ unlink /etc/nginx/sites-enabled/default
 echo -e "${GREY}Configuring Apache Tomcat valve for pass through of client IPs to Guacamole logs...${GREY}"
 sudo sed -i '/pattern="%h %l %u %t &quot;%r&quot; %s %b"/a        \        <!-- Allow host IP to pass through to guacamole.-->\n        <Valve className="org.apache.catalina.valves.RemoteIpValve"\n               internalProxies="127\.0\.0\.1|0:0:0:0:0:0:0:1"\n               remoteIpHeader="x-forwarded-for"\n               remoteIpProxiesHeader="x-forwarded-by"\n               protocolHeader="x-forwarded-proto" />' /etc/$TOMCAT_VERSION/server.xml
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -82,7 +73,7 @@ sudo sed -i '/client_max_body_size/d' /etc/nginx/nginx.conf # remove this line i
 sudo sed -i "/Basic Settings/a \        client_max_body_size 100000000M;" /etc/nginx/nginx.conf # Add the larger file transfer size
 echo -e "${GREY}Boosting Nginx's 'maximum body size' parameter to support file transfers > 100 TB through the proxy...${GREY}"
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -91,13 +82,14 @@ fi
 
 # Bind guacd to localhost and force all Guacamole connections via reverse proxy
 echo -e "${GREY}Binding guacd to 127.0.0.1 port 4822..."
+cp /etc/guacamole/guacd.conf /etc/guacamole/guacd.conf.bak
 cat > /etc/guacamole/guacd.conf <<- "EOF"
 [server]
 bind_host = 127.0.0.1
 bind_port = 4822
 EOF
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 else
 	echo -e "${LGREEN}OK${GREY}"
@@ -113,7 +105,7 @@ sudo ufw allow 80/tcp > /dev/null 2>&1
 sudo ufw allow 443/tcp > /dev/null 2>&1
 echo "y" | sudo ufw enable > /dev/null 2>&1
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -126,7 +118,7 @@ sudo systemctl restart $TOMCAT_VERSION
 sudo systemctl restart guacd
 sudo systemctl restart nginx
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"

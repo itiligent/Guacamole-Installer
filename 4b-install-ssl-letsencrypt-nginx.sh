@@ -11,18 +11,9 @@
 GREY='\033[0;37m'
 DGREY='\033[0;90m'
 GREYB='\033[1;37m'
-RED='\033[0;31m'
 LRED='\033[0;91m'
-GREEN='\033[0;32m'
 LGREEN='\033[0;92m'
-YELLOW='\033[0;33m'
 LYELLOW='\033[0;93m'
-BLUE='\033[0;34m'
-LBLUE='\033[0;94m'
-CYAN='\033[0;36m'
-LCYAN='\033[0;96m'
-MAGENTA='\033[0;35m'
-LMAGENTA='\033[0;95m'
 NC='\033[0m' #No Colour
 
 echo
@@ -30,16 +21,61 @@ echo
 echo -e "${LGREEN}Installing Let's Encrypt SSL configuration for Nginx...${GREY}"
 echo
 
+#######################################################################################################################
+# If you wish to add/regenerate self signed SSL to a pre-existing Nginx install, this script can be adapted to be run 
+# standalone. To run as standalone, simply un-comment this entire section and provide the desired variable 
+# values to complete the reconfiguration of Nginx.
+
+# Variable inputs
+#TOMCAT_VERSION="tomcat9" # Not be needed for genreral SSL install SSL (i.e. where Guacamole not present)
+#DOWNLOAD_DIR=$(eval echo ~${SUDO_USER})
+#LOG_LOCATION="${DOWNLOAD_DIR}/ssl_install.log"
+#GUAC_URL=http://localhost:8080/guacamole/ # substitute for whatever url that nginx is proxying
+
+# Find the existing nginx site name
+#echo -e "${GREY}Discovering exising proxy sites to configure with SSL...${GREY}"
+#for file in "/etc/nginx/sites-enabled"/*
+#do
+#PROXY_SITE="${file##*/}"
+#done
+#if [ $? -ne 0 ]; then
+#	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+#	exit 1
+#	else
+#	echo -e "${LGREEN}OK${GREY}"
+#fi
+#echo
+# Prompt for the FQDN of the new Let's encrypt certificate
+#while true
+#do
+#echo -e "${LGREEN}"
+#read -p "Enter the public FQDN for your proxy site: " LE_DNS_NAME
+#echo
+# [ "${LE_DNS_NAME}" != "" ] && break
+#done
+
+# Prompt for the admin/webmaster email for Let's encrypt certificate notifications
+#while true
+#do
+#echo -e "${LGREEN}"
+#read -p "Enter the email address for Let's Encrypt notifications : " LE_EMAIL
+#echo
+# [ "${LE_EMAIL}" != "" ] && break
+#done
+#echo -e "${GREY}"
+
+#######################################################################################################################
+
 # Install nginx
 apt-get update -qq &>> ${LOG_LOCATION}
 apt-get install nginx certbot python3-certbot-nginx -qq -y &>> ${LOG_LOCATION}
 
 # Backup the current Nginx config
-	cp /etc/nginx/sites-enabled/${PROXY_SITE}  $DOWNLOAD_DIR/${PROXY_SITE}-nginx.bak
 	echo
 	echo -e "${GREY}Backing up previous Nginx proxy to $DOWNLOAD_DIR/$PROXY_SITE-nginx.bak"
+	cp /etc/nginx/sites-enabled/${PROXY_SITE}  $DOWNLOAD_DIR/${PROXY_SITE}-nginx.bak
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 else
 	echo -e "${LGREEN}OK${GREY}"
@@ -67,7 +103,7 @@ server {
 }
 EOL
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -82,7 +118,7 @@ certbot --nginx -n -d $LE_DNS_NAME --email $LE_EMAIL --agree-tos --redirect --hs
 echo -e 
 echo -e "${GREY}Let's Encrypt successfully installed, but check for any errors above (DNS & firewall are the usual culprits).${GREY}"
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -104,7 +140,7 @@ echo "${MINUTE} ${HOUR} * * * /usr/bin/certbot renew --quiet --pre-hook 'service
 crontab cron_1
 rm cron_1
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
@@ -117,7 +153,7 @@ sudo systemctl restart $TOMCAT_VERSION
 sudo systemctl restart guacd
 sudo systemctl restart nginx
 if [ $? -ne 0 ]; then
-	echo -e "${RED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
 	exit 1
 	else
 	echo -e "${LGREEN}OK${GREY}"
