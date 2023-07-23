@@ -51,6 +51,12 @@ else
     echo
 fi
 
+# Force nginx to require tls1.2 and above
+sudo sed -i -e '/ssl_protocols/s/^/#/' /etc/nginx/nginx.conf 
+sudo sed -i "/SSL Settings/a \        ssl_protocols TLSv1.2 TLSv1.3; # Dropping SSLv3, ref: POODLE" /etc/nginx/nginx.conf
+
+
+
 # Symlink from sites-available to sites-enabled
 ln -s /etc/nginx/sites-available/$PROXY_SITE /etc/nginx/sites-enabled/
 
