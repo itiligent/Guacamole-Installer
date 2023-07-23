@@ -57,6 +57,9 @@ else
     echo -e "${LGREEN}OK${GREY}"
 fi
 
+# Reduce logging noise
+sudo ufw logging off &>>${LOG_LOCATION}
+
 # Install Postfix with default settings for smtp email relay
 echo
 echo -e "${GREY}Installing SMTP email for backup email notifications and alerts, see separate SMTP relay configuration script..."
