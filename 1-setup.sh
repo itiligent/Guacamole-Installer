@@ -635,19 +635,19 @@ rm cron_1
 # Install Nginx reverse proxy front end to Guacamole if option is selected
 if [ "${INSTALL_NGINX}" = true ]; then
     sudo -E ./3-install-nginx.sh
-    echo -e "${LGREEN}Nginx install complete\nhttp://${PROXY_SITE} - login user/pass: guacadmin/guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
+    echo -e "${LGREEN}Nginx install complete\nhttp://${PROXY_SITE} - admin login: guacadmin pass: guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
 fi
 
 # Apply self signed SSL certificates to Nginx reverse proxy if option is selected
 if [[ "${INSTALL_NGINX}" = true ]] && [[ "${SELF_SIGN}" = true ]]; then
     sudo -E ./4a-install-ssl-self-signed-nginx.sh ${PROXY_SITE} ${CERT_DAYS}
-    echo -e "${LGREEN}Self signed certificate configured for Nginx \n${LYELLOW}https:${LGREEN}//${PROXY_SITE} - login user/pass: guacadmin/guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
+    echo -e "${LGREEN}Self signed certificate configured for Nginx \n${LYELLOW}https:${LGREEN}//${PROXY_SITE} - admin login: guacadmin pass: guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
 fi
 
 # Apply Let's Encrypt SSL certificates to Nginx reverse proxy if option is selected
 if [[ "${INSTALL_NGINX}" = true ]] && [[ "${LETS_ENCRYPT}" = true ]]; then
     sudo -E ./4b-install-ssl-letsencrypt-nginx.sh
-    echo -e "${LGREEN}Let's Encrypt SSL configured for Nginx \n${LYELLOW}https:${LGREEN}//${LE_DNS_NAME} - login user/pass: guacadmin/guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
+    echo -e "${LGREEN}Let's Encrypt SSL configured for Nginx \n${LYELLOW}https:${LGREEN}//${LE_DNS_NAME} - admin login: guacadmin pass: guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
 fi
 
 # Duo Settings reminder - If Duo is selected you can't login to Guacamole at all until this extension is fully configured
