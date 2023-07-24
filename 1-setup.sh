@@ -43,8 +43,8 @@ fi
 if [ "$(find . -maxdepth 1 \( -name 'guacamole-*' -o -name 'mysql-connector-j-*' \))" != "" ]; then
     # Script branding header
     echo
-    echo -e "${GREYB}Itiligent Virtual Desktop Appliance Setup."
-    echo -e "                    ${LGREEN}Powered by Guacamole"
+    echo -e "${GREYB}Itiligent VDI & Jump Server Appliance Setup."
+    echo -e "                               ${LGREEN}Powered by Guacamole"
     echo
     echo
 
@@ -64,7 +64,7 @@ DB_BACKUP_DIR=$USER_HOME_DIR/mysqlbackups/
 TMP_DIR=$DOWNLOAD_DIR/tmp
 
 # Github download branch
-GITHUB="https://raw.githubusercontent.com/itiligent/Guacamole-Setup/main/"
+GITHUB="https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/"
 
 #Version of Guacamole to install
 GUAC_VERSION="1.5.2"
@@ -173,8 +173,8 @@ RDP_PRINTER_LABEL="RDP Printer" # Custom RDP printer name
 
 # Script branding header
 echo
-echo -e "${GREYB}Itiligent Virtual Desktop Appliance Setup."
-echo -e "                    ${LGREEN}Powered by Guacamole"
+echo -e "${GREYB}Itiligent VDI & Jump Server Appliance Setup."
+echo -e "                               ${LGREEN}Powered by Guacamole"
 echo
 echo
 
@@ -212,8 +212,8 @@ clear
 
 # Script branding header
 echo
-echo -e "${GREYB}Itiligent Virtual Desktop Appliance Setup."
-echo -e "                    ${LGREEN}Powered by Guacamole"
+echo -e "${GREYB}Itiligent VDI & Jump Server Appliance Setup."
+echo -e "                               ${LGREEN}Powered by Guacamole"
 echo
 echo
 
@@ -290,8 +290,8 @@ clear
 
 # Script branding header
 echo
-echo -e "${GREYB}Itiligent Virtual Desktop Appliance Setup."
-echo -e "                    ${LGREEN}Powered by Guacamole"
+echo -e "${GREYB}Itiligent VDI & Jump Server Appliance Setup."
+echo -e "                               ${LGREEN}Powered by Guacamole"
 echo
 echo
 
@@ -533,8 +533,8 @@ fi
 # names shown here: https://guacamole.apache.org/doc/gug/installing-guacamole.html
 clear
 echo
-echo -e "${GREYB}Itiligent Virtual Desktop Appliance Setup."
-echo -e "                    ${LGREEN}Powered by Guacamole"
+echo -e "${GREYB}Itiligent VDI & Jump Server Appliance Setup."
+echo -e "                               ${LGREEN}Powered by Guacamole"
 echo
 echo
 echo -e "${LGREEN}Beginning Guacamole setup...${GREY}"
