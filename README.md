@@ -1,4 +1,4 @@
-# Guacamole 1.5.2 Virtual Desktop & Jump Server Appliance
+# Guacamole 1.5.2 VDI & Jump Server Appliance Builder
 
 A menu based build & install script for Guacamole 1.5.2 with support for SSL reverse proxy, AD integration, multi-factor authentication and further security hardening.
 
@@ -7,7 +7,7 @@ A menu based build & install script for Guacamole 1.5.2 with support for SSL rev
 To install Guacamole, copy and paste the following command into your terminal:
 
 ```
-wget https://raw.githubusercontent.com/itiligent/Guacamole-Setup/main/1-setup.sh && chmod +x 1-setup.sh && ./1-setup.sh
+wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.sh && chmod +x 1-setup.sh && ./1-setup.sh
 ```
 
 ## Prerequisites
