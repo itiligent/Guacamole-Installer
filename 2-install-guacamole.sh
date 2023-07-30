@@ -537,5 +537,19 @@ expect eof
     fi
 fi
 
+if [ "${CHANGE_ROOT}" = true ]; then
+echo -e "${GREY}Setting default Guacamole url to http root...${DGREY}"
+sudo systemctl stop ${TOMCAT_VERSION}
+sudo rm -rf /var/lib/${TOMCAT_VERSION}/webapps/ROOT
+sudo mv /var/lib/${TOMCAT_VERSION}/webapps/guacamole.war /var/lib/${TOMCAT_VERSION}/webapps/ROOT.war
+sudo systemctl start ${TOMCAT_VERSION}
+    if [ $? -ne 0 ]; then
+        echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+        exit 1
+    else
+        echo -e "${LGREEN}OK${GREY}"
+    fi
+fi
+
 # Done
 echo -e ${NC}

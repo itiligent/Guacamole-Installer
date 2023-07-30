@@ -163,6 +163,7 @@ MYSQL_ROOT_PWD=""               # Should not be blank as this may break some asp
 INSTALL_TOTP=""                 # TOTP MFA extension (true/false)
 INSTALL_DUO=""                  # DUO MFA extension (cant be installed simultaneously with TOTP, true/false)
 INSTALL_LDAP=""                 # Active Directory extension (true/false)
+CHANGE_ROOT=""                  # Set default Guacamole URL to http root, remove extra "/guacamole" from the URL
 INSTALL_NGINX=""                # Install and configure Guacamole behind Nginx reverse proxy (http port 80 only, true/false)
 PROXY_SITE=""                   # Local DNS name for reverse proxy and self signed ssl certificates
 SELF_SIGN=""                    # Add self signed SSL support to Nginx (Let's Encrypt not available with this, true/false)
@@ -456,21 +457,32 @@ fi
 
 echo
 # Prompt for Guacamole front end reverse proxy option
-echo -e "${LGREEN}Nginx reverse proxy options:${GREY}"
+echo -e "${LGREEN}Reverse Proxy & front end options:${GREY}"
 if [[ -z ${INSTALL_NGINX} ]]; then
-    echo -e -n "REV PROXY: Protect Guacamole behind Nginx reverse proxy [Y/n]? [default y]: "
+    echo -e -n "FRONT END: Protect Guacamole behind Nginx reverse proxy [Y/n]? [default y]: "
     read PROMPT
     if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
         INSTALL_NGINX=false
     else
         INSTALL_NGINX=true
+        CHANGE_ROOT=false
+    fi
+fi
+
+if [ "${INSTALL_NGINX}" = false ]; then
+    echo -e -n "FRONT END: Set Guacamole url to http root (omit /guacamole/ from url ) [Y/n]? [default y]: "
+    read PROMPT
+    if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
+        CHANGE_ROOT=false
+    else
+        CHANGE_ROOT=true
     fi
 fi
 
 # We must assign a DNS name for the new proxy site
 if [[ -z ${PROXY_SITE} ]] && [[ "${INSTALL_NGINX}" = true ]]; then
     while true; do
-        read -p "REV PROXY: Enter proxy local DNS name? [Enter to use ${DEFAULT_FQDN}]: " PROXY_SITE
+        read -p "FRONT END: Enter proxy local DNS name? [Enter to use ${DEFAULT_FQDN}]: " PROXY_SITE
         [ "${PROXY_SITE}" = "" ] || [ "${PROXY_SITE}" != "" ] && break
         # Rather than allow the default value below, un-comment to alternately force user to enter an explicit name instead
         # [ "${PROXY_SITE}" != "" ] && break
@@ -486,7 +498,7 @@ fi
 # Prompt for self signed SSL reverse proxy option
 if [[ -z ${SELF_SIGN} ]] && [[ "${INSTALL_NGINX}" = true ]]; then
     # Prompt the user to see if they would like to install self signed SSL support for Nginx, default of no
-    echo -e -n "REV PROXY: Add self signed SSL support to Nginx? [y/N]? (choose 'n' for Let's Encrypt)[default n]: "
+    echo -e -n "FRONT END: Add self signed SSL support to Nginx? [y/N]? (choose 'n' for Let's Encrypt)[default n]: "
     read PROMPT
     if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
         SELF_SIGN=true
@@ -507,7 +519,7 @@ fi
 
 # Prompt for Let's Encrypt SSL reverse proxy configuration option
 if [[ -z ${LETS_ENCRYPT} ]] && [[ "${INSTALL_NGINX}" = true ]] && [[ "${SELF_SIGN}" = "false" ]]; then
-    echo -e -n "REV PROXY: Add Let's Encrypt SSL support to Nginx reverse proxy [y/N] [default n]: ${GREY}"
+    echo -e -n "FRONT END: Add Let's Encrypt SSL support to Nginx reverse proxy [y/N] [default n]: ${GREY}"
     read PROMPT
     if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
         LETS_ENCRYPT=true
@@ -519,7 +531,7 @@ fi
 # Prompt for Let's Encrypt public dns name
 if [[ -z ${LE_DNS_NAME} ]] && [[ "${LETS_ENCRYPT}" = true ]]; then
     while true; do
-        read -p "REV PROXY: Enter the FQDN for your public proxy site : " LE_DNS_NAME
+        read -p "FRONT END: Enter the FQDN for your public proxy site : " LE_DNS_NAME
         [ "${LE_DNS_NAME}" != "" ] && break
         echo -e "${LRED}You must enter a public DNS name. Please try again.${GREY}" 1>&2
     done
@@ -528,7 +540,7 @@ fi
 # Prompt for Let's Encrypt admin email
 if [[ -z ${LE_EMAIL} ]] && [[ "${LETS_ENCRYPT}" = true ]]; then
     while true; do
-        read -p "REV PROXY: Enter the email address for Let's Encrypt notifications : " LE_EMAIL
+        read -p "FRONT END: Enter the email address for Let's Encrypt notifications : " LE_EMAIL
         [ "${LE_EMAIL}" != "" ] && break
         echo -e "${LRED}You must enter an email address. Please try again.${GREY}" 1>&2
     done
@@ -611,6 +623,7 @@ export MYSQL_HOST=$MYSQL_HOST
 export MYSQL_PORT=$MYSQL_PORT
 export MYSQL_ROOT_PWD="${MYSQL_ROOT_PWD}"
 export MYSQLJCON=$MYSQLJCON
+export CHANGE_ROOT=$CHANGE_ROOT
 export PROXY_SITE=$PROXY_SITE
 export SECURE_MYSQL=$SECURE_MYSQL
 export TMP_DIR=$TMP_DIR
@@ -627,7 +640,9 @@ sudo -E ./2-install-guacamole.sh
 if [ $? -ne 0 ]; then
     echo -e "${LRED}2-install-guacamole.sh FAILED. See ${LOG_LOCATION}${GREY}" 1>&2
     exit 1
-else
+elif [ "${CHANGE_ROOT}" = true ]; then
+    echo -e "${LGREEN}Guacamole install complete\nhttp://${PROXY_SITE}:8080 - login user/pass: guacadmin/guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
+    else
     echo -e "${LGREEN}Guacamole install complete\nhttp://${PROXY_SITE}:8080/guacamole - login user/pass: guacadmin/guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
 fi
 
