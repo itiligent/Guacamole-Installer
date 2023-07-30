@@ -25,18 +25,18 @@ fi
 
 # Checking if (any kind of) mysql-client or compatible command installed. This is useful for existing mariadb server
 if [ "${INSTALL_MYSQL}" = true ]; then
-    MYSQL="default-mysql-server default-mysql-client mysql-common"
+    MYSQL="${MYSQLSRV}"
 elif [ -x "$(command -v mysql)" ]; then
     MYSQL=""
 else
-    MYSQL="default-mysql-client"
+    MYSQL="${MYSQLCLIENT}"
 fi
 
 # Don't do annoying prompts during apt installs
 echo -e "${GREY}Updating base Linux OS..."
 export DEBIAN_FRONTEND=noninteractive
-sudo apt-get update -qq &>>${LOG_LOCATION}
-sudo apt-get upgrade -qq -y &>>${LOG_LOCATION}
+apt-get update -qq &>>${LOG_LOCATION}
+apt-get upgrade -qq -y &>>${LOG_LOCATION}
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
     exit 1
@@ -47,6 +47,14 @@ fi
 
 # Install Guacamole build dependencies.
 echo -e "${GREY}Installing dependencies required for building Guacamole, this might take a few minutes..."
+
+if [ -n "${MYSQL_VERSION}" ]; then
+    # Add the Official MariaDB repo.
+    apt-get -qq -y install curl gnupg2 &>>${LOG_LOCATION}
+    curl -LsS -O https://downloads.mariadb.com/MariaDB/mariadb_repo_setup &>>${LOG_LOCATION}
+    bash mariadb_repo_setup --mariadb-server-version=$MYSQL_VERSION &>>${LOG_LOCATION}
+fi
+
 apt-get -qq -y install ${JPEGTURBO} ${LIBPNG} ufw htop pwgen wget crudini expect build-essential libcairo2-dev libtool-bin uuid-dev libavcodec-dev libavformat-dev libavutil-dev \
     libswscale-dev freerdp2-dev libpango1.0-dev libssh2-1-dev libtelnet-dev libvncserver-dev libwebsockets-dev libpulse-dev libssl-dev \
     libvorbis-dev libwebp-dev ghostscript ${MYSQL} ${TOMCAT_VERSION} &>>${LOG_LOCATION}
@@ -58,7 +66,7 @@ else
 fi
 
 # Reduce logging noise
-sudo ufw logging off &>>${LOG_LOCATION}
+ufw logging off &>>${LOG_LOCATION}
 
 # Install Postfix with default settings for smtp email relay
 echo
@@ -162,9 +170,9 @@ echo -e "Source download complete.${GREY}"
 #echo -e "${GREY}"
 
 # Add customised RDP share names and printer labels, remove Guacamole default labelling
-sudo sed -i -e 's/IDX_CLIENT_NAME, "Guacamole RDP"/IDX_CLIENT_NAME, "'"${RDP_SHARE_LABEL}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${GUAC_VERSION}/src/protocols/rdp/settings.c
-sudo sed -i -e 's/IDX_DRIVE_NAME, "Guacamole Filesystem"/IDX_CLIENT_NAME, "'"${RDP_DRIVE_LABEL}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${GUAC_VERSION}/src/protocols/rdp/settings.c
-sudo sed -i -e 's/IDX_PRINTER_NAME, "Guacamole Printer"/IDX_PRINTER_NAME, "'"${RDP_PRINTER_LABEL}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${GUAC_VERSION}/src/protocols/rdp/settings.c
+sed -i -e 's/IDX_CLIENT_NAME, "Guacamole RDP"/IDX_CLIENT_NAME, "'"${RDP_SHARE_LABEL}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${GUAC_VERSION}/src/protocols/rdp/settings.c
+sed -i -e 's/IDX_DRIVE_NAME, "Guacamole Filesystem"/IDX_CLIENT_NAME, "'"${RDP_DRIVE_LABEL}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${GUAC_VERSION}/src/protocols/rdp/settings.c
+sed -i -e 's/IDX_PRINTER_NAME, "Guacamole Printer"/IDX_PRINTER_NAME, "'"${RDP_PRINTER_LABEL}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${GUAC_VERSION}/src/protocols/rdp/settings.c
 
 # Make Guacamole directories
 rm -rf /etc/guacamole/lib/
@@ -311,7 +319,7 @@ fi
 # Apply branded interface, you may delete this file and restart guacd & tomcat for default branding
 echo -e "${GREY}Applying branded Guacamole login page and favicons..."
 # For details on how to brand Guacamole, see https://github.com/Zer0CoolX/guacamole-customize-loginscreen-extension
-sudo mv branding.jar /etc/guacamole/extensions
+mv branding.jar /etc/guacamole/extensions
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
     exit 1
@@ -487,6 +495,7 @@ fi
 echo -e "${GREY}Cleanup install files...${GREY}"
 rm -rf guacamole-*
 rm -rf mysql-connector-j-*
+rm -rf mariadb_repo_setup
 unset MYSQL_PWD
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2

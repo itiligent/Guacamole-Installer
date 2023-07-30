@@ -75,6 +75,18 @@ GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guac
 # MySQL Connector/J version
 MYSQLJCON="8.0.33"
 
+# Select a specific MySQL version. See https://mariadb.org/mariadb/all-releases/
+MYSQL_VERSION="" # If left blank, script will use Linux distro default version packages.
+if [ -z "${MYSQL_VERSION}" ]; then
+    # Use Linux distro default version.
+    MYSQLSRV="default-mysql-server default-mysql-client mysql-common"
+    MYSQLCLIENT="default-mysql-client"
+  else
+    # Use official mariadb.org repo
+    MYSQLSRV="mariadb-server mariadb-client mariadb-common"
+    MYSQLCLIENT="mariadb-client"
+fi
+
 # Check for the latest version of Tomcat currently supported by the Linux distro
 if [[ $(apt-cache show tomcat10 2>/dev/null | egrep "Version: 10" | wc -l) -gt 0 ]]; then
     TOMCAT_VERSION="tomcat10"
@@ -82,8 +94,6 @@ elif [[ $(apt-cache show tomcat9 2>/dev/null | egrep "Version: 9" | wc -l) -gt 0
     TOMCAT_VERSION="tomcat9"
 elif [[ $(apt-cache show tomcat8 2>/dev/null | egrep "Version: 8.[5-9]" | wc -l) -gt 0 ]]; then
     TOMCAT_VERSION="tomcat8"
-elif [[ $(apt-cache show tomcat7 2>/dev/null | egrep "Version: 8" | wc -l) -gt 0 ]]; then
-    TOMCAT_VERSION="tomcat7"
 else
     # Default to current version
     TOMCAT_VERSION="tomcat9"
@@ -608,6 +618,9 @@ export TOMCAT_VERSION=$TOMCAT_VERSION
 export RDP_SHARE_LABEL="${RDP_SHARE_LABEL}"
 export RDP_DRIVE_LABEL="${RDP_DRIVE_LABEL}"
 export RDP_PRINTER_LABEL="${RDP_PRINTER_LABEL}"
+export MYSQL_VERSION=$MYSQL_VERSION
+export MYSQLSRV="${MYSQLSRV}"
+export MYSQLCLIENT="${MYSQLCLIENT}"
 
 # Run the Guacamole install script
 sudo -E ./2-install-guacamole.sh
