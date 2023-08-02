@@ -11,7 +11,7 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 ```
 
 ## **Prerequisites**
- ### PLEASE NOTE: LASTEST DEBIAN 12 HAS SEVERAL PENDING ISSUES - SEE ISSUE #8
+ ### PLEASE NOTE: DEBIAN 12 & Tomcat10 NOT COMPATIBLE AT PRESENT - SEE ISSUE #10
  
 - Ubuntu 18.04 - 22.x / Debian 10 & 11 / Raspbian Buster or Bullseye
 - Minimum 8GB RAM and 40GB HDD
@@ -31,11 +31,11 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 
 #### **3. Choose a Guacamole front end option**
 
-- Install Nginx Reverse Proxy?: y/n ( n = keep default Guacamole front end `http://hostname:8080/guacamole`)
-  -   Sub option if no: Set default Guacamole url to http root? ( y = `http://hostname:8080`)
-- Install Nginx with no SSL?: y/n ( y = `http://hostname.local`)
-- Install Nginx with self-signed SSL certificate?: y/n ( y = `https://hostname.local`) -  *Configures Nginx with a new self signed TLS certificate and generates corresponding Windows/Linux client certificates*
-- Install Nginx with Let's Encrypt certificate?: y/n ( y =`https://public.site.com`) - *Configures Nginx with a new LetsEncrypt certificate and sets up auto renewals.)*
+- Install Nginx Reverse Proxy?: y/n ( n = use Guacamole native front end `http://hostname.local:8080/guacamole`)
+  -   Sub option if no reverse proxy: Set default Guacamole url to http root? ( y = `http://hostname.local:8080`)
+- Install Nginx with no SSL?: y/n ( y = `httP://hostname.local`)
+- Install Nginx with self-signed SSL certificate?: y/n ( y = `httpS://hostname.local`) -  *Configures Nginx with a new self signed TLS certificate and generates corresponding Windows/Linux client certificates*
+- Install Nginx with Let's Encrypt certificate?: y/n ( y =`httpS://public.site.com`) - *Configures Nginx with a new LetsEncrypt certificate and sets up auto renewals.)*
 
 ## **Optional post install hardening**
 
