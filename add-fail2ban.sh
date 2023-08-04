@@ -221,7 +221,7 @@ EOF
 # Apply the new Guacamole jail config keeping any pre-existing settings
 sudo bash -c 'cat /tmp/fail2ban.conf /etc/fail2ban/jail.local | unique /tmp/fail2ban.update ; cat /tmp/fail2ban.update > /etc/fail2ban/jail.local'
 
-# Backup the defualt Fail2ban Guacamole filter
+# Backup the default Fail2ban Guacamole filter
 cp /etc/fail2ban/filter.d/guacamole.conf /etc/fail2ban/filter.d/guacamole.conf.bak
 
 # Remove the default log search regex
