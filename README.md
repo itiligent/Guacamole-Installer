@@ -1,6 +1,6 @@
-# **Guacamole 1.5.2 VDI & Jump Server Appliance Builder**
+# **Guacamole 1.5.3 VDI & Jump Server Appliance Builder**
 
-A menu based build & install script for Guacamole 1.5.2 with support for SSL reverse proxy, AD integration, multi-factor authentication and further security hardening.
+A menu based build & install script for Guacamole 1.5.3 with support for SSL reverse proxy, AD integration, multi-factor authentication and further security hardening.
 
 ### **Automatic build, install & config script**
 
@@ -43,7 +43,7 @@ The installer downloads additional scripts for:
 - Adding a fail2ban lockdown policy for Guacamole `add-fail2ban.sh`
 - Encrypting internal traffic between the Guacamole client and Guacd daemon with SSL `add-ssl-guac-gaucd.sh`
 - Integrating with Active Directory (See ACTIVE-DIRECTORY-HOW-TO.md) `add-auth-ldap.sh`
-- Adding email alerts via Microsoft365 (uses SMTP auth, requires BYO MS app password) `add-smtp-relay-o365.sh`
+- Adding email alerts via Microsoft365 (uses SMTP auth, requires BYO app password) `add-smtp-relay-o365.sh`
 
 ## **Installation notes**
 

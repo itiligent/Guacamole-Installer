@@ -41,7 +41,7 @@ echo
 mkdir -p $DOWNLOAD_DIR
 
 # Version of Guacamole to upgrade to
-NEW_GUAC_VERSION="1.5.2"
+NEW_GUAC_VERSION="1.5.3"
 
 # Get the currently installed Tomcat version.
 TOMCAT_VERSION=$(ls /etc/ | grep tomcat)

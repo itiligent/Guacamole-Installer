@@ -67,7 +67,7 @@ TMP_DIR=$DOWNLOAD_DIR/tmp
 GITHUB="https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/"
 
 #Version of Guacamole to install
-GUAC_VERSION="1.5.2"
+GUAC_VERSION="1.5.3"
 
 # Set preferred Apache CDN download link
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
