@@ -151,7 +151,7 @@ sed -i '/# certbot renew/d' cron_1
 # Randomly choose a daily update schedule and append this to the cron schedule
 HOUR=$(shuf -i 0-23 -n 1)
 MINUTE=$(shuf -i 0-59 -n 1)
-echo "${MINUTE} ${HOUR} * * * /usr/bin/certbot renew --quiet --pre-hook 'service nginx stop' --post-hook 'service nginx start'" >>cron_1
+echo "${MINUTE} ${HOUR} * * * /usr/bin/certbot renew --quiet --pre-hook 'systemctl stop nginx' --post-hook 'systemctl start nginx'" >>cron_1
 # Overwrite old cron settings and cleanup
 crontab cron_1
 rm cron_1

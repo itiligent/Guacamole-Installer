@@ -108,7 +108,7 @@ sudo postmap /etc/postfix/generic
 
 # Restart and test
 echo -e "${GREY}Restarting Postfix..."
-sudo service postfix restart
+sudo systemctl restart postfix
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Postfix restart failed. ${GREY}" 1>&2
     exit 1

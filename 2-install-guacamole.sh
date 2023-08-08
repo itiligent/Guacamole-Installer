@@ -78,7 +78,7 @@ if [ $? -ne 0 ]; then
 else
     echo -e "${LGREEN}OK${GREY}"
 fi
-service postfix restart
+sudo systemctl restart postfix
 
 # Download Guacamole Server
 echo
@@ -330,7 +330,7 @@ fi
 
 # Restart Tomcat
 echo -e "${GREY}Restarting Tomcat service & enable at boot..."
-service ${TOMCAT_VERSION} restart
+sudo systemctl restart ${TOMCAT_VERSION}
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed${GREY}" 1>&2
     exit 1
@@ -348,8 +348,8 @@ export MYSQL_PWD=${MYSQL_ROOT_PWD}
 if [ "${INSTALL_MYSQL}" = true ]; then
     echo -e "${GREY}Restarting MySQL service & enable at boot..."
     # Set MySQl to start at boot
-    systemctl enable mysql
-    service mysql restart
+    sudo systemctl enable mysql
+    sudo systemctl restart mysql
     if [ $? -ne 0 ]; then
         echo -e "${LRED}Failed${GREY}" 1>&2
         exit 1
@@ -390,7 +390,7 @@ else
         mysql_tzinfo_to_sql /usr/share/zoneinfo 2>/dev/null | mysql -u root -D mysql -h ${MYSQL_HOST} -P ${MYSQL_PORT}
         crudini --set ${mysqlconfig} mysqld default_time_zone "${timezone}"
         # Restart to apply
-        service mysql restart
+        sudo systemctl restart mysql
     fi
 fi
 if [ $? -ne 0 ]; then
@@ -480,9 +480,9 @@ fi
 
 # Ensure guacd is started
 echo -e "${GREY}Starting guacd service & enable at boot..."
-systemctl enable guacd
-service guacd stop 2>/dev/null
-service guacd start
+sudo systemctl enable guacd
+sudo systemctl stop guacd 2>/dev/null
+sudo systemctl start guacd
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
     exit 1
