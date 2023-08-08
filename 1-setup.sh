@@ -157,7 +157,7 @@ SECURE_MYSQL=""                 # Apply mysql secure configuration tool (true/fa
 MYSQL_HOST=""                   # leave blank for localhost default, only specify for remote servers
 MYSQL_PORT=""                   # If blank default is 3306
 GUAC_DB=""                      # If blank default is guacamole_db
-GUAC_USER=""                    # if blank default is guacamole_user
+GUAC_USER=""                    # If blank default is guacamole_user
 GUAC_PWD=""                     # Should not be blank as this may break some aspects of install
 MYSQL_ROOT_PWD=""               # Should not be blank as this may break some aspects of install
 INSTALL_TOTP=""                 # TOTP MFA extension (true/false)
@@ -262,6 +262,7 @@ else
     sudo systemctl restart systemd-hostnamed &>>${LOG_LOCATION}
 fi
 
+# We need a dns suffix to append to the hostname so as SSL can be available.
 if [[ -z ${LOCAL_DOMAIN} ]]; then
     echo -e "${LYELLOW}Update Linux LOCAL DNS DOMAIN [Enter to keep: ${DOMAIN_SUFFIX}]${LGREEN}"
     read -p "                        Enter FULL LOCAL DOMAIN NAME: " LOCAL_DOMAIN
@@ -413,7 +414,7 @@ if [ -z ${BACKUP_EMAIL} ]; then
 fi
 
 echo
-# Prompt the user if they would like to install TOTP MFA
+# Prompt the user to install TOTP MFA
 echo -e "${LGREEN}Guacamole authentication extension options:${GREY}"
 if [[ -z "${INSTALL_TOTP}" ]] && [[ "${INSTALL_DUO}" != true ]]; then
     echo -e -n "AUTH: Install TOTP? (choose 'n' if you want Duo) [y/N]? [default n]: "
@@ -426,7 +427,7 @@ if [[ -z "${INSTALL_TOTP}" ]] && [[ "${INSTALL_DUO}" != true ]]; then
     fi
 fi
 
-# Prompt the user if they would like to install Duo MFA
+# Prompt the user to install Duo MFA
 if [[ -z "${INSTALL_DUO}" ]] && [[ "${INSTALL_TOTP}" != true ]]; then
     echo -e -n "${GREY}AUTH: Install Duo? [y/N] [default n]: "
     read PROMPT
@@ -444,7 +445,7 @@ if [[ "${INSTALL_TOTP}" = true ]] && [[ "${INSTALL_DUO}" = true ]]; then
     exit 1
 fi
 
-# Prompt the user if they would like to install Duo MFA
+# Prompt the user to install Duo MFA
 if [[ -z "${INSTALL_LDAP}" ]]; then
     echo -e -n "${GREY}AUTH: Install LDAP? [y/N] [default n]: "
     read PROMPT
@@ -469,6 +470,7 @@ if [[ -z ${INSTALL_NGINX} ]]; then
     fi
 fi
 
+# Prompt to remove the trailing /guacamole dir from the default front end url
 if [ "${INSTALL_NGINX}" = false ]; then
     echo -e -n "FRONT END: Set Guacamole url to http root (omit /guacamole/ from url ) [Y/n]? [default y]: "
     read PROMPT
