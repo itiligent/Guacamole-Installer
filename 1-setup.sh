@@ -34,14 +34,14 @@ NC='\033[0m' #No Colour
 
 if [[ $EUID -eq 0 ]]; then
     echo
-    echo -e "${LRED}This script must NOT be run as root" 1>&2
+    echo -e "${LRED}This script must NOT be run as root, exiting..." 1>&2
     echo -e ${NC}
     exit 1
 fi
 
 if ! [ $(id -nG "$USER" 2>/dev/null | egrep "sudo" | wc -l) -gt 0 ]; then
     echo
-    echo -e "${LRED}The current user (${USER}) does not belong to 'sudo' group." 1>&2
+    echo -e "${LRED}The current user (${USER}) must be a member of the 'sudo' group, exiting..." 1>&2
     echo -e ${NC}
     exit 1
 fi
