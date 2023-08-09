@@ -39,6 +39,13 @@ if [[ $EUID -eq 0 ]]; then
     exit 1
 fi
 
+if ! [ $(id -nG "$USER" 2>/dev/null | egrep "sudo" | wc -l) -gt 0 ]; then
+    echo
+    echo -e "${LRED}The current user (${USER}) does not belong to 'sudo' group." 1>&2
+    echo -e ${NC}
+    exit 1
+fi
+
 # Check to see if previous build/install files exist, stop and check to be safe.
 if [ "$(find . -maxdepth 1 \( -name 'guacamole-*' -o -name 'mysql-connector-j-*' \))" != "" ]; then
     # Script branding header
