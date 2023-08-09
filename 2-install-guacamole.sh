@@ -344,21 +344,6 @@ echo
 # Set MySQL password
 export MYSQL_PWD=${MYSQL_ROOT_PWD}
 
-# Restart MySQL service
-if [ "${INSTALL_MYSQL}" = true ]; then
-    echo -e "${GREY}Restarting MySQL service & enable at boot..."
-    # Set MySQl to start at boot
-    systemctl enable mysql
-    systemctl restart mysql
-    if [ $? -ne 0 ]; then
-        echo -e "${LRED}Failed${GREY}" 1>&2
-        exit 1
-    else
-        echo -e "${LGREEN}OK${GREY}"
-        echo
-    fi
-fi
-
 # Default locations of MySQL config files
 for x in /etc/mysql/mariadb.conf.d/50-server.cnf \
     /etc/mysql/mysql.conf.d/mysqld.cnf \
@@ -399,6 +384,21 @@ if [ $? -ne 0 ]; then
 else
     echo -e "${LGREEN}OK${GREY}"
     echo
+fi
+
+# Restart MySQL service
+if [ "${INSTALL_MYSQL}" = true ]; then
+    echo -e "${GREY}Restarting MySQL service & enable at boot..."
+    # Set MySQl to start at boot
+    systemctl enable mysql
+    systemctl restart mysql
+    if [ $? -ne 0 ]; then
+        echo -e "${LRED}Failed${GREY}" 1>&2
+        exit 1
+    else
+        echo -e "${LGREEN}OK${GREY}"
+        echo
+    fi
 fi
 
 # Create ${GUAC_DB} and grant ${GUAC_USER} permissions to it
