@@ -14,6 +14,7 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
  ### PLEASE NOTE: DEBIAN 12 & Tomcat 10 NOT COMPATIBLE - SEE ISSUE #10
 
 - Ubuntu 18.04 - 22.x / Debian 11 & 10 / Raspbian Buster or Bullseye
+  - *(if using cloud images - only use above listed **release versions** not latest daily builds!)*
 - Minimum 8GB RAM and 40GB HDD
 - Public or private DNS entries that match the default physical interface IP address (required for SSL)
 - Incoming access on TCP ports 22, 80, and 443
@@ -21,30 +22,37 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 
 ## **Setup Menu Flow**
 
-#### **1. Setup MySQL**
+### **1. Setup MySQL**
 
-- Install Guacamole with a new local MySQL instance, or use an existing/remote MySQL instance. 
-  -   Sub option: Add MySQL **mysql_secure_installation** settings to that MySQL instance
+- Install a new local MySQL instance, or choose an existing/remote MySQL instance. 
+  -   Sub option: Add MySQL **mysql_secure_installation** settings to the selected MySQL instance
 
-#### **2. Select authentication extension**
+### **2. Select authentication extension**
 
-- Choose an authentication extension [DUO, TOTP, LDAP or None]  - *Simultaneous TOTP and DUO not possible, but LDAP with TOTP is ok.*
+- Choose an authentication extension **[DUO, TOTP, LDAP or None]**  
+  - *Simultaneous TOTP and DUO not possible, but LDAP with TOTP is ok.*
 
-#### **3. Choose a Guacamole front end option**
+### **3. Choose a Guacamole front end option**
 
-- Install Nginx Reverse Proxy?: y/n ( n = use Guacamole native front end `http://hostname.local:8080/guacamole`)
-  -   Sub option if no reverse proxy: Set default Guacamole url to http root? ( y = `http://hostname.local:8080`)
-- Install Nginx with no SSL?: y/n ( y = `httP://hostname.local`)
-- Install Nginx with self-signed SSL certificate?: y/n ( y = `httpS://hostname.local`) -  *Configures Nginx with a new self signed TLS certificate and generates corresponding Windows/Linux client certificates*
-- Install Nginx with Let's Encrypt certificate?: y/n ( y =`httpS://public.site.com`) - *Configures Nginx with a new LetsEncrypt certificate and sets up auto renewals.)*
+- **Install Nginx Reverse Proxy?** [y/n]
+  - n = Use Guacamole native front end `http://hostname.local:8080/guacamole`
+    - Sub option: Set native url to http root? [y/n] y = `http://hostname.local:8080`
+- **Install Nginx with no SSL?** [y/n] 
+  - y =  port 80 url `http://hostname.local`
+- **Install Nginx with self-signed SSL certificate?** [y/n] 
+  - y = port 443 url `https://hostname.local`) 
+    -  *Configures Nginx with self signed certificate & generates Windows/Linux client certificates*
+- **Install Nginx with Let's Encrypt certificate?** [y/n] 
+  - y = port 443 `https://your-public-site.com`) 
+    - *Configures Nginx with a new LetsEncrypt certificate and sets up auto renewals.)*
 
 ## **Optional post install hardening**
 
-The installer downloads additional scripts to manually run for:
-- Adding a fail2ban lockdown policy for Guacamole `add-fail2ban.sh`
-- Encrypting internal traffic between the Guacamole client and Guacd daemon with SSL `add-ssl-guac-gaucd.sh`
-- Integrating with Active Directory (See ACTIVE-DIRECTORY-HOW-TO.md) `add-auth-ldap.sh`
-- Adding email alerts via Microsoft365 (uses SMTP auth, requires BYO app password) `add-smtp-relay-o365.sh`
+The installer downloads additional scripts to manually run:
+- `add-fail2ban.sh` - Adds a fail2ban lockdown policy for Guacamole 
+- `add-ssl-guac-gaucd.sh` - Encrypts internal traffic between Guacamole application and Guacd daemon with TLS 
+- `add-auth-ldap.sh` - Template script for Integrating with Active Directory (See ACTIVE-DIRECTORY-HOW-TO.md) 
+- `add-smtp-relay-o365.sh` - Template script for email alerts via MSO65 (SMTP auth, requires BYO app password) 
 
 ## **Installation notes**
 
