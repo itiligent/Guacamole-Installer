@@ -1,0 +1,245 @@
+/* Colour codes used */
+/*    Guacamole grassy green: #88bf5b */
+/*    Warning red #ff2233 */
+/*    Main background charcoal #3f3f3f */
+/*    Input fields dark charcoal #2b2b2b */
+/*    Login dialog background black #000000 */
+/*    All text: #ececec */
+
+
+/* General Style */
+body {
+    color: #ececec;
+    background-color: #3f3f3f;
+}
+pre {
+    color: #ececec;
+    background-color: #2b2b2b;
+    border: 1px solid #000000;
+}
+
+a[href]:visited {
+    color: #88bf5b;
+}
+a[href] {
+    color: #88bf5b;
+}
+
+div.location,
+input[type=text],
+input[type=email],
+input[type=number],
+input[type=password],
+textarea {
+    background-color: #2b2b2b;
+    color: #ececec;
+}
+
+
+/* Login */
+div.login-ui {
+    color: #ececec;
+    background-color: #3f3f3f;
+}
+.login-ui .login-fields .labeled-field input:focus {
+    background-color: #3f3f3f;
+    color: #ececec;
+}
+
+.login-ui .login-fields .labeled-field {
+    background-color: #3f3f3f;
+    color: #ececec;
+}
+
+.login-ui .login-dialog .logo {
+    background-image: url('app/ext/custom-namespace/images/logo.png');
+    width: 7em;
+    height:	7em;
+    -webkit-background-size: 7em auto;
+
+}
+
+.login-ui .login-dialog {
+    background-color: #000000;
+    color: #ececec;
+}
+
+.login-ui .login-dialog .version .app-name {
+    font-weight: 300;
+    text-transform: none;
+    text-align: center;
+    font-size: 2.25em;
+    color: #ececec;
+    font-family: arial black, sans-serif;
+}
+
+div.logged-out-modal .ng-scope {
+    color: #ececec;
+    background-color: #000000;
+}
+
+div.logged-out-modal .ng-scope button {
+    color: #ececec;
+    background-color: #3f3f3f;
+    border: 1px solid #ececec;
+}
+
+div.modal-contents {
+    color: #ececec;
+    background-color: #3f3f3f;
+}
+
+.logged-out-modal guac-modal {
+    color: #ececec;
+    background-color: #3f3f3f;
+}
+
+div.notification.ng.scope {
+    border: 1px solid #ececec;
+}
+
+.notification.error {
+    background-color: #ff2233;
+}
+
+.client-status-modal .notification.error {
+    background-color: #ff2233;
+}
+
+button.danger {
+    background: #ff2233;
+ }
+
+.login-ui.error p.login-error {
+    color: #ececec;
+    background-color: #ff2233;
+}
+
+
+/* Home */
+.recent-connections .connection:hover {
+    background-color: #88bf5b;
+}
+
+.menu-dropdown .menu-contents {
+    background-color: #2b2b2b;
+}
+.menu-dropdown .menu-contents li a {
+    color: #ececec;
+}
+.menu-dropdown .menu-contents li a:hover {
+    background-color: #88bf5b;
+}
+
+.list-item.selected {
+    background: #88bf5b
+}
+.list-item:not(.selected) .caption:hover {
+    background-color: #88bf5b;
+}
+.list-item .name {
+    color: #ececec;
+}
+
+.settings.connections .connection-list .new-sharing-profile {
+    opacity: .6;
+}
+
+.notification {
+    color: #ececec;
+    background-color: #2b2b2b;
+}
+
+
+/* Menus */
+.menu {
+    color: #ececec;
+    background-color: #3f3f3f;
+}
+
+.clipboard,
+.clipboard-service-target {
+    background-color: #2b2b2b;
+    color: #88bf5b;
+}
+
+.menu-dropdown .menu-contents li a.danger {
+    color: #ececec;
+    font-weight: 700;
+    background-color: #ff2233;
+}
+
+/* Connections */
+#connection-warning {
+    background-color: #3f3f3f;
+}
+
+.transfer-manager {
+    background-color: #2b2b2b;
+}
+.transfer.error {
+    background-color: #ff2233;
+}
+
+
+/* Settings */
+.page-tabs .page-list li a[href],
+.section-tabs li a {
+    color: #ececec;
+}
+.page-tabs .page-list li a[href]:hover,
+.section-tabs li a:hover {
+    background-color: #88bf5b;
+}
+.page-tabs .page-list li a[href]:visited {
+    color: #ececec;
+}
+
+.settings table.session-list tr.session:hover {
+    background-color: #88bf5b;
+}
+
+.location-chooser .dropdown {
+    background-color: #2b2b2b;
+}
+
+.settings.connectionHistory a.history-session-recording {
+    color: #88bf5b;
+}
+
+.settings.connectionHistory a.history-session-recording:after {
+    opacity: .0;
+}
+
+.user a,
+.user-group a,
+.connection a,
+.connection-group a {
+    color: #ececec;
+}
+.user a:hover,
+.user-group a:hover,
+.connection a:hover,
+.connection-group a:hover {
+    color: #ececec;
+}
+.user a:visited,
+.user-group a:visited,
+.connection a:visited,
+.connection-group a:visited {
+    color: #ececec;
+}
+
+.manage-user .notice.read-only {
+    color: #ececec;
+    background-color: #2b2b2b;
+}
+
+#filesystem-menu .header.breadcrumbs .breadcrumb:hover {
+    background-color: #88bf5b;
+}
+
+#guac-menu #zoom-out:hover,
+#guac-menu #zoom-in:hover {
+    background-color: #88bf5b;
+}
