@@ -21,6 +21,7 @@ LGREEN='\033[0;92m'
 LYELLOW='\033[0;93m'
 NC='\033[0m' #No Colour
 
+# Check if user is root or sudo
 if ! [ $(id -u) = 0 ]; then
     echo
     echo -e "${LGREEN}Please run this script as sudo or root${NC}" 1>&2

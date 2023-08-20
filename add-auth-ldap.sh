@@ -18,7 +18,6 @@ NC='\033[0m' #No Colour
 clear
 
 # Check if user is root or sudo
-
 if ! [ $(id -u) = 0 ]; then
     echo
     echo -e "${LGREEN}Please run this script as sudo or root${NC}" 1>&2

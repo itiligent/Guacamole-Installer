@@ -50,7 +50,7 @@ echo "duo-api-hostname: ??????????"
 echo "duo-secret-key: ??????????"
 echo "duo-application-key: (this is locally created - run 'pwgen 40 1' to manually generate this 40 char random value)"
 echo
-echo "Once this change is complete, restart Guacamole with sudo systemctl restart tomcat9"
+echo "Once this change is complete, restart Guacamole with sudo systemctl restart ${TOMCAT_VERSION}"
 
 rm -rf guacamole-*
 

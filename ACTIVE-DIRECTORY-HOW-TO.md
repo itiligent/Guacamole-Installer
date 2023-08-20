@@ -41,9 +41,9 @@ ldap-max-search-results:200
 ```
   - **_Important note on `ldap-user-base-dn:`_** _This value sets a position in the directory as a relative root to search within. All Guacamole users to be authenticated by Active Directory must be placed in a lower position within the directory tree to this value. This line can be added multiple times to more efficiently search across multiple branches of a directory tree._
 
-  - **_Important note on `ldap-max-search-results:`_** _Yes, there is no space before the :200 value. In larger environments managing the directory efficiently requires we don't query every object in the tree for every user lookup. You may need to adjust this number depending on the number of objects in you tree._ 
+  - **_Important note on `ldap-max-search-results:`_** _Yes, there is no space before the :200 value. In larger environments managing the directory efficiently requires we don't query every object in the tree for every user lookup. You may need to adjust this number depending on the number of objects in your tree._ 
 
-  - **_Important note on `mysql-auto-create-accounts:`_** _This line is optional and can be deleted. This line ensures that all Active Directory user accounts will have a matching user account created in the Guacamole db at first logon. Local Guacamole accounts are NOT necessarily needed for access to Guacamole connections - these are only necessary when deploying MFA or you want to assign other settings specific to individual users. Domain users can be provisioned access to connections without creating local users in the Guacamole db. For many use cases, manually creating a small number of Guacamole user accounts to their matching domain accounts may be more preferable than all users inheriting access to establish a local account in the Guacamole db. See below for manual account setup._
+  - **_Important note on `mysql-auto-create-accounts:`_** _This line is optional and can be deleted. This line ensures that all Active Directory user accounts will have a matching user account created in the Guacamole db at first logon. Local Guacamole accounts are NOT necessarily needed for access to Guacamole connections - these are only necessary when deploying MFA or you want to assign other settings specific to individual users. Domain users can be provisioned access to Guacamole sessions connections without creating local users in the Guacamole db. For many use cases, manually creating a small number of Guacamole user accounts to their matching domain accounts may be more preferable than all users inheriting access to establish a local account in the Guacamole db. See below for manual account setup._
 
 ## **4. Run the (now customised) LDAP configuration script**
 
@@ -51,7 +51,7 @@ ldap-max-search-results:200
 
 ## **5. Logging on to Guacamole with the new guacbind-ad account**
 
-- When logging in to Guacamole as the new Active Directory account and password created above, that domain user now passes through to Guacamole as both a Guacamole admin and a Domain User. If all is working correctly, all the users located below the directory tree position set in **ldap-user-base-dn** will be listed under **Settings | Users** of the Guacamole management console.
+- When logging in to Guacamole as the new Active Directory account and password created above, that domain user now passed through to Guacamole as both a Guacamole admin and a Domain User. If all is working correctly, all the users located below the directory tree position set in **ldap-user-base-dn** will be listed under **Settings | Users** of the Guacamole management console.
 
 ## **6. Manually creating and configuring new Guacamole users for Active Directory authentication**
 
@@ -59,15 +59,15 @@ ldap-max-search-results:200
 
 ## **7. Logging on using either the local vs the domain guacbind-ad account**
 
-- As described above, logging on with the Guacamole admin user password will authenticate with the local Guacamole admin account, conversely if the Guacamole admin domain account password is given, the domain account is authenticated via Active Directory and then passed through as authorised to administer Guacamole. It may sometimes be necessary to log on with the local Guacamole admin account to manage some admin functions, but be aware that when doing so you will not be able to view and search the user list from Active Directory. Only when logged on with the domain version of the Guacamole admin account can domain user permissions to various Guacamole sessions and objects be delegated and managed.
+- As described above, logging on with the Guacamole admin user password will authenticate with the local Guacamole admin account, conversely if the Guacamole admin domain account password is given, the domain account is authenticated via Active Directory and then passed through as authorised to administer Guacamole. It may sometimes be necessary to log on with the local Guacamole admin account to manage some application functions, but be aware that when doing so you will not be able to view and search the user list from Active Directory. Only when logged on with the domain version of the Guacamole admin account can domain user permissions to various Guacamole sessions and objects be delegated and managed.
 
 ## **8. Creating a quasi Single Sign On user experience for Windows RDP access**
 
 - Create a Global Security domain group (e.g. Guac_Users) and populate it with selected domain users as required. 
 - Now add this new security group to the built-in “Remote Desktop Users” domain group.
-- Next, for each connection profile you wish to create the SSO behaviour, _parameter_ _tokens_ must be used in place of hard coded usernames and password values as follows... 
+- Next, for each connection profile you wish to create the SSO experience and behaviour, _parameter_ _tokens_ must be used in place of hard coded usernames and password values as follows... 
   - Add the parameter token `${GUAC_USERNAME}` to the Username field for each connection profile
   - Add the parameter token `${GUAC_PASSWORD}` to the Password field for each connection profile
 - If the user has been given directory rights to the Guacamole session object, Guacamole will first authenticate the user to the Guacamole application (via a brokered Active Directory challenge) and then seamlessly pass the user's same domain credentials through to the Guacamole remote desktop session, thus avoiding any further remote desktop authentication prompts.
 - For more info on other dynamic connection settings see https://guacamole.apache.org/doc/gug/configuring-guacamole.html#parameter-tokens
-- For full SSO, the SAML authentication must be used. As the SAML extension requires a very bespoke approach to configuring login providers and login behaviours, the SAML authentication feature is beyond the scope of this project. 
+- For full SSO, the SAML authentication extension must be used. As the Guacamole SAML extension requires a very bespoke approach to configuring login providers and login behaviours, the SAML authentication feature is beyond the scope of this project. If your organisation already uses SAML within your infrastructure then you likely already know what to do to implement.

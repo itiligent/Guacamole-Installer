@@ -1,6 +1,6 @@
 #!/bin/bash
 #######################################################################################################################
-# Add self signed SSL certificates to Guacamole with Nginx reverse proxy
+# Add self signed TLS certificates to Guacamole with Nginx reverse proxy
 # For Ubuntu / Debian / Rasbpian
 # 4a of 4
 # David Harrop
@@ -18,41 +18,15 @@ NC='\033[0m' #No Colour
 
 echo
 echo
-echo -e "${LGREEN}Setting up self signed SSL certificates for Nginx...${GREY}"
+echo -e "${LGREEN}Setting up self signed TLS certificates for Nginx...${GREY}"
 echo
 
 # Setup script cmd line arguments for proxy site and certificate days
 SSLNAME=$1
 SSLDAYS=$2
 
-#######################################################################################################################
-# If you wish to add/regenerate self signed SSL to a pre-existing Nginx install, this script can be adapted to be run
-# standalone. To run as standalone, simply un-comment this entire section and provide the desired variable
-# values to complete the reconfiguration of Nginx.
-
-# Variable inputs
-#TOMCAT_VERSION="tomcat9" # Not needed for general SSL install(if Guacamole not present, also comment the tomcat restart)
-#DOWNLOAD_DIR=$(eval echo ~${SUDO_USER})
-#LOG_LOCATION="${DOWNLOAD_DIR}/ssl_install.log"
-#TMP_DIR=/tmp
-#GUAC_URL=http://localhost:8080/guacamole/ # substitute for whatever url that nginx is proxying
-#CERT_COUNTRY="AU" # must be two letter code!
-#CERT_STATE="Victoria"
-#CERT_LOCATION="Melbourne"
-#CERT_ORG="Itiligent"
-#CERT_OU="I.T. dept"
-#PROXY_SITE=$SSLNAME
-
-# To run manually or to regenerate SSL certificates, this script must be run in the current user environment [-E switch]
-# Be aware that running this script just as sudo will save certs to sudo's home path with incorrect permissions,
-# plus the custom certificate install instructions shown after running will be invalid.
-
-# e.g. sudo -E ./4a-install-ssl-self-signed-nginx.sh proxy-site-name 3650
-
-#######################################################################################################################
-
 # Discover IPv4 interface
-echo -e "${GREY}Discovering the default route interface and Proxy DNS name to bind with the new SSL certificate..."
+echo -e "${GREY}Discovering the default route interface and Proxy DNS name to bind with the new TLS certificate..."
 DEFAULT_IP=$(ip addr show $(ip route | awk '/default/ { print $5 }') | grep "inet" | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1)
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
@@ -62,8 +36,8 @@ else
     echo
 fi
 
-echo -e "${GREY}New self signed SSL certificate attributes are shown below...${DGREY}"
-# Display the new SSL cert parameters.
+echo -e "${GREY}New self signed TLS certificate attributes are shown below...${DGREY}"
+# Display the new TLS cert parameters.
 cat <<EOF | tee -a $TMP_DIR/cert_attributes.txt
 [req]
 distinguished_name  = req_distinguished_name
@@ -88,18 +62,12 @@ subjectAltName      = @alt_names
 DNS.1               = $PROXY_SITE
 IP.1                = $DEFAULT_IP
 EOF
-# Add IP.2 & IP.3 above EOF as needed.
-#IP.2                = $IP3
-#IP.3                = $IP3
-# Additional DNS names can also be manually added into the above cat <<EOF as needed.
-#DNS.2               =
-#DNS.3               =
 
-# Set default certificate file destinations. These can be adapted for any other SSL application.
+# Set default certificate file destinations. These can be adapted for any other TLS application.
 DIR_SSL_CERT="/etc/nginx/ssl/cert"
 DIR_SSL_KEY="/etc/nginx/ssl/private"
 
-# Make directories to place SSL Certificate if they don't exist
+# Make directories to place TLS Certificate if they don't exist
 if [[ ! -d $DIR_SSL_KEY ]]; then
     sudo mkdir -p $DIR_SSL_KEY
 fi
@@ -113,7 +81,7 @@ if [[ $SSLDAYS == "" ]]; then
 fi
 
 echo
-echo "{$GREY}Creating a new Nginx SSL Certificate ..."
+echo "{$GREY}Creating a new Nginx TLS Certificate ..."
 openssl req -x509 -nodes -newkey rsa:2048 -keyout $SSLNAME.key -out $SSLNAME.crt -days $SSLDAYS -config $TMP_DIR/cert_attributes.txt
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
@@ -123,7 +91,7 @@ else
     echo
 fi
 
-# Place SSL Certificate within defined path
+# Place TLS Certificate within defined path
 sudo cp $SSLNAME.key $DIR_SSL_KEY/$SSLNAME.key
 sudo cp $SSLNAME.crt $DIR_SSL_CERT/$SSLNAME.crt
 
@@ -151,7 +119,7 @@ else
 fi
 
 # Update Nginx config to accept the new certificates
-echo -e "${GREY}Configuring Nginx proxy to use self signed SSL certificates and setting up automatic HTTP to HTTPS redirect...${DGREY}"
+echo -e "${GREY}Configuring Nginx proxy to use self signed TLS certificates and setting up automatic HTTP to HTTPS redirect...${DGREY}"
 #cat > /etc/nginx/sites-available/$PROXY_SITE <<EOL | > /dev/null
 cat <<EOF | tee /etc/nginx/sites-available/$PROXY_SITE
 server {
@@ -233,7 +201,7 @@ SHOWASTEXT1='$mypwd'
 SHOWASTEXT2='"Cert:\LocalMachine\Root"'
 
 printf "${GREY}+-------------------------------------------------------------------------------------------------------------
-${LGREEN}+ WINDOWS CLIENT SELF SIGNED SSL BROWSER CONFIG - SAVE THIS BEFORE CONTINUING!${GREY}
+${LGREEN}+ WINDOWS CLIENT SELF SIGNED TLS BROWSER CONFIG - SAVE THIS BEFORE CONTINUING!${GREY}
 +
 + 1. In ${DOWNLOAD_DIR} is a Windows version of the new certificate ${LYELLOW}$SSLNAME.pfx${GREY}
 + 2. Import this PFX file into your Windows client with the below Powershell commands (as Administrator):
@@ -241,7 +209,7 @@ ${LGREEN}+ WINDOWS CLIENT SELF SIGNED SSL BROWSER CONFIG - SAVE THIS BEFORE CONT
 echo -e "${SHOWASTEXT1} = ConvertTo-SecureString -String "1234" -Force -AsPlainText"
 echo -e "Import-pfxCertificate -FilePath $SSLNAME.pfx -Password "${SHOWASTEXT1}" -CertStoreLocation "${SHOWASTEXT2}""
 printf "${GREY}+-------------------------------------------------------------------------------------------------------------
-${LGREEN}+ LINUX CLIENT SELF SIGNED SSL BROWSER CONFIG - SAVE THIS BEFORE CONTINUING!${GREY}
+${LGREEN}+ LINUX CLIENT SELF SIGNED TLS BROWSER CONFIG - SAVE THIS BEFORE CONTINUING!${GREY}
 +
 + 1. In ${DOWNLOAD_DIR} is a new Linux native OpenSSL certificate ${LYELLOW}$SSLNAME.crt${GREY}
 + 2. Import the CRT file into your Linux client certificate store with the below command:
@@ -250,7 +218,7 @@ echo -e "(If certutil is not installed, run apt-get install libnss3-tools)"
 echo -e "mkdir -p $HOME/.pki/nssdb && certutil -d $HOME/.pki/nssdb -N"
 echo -e "certutil -d sql:$HOME/.pki/nssdb -A -t "CT,C,c" -n $SSLNAME -i $SSLNAME.crt"
 printf "+-------------------------------------------------------------------------------------------------------------\n"
-echo -e "${LYELLOW}The above SSL browser config instructions are saved in ${LGREEN}$LOG_LOCATION${GREY}"
+echo -e "${LYELLOW}The above TLS browser config instructions are saved in ${LGREEN}$LOG_LOCATION${GREY}"
 
 # Done
 echo -e ${NC}

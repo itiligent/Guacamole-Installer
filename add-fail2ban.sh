@@ -17,6 +17,7 @@ NC='\033[0m' #No Colour
 
 clear
 
+# Check if user is root or sudo
 if ! [ $(id -u) = 0 ]; then
     echo
     echo -e "${LGREEN}Please run this script as sudo or root${NC}" 1>&2
@@ -40,10 +41,10 @@ rm -f /tmp/fail2ban.update
 # Start setup prompts #################################################################################################
 #######################################################################################################################
 
-# Prompt to install fail2ban base app, default of yes
+# Prompt to install fail2ban base package with no policy as yet, default of yes
 if [[ -z ${FAIL2BAN_BASE} ]]; then
     echo
-    echo -e -n "${LGREEN}Install Fail2ban? [default y]: ${GREY}"
+    echo -e -n "${LGREEN}Install Fail2ban? (base package with no policy as yet) [default y]: ${GREY}"
     read PROMPT
     if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
         FAIL2BAN_BASE=false
@@ -63,40 +64,40 @@ if [[ -z ${FAIL2BAN_GUAC} ]] && [[ "${FAIL2BAN_BASE}" = true ]]; then
     fi
 fi
 
-# Prompt to install Nginx fail2ban config defaults , default of no
-if [[ -z ${FAIL2BAN_NGINX} ]] && [[ "${FAIL2BAN_BASE}" = true ]]; then
-    echo -e -n "${GREY}POLICY: Apply Nginx fail2ban security policy? (y/n) [default n]:${GREY}"
-    read PROMPT
-    if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
-        FAIL2BAN_NGINX=true
-    else
-        FAIL2BAN_NGINX=false
-    fi
-fi
+# Prompt to install Nginx fail2ban config defaults , default of no - NOT IMPLEMENTED YET
+#if [[ -z ${FAIL2BAN_NGINX} ]] && [[ "${FAIL2BAN_BASE}" = true ]]; then
+#    echo -e -n "${GREY}POLICY: Apply Nginx fail2ban security policy? (y/n) [default n]:${GREY}"
+#    read PROMPT
+#    if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
+#        FAIL2BAN_NGINX=true
+#    else
+#        FAIL2BAN_NGINX=false
+#    fi
+#fi
 
-# Prompt to install SSH fail2ban config defaults , default of no
-if [[ -z ${FAIL2BAN_SSH} ]] && [[ "${FAIL2BAN_BASE}" = true ]]; then
-    echo -e -n "${GREY}POLICY: Apply SSH fail2ban security policy? (y/n) [default n]:${GREY}"
-    read PROMPT
-    if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
-        FAIL2BAN_SSH=true
-    else
-        FAIL2BAN_SSH=false
-    fi
-fi
+# Prompt to install SSH fail2ban config defaults , default of no - NOT IMPLEMENTED YET
+#if [[ -z ${FAIL2BAN_SSH} ]] && [[ "${FAIL2BAN_BASE}" = true ]]; then
+#    echo -e -n "${GREY}POLICY: Apply SSH fail2ban security policy? (y/n) [default n]:${GREY}"
+#    read PROMPT
+#    if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
+#        FAIL2BAN_SSH=true
+#    else
+#        FAIL2BAN_SSH=false
+#    fi
+#fi
 
 #######################################################################################################################
 # Fail2ban base setup #################################################################################################
 #######################################################################################################################
 
-# Install base fail2ban base application (no policy defined yet)
+# Install base fail2ban base application, and whitelist the local subnet as the starting baseline (no policy defined yet)
 if [ "${FAIL2BAN_BASE}" = true ]; then
 
-    #Update and install fail2ban (and john for management of config file updates)
+    #Update and install fail2ban (and john for management of config file updates, and not overwrite any existing settings)
     sudo apt-get update -qq >/dev/null 2>&1
     sudo apt-get install fail2ban john -qq -y >/dev/null 2>&1
 
-    # Create the basic jail.local template
+    # Create the basic jail.local template and local subnet whitelist
     cat >/tmp/fail2ban.conf <<EOF
 [DEFAULT]
 destemail = yourname@example.com
@@ -173,7 +174,7 @@ if [ "${FAIL2BAN_BASE}" = true ]; then
     # Now the above loop is done, append the single loopback address to all the discovered the subnet IDs in a single line
     sed -i 's/^/127.0.0.1\/24 /' /tmp/netaddr.txt
 
-    # Finally assemble the entire syntaxt of the ignoreip whitelist for insertion into the base fail2ban config
+    # Finally assemble the entire syntax of the ignoreip whitelist for insertion into the base fail2ban config
     SED_IGNORE=$(echo "ignoreip = ")
     SED_NETADDR=$(cat /tmp/netaddr.txt)
     sed -i "s|ignoreip \=|${SED_IGNORE}${SED_NETADDR}|g" /tmp/fail2ban.conf
@@ -181,7 +182,7 @@ if [ "${FAIL2BAN_BASE}" = true ]; then
     # Move the new base fail2ban config to the jail.local file
     touch /etc/fail2ban/jail.local
 
-    # Apply thhe base config, keeping any pre-existing settings
+    # Apply the base config, keeping any pre-existing settings
     sudo bash -c 'cat /tmp/fail2ban.conf /etc/fail2ban/jail.local | unique /tmp/fail2ban.update ; cat /tmp/fail2ban.update > /etc/fail2ban/jail.local'
 
     # Clean up
@@ -190,7 +191,7 @@ if [ "${FAIL2BAN_BASE}" = true ]; then
     rm -f /tmp/netaddr.txt
     rm -f /tmp/fail2ban.update
 
-    # bounce the service to relaod the new config
+    # bounce the service to reload the new config
     sudo systemctl restart fail2ban
 
     # Done
@@ -204,8 +205,10 @@ else
 fi
 
 #######################################################################################################################
-# Fail2ban optional setup items #######################################################################################
+# Fail2ban optional policy setup items ################################################################################
 #######################################################################################################################
+
+if [ "${FAIL2BAN_GUAC}" = true ]; then
 
 # Create the Guacamole jail.local policy template
 cat >/tmp/fail2ban.conf <<EOF
@@ -213,7 +216,7 @@ cat >/tmp/fail2ban.conf <<EOF
 enabled = true
 port = http,https
 logpath  = /var/log/$TOMCAT_VERSION/catalina.out
-bantime = 10m
+bantime = 15m
 findtime  = 60m
 maxretry = 5
 EOF
@@ -232,8 +235,13 @@ REGEX='failregex = ^.*WARN  o\.a\.g\.r\.auth\.AuthenticationService - Authentica
 #Insert the new regex
 sed -i -e "/Authentication attempt from/a ${REGEX}" /etc/fail2ban/filter.d/guacamole.conf
 
-# Bounce the service to relaod the new config
+# Done
+echo -e "${LGREEN}Guacamole security policy applied${GREY}\n- ${SED_NETADDR}are whitelisted from all IP bans.\n- To alter this whitelist, edit /etc/fail2ban/jail.local & sudo systemctl restart fail2ban"
+
+# Bounce the service to reload the new config
 sudo systemctl restart fail2ban
+echo
+fi
 
 # Clean up
 rm -f /tmp/fail2ban.conf
@@ -241,21 +249,17 @@ rm -f /tmp/ip_list.txt
 rm -f /tmp/netaddr.txt
 rm -f /tmp/fail2ban.update
 
-# Done
-echo -e "${LGREEN}Guacamole security policy applied${GREY}\n-${SED_NETADDR}are whitelisted from all IP bans.\n- To alter this whitelist, edit /etc/fail2ban/jail.local & sudo systemctl restart fail2ban"
-echo
-
 ############## Start Fail2ban NGINX security policy option ###############
-if [ "${FAIL2BAN_NGINX}" = true ]; then
-    echo -e "${LGREEN}Nginx Fail2ban policy not implemented yet.${GREY}"
-    echo
-fi
+#if [ "${FAIL2BAN_NGINX}" = true ]; then
+#    echo -e "${LGREEN}Nginx Fail2ban policy not implemented yet.${GREY}"
+#    echo
+#fi
 
 ############### Start Fail2ban SSH security policy option ################
-if [ "${FAIL2BAN_SSH}" = true ]; then
-    echo -e "${LGREEN}SSH Fail2ban policy not implemented yet..${GREY}"
-    echo
-fi
+#if [ "${FAIL2BAN_SSH}" = true ]; then
+#    echo -e "${LGREEN}SSH Fail2ban policy not implemented yet..${GREY}"
+#    echo
+#fi
 
 #Done
 echo -e ${NC}

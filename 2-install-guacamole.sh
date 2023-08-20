@@ -4,8 +4,6 @@
 # For Ubuntu / Debian / Raspbian
 # David Harrop
 # April 2023
-# Special thanks to MysticRyuujin for much of the guac install outline here
-# pls see https://github.com/MysticRyuujin/guac-install for more
 #######################################################################################################################
 
 # Prepare text output colours

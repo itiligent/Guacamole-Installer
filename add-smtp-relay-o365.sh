@@ -26,6 +26,7 @@ SENDER=$SUDO_USER
 SERVER=$(uname -n)
 DOMAIN_SEARCH_SUFFIX=$(grep search /etc/resolv.conf | grep -v "#" | sed 's/'search[[:space:]]'//')
 
+# Check if user is root or sudo
 if ! [ $(id -u) = 0 ]; then
     echo
     echo -e "${LGREEN}Please run this script as sudo or root${NC}" 1>&2
