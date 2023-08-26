@@ -1,6 +1,6 @@
 # **Guacamole 1.5.3 VDI/Jump Server Appliance Build Script**
 
-A menu based source build & install script for Guacamole 1.5.3 with support for TLS reverse proxy, AD integration, multi-factor authentication and further security hardening.
+A menu based source build & install script for Guacamole 1.5.3 with optional TLS reverse proxy, AD integration, multi-factor authentication, further security hardening and dark mode support.
 
 ### **Automatic build, install & config script**
 
@@ -94,4 +94,4 @@ The autorun link above downloads the following items into the `$DOWNLOAD_DIR/gua
 - `add-fail2ban.sh`: Adds a fail2ban policy (with local subnet override) to secure Guacamole against external brute force attacks
 - `add-smtp-relay-o365.sh`: Sets up an SMTP auth relay with O365 for monitoring & alerts (BYO app password)
 - `backup-guacamole.sh`: A simple MySQL Guacamole backup script
-- `branding.jar`: An example template for a customised Guacamole login screen. Much further UI customisation is possible inside this extension via additional CSS. Delete this file to keep the default Guacmole UI. 
+- `branding.jar`: An example template for a custom (dark mode!) Guacamole theme. Delete this file to keep the default Guacamole UI. This extension's source is also included for easier study and customisation.
