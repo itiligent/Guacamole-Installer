@@ -246,6 +246,13 @@ echo -e "${LGREEN}"
 sudo chmod -R 770 $TMP_DIR
 sudo chown -R $SUDO_USER:root $TMP_DIR
 
+# A temporary workaround for current Debian 12 & Tomcat 10 incompatibilities (August 2023)
+if [[ $OS_FLAVOUR = "debian" ]] && [[ $OS_VERSION = *"bookworm"* ]]; then
+    # Add the oldstable repo and downgrade tomcat version install
+    echo "deb http://deb.debian.org/debian/ bullseye main" | sudo tee /etc/apt/sources.list.d/bullseye.list >/dev/null
+    TOMCAT_VERSION="tomcat9"
+fi
+
 #######################################################################################################################
 # Begin install menu prompts ##########################################################################################
 #######################################################################################################################
@@ -482,7 +489,7 @@ fi
 
 # Prompt to remove the trailing /guacamole dir from the default front end url
 if [ "${INSTALL_NGINX}" = false ]; then
-    echo -e -n "FRONT END: Set Guacamole url to http root (omit /guacamole/ from url ) [Y/n]? [default y]: "
+    echo -e -n "FRONT END: Set native Guacamole url to http root (omit /guacamole/ from url ) [Y/n]? [default y]: "
     read PROMPT
     if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
         CHANGE_ROOT=false
@@ -574,7 +581,7 @@ echo
 echo -e "${LGREEN}Beginning Guacamole setup...${GREY}"
 echo
 echo -e "${GREY}Checking Linux distro specific dependencies..."
-if [[ $OS_FLAVOUR == "ubuntu" ]] || [[ $OS_FLAVOUR == "ubuntu"* ]]; then # potentially expand out distro choices here
+if [[ $OS_FLAVOUR == "ubuntu" ]] || [[ $OS_FLAVOUR == *"ubuntu"* ]]; then # potentially expand out distro choices here
     JPEGTURBO="libjpeg-turbo8-dev"
     LIBPNG="libpng-dev"
     # Just in case this repo is not added by default in the distro

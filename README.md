@@ -1,4 +1,4 @@
-# **Guacamole 1.5.3 VDI / Jump Server Appliance Build Script**
+# **Guacamole 1.5.3 VDI/Jump Server Appliance Build Script**
 
 A menu based source build & install script for Guacamole 1.5.3 with support for TLS reverse proxy, AD integration, multi-factor authentication and further security hardening.
 
