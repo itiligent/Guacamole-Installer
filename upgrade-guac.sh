@@ -7,7 +7,7 @@
 #######################################################################################################################
 
 #######################################################################################################################
-# Initial enviromment setup ###########################################################################################
+# Script pre-flight checks and settings ###############################################################################
 #######################################################################################################################
 
 clear
@@ -32,14 +32,26 @@ fi
 USER_HOME_DIR=$(eval echo ~${SUDO_USER})
 DOWNLOAD_DIR=$USER_HOME_DIR/guac-setup/upgrade
 
+# Setup directory locations
+mkdir -p $DOWNLOAD_DIR
+
+# Check to see if any previous version of build/install files exist, if so stop and check to be safe.
+if [ "$(find . -maxdepth 2 \( -name 'guacamole-*' -o -name 'mysql-connector-j-*' \))" != "" ]; then
+    echo
+    echo -e "${LRED}Possible previous upgrade files detected. Please review and remove old guacamole install files before proceeding.${GREY}" 1>&2
+    echo
+    exit 1
+fi
+
+#######################################################################################################################
+# Initial environment setup ###########################################################################################
+#######################################################################################################################
+
 # Script branding header
 echo
 echo -e "${GREYB}Itiligent Virtual Desktop Appliance UPGRADE"
 echo -e "                    ${LGREEN}Powered by Guacamole"
 echo
-
-# Setup directory locations
-mkdir -p $DOWNLOAD_DIR
 
 # Version of Guacamole to upgrade to
 NEW_GUAC_VERSION="1.5.3"
@@ -57,52 +69,40 @@ GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guac
 # Install log Location
 LOG_LOCATION="${DOWNLOAD_DIR}/guacamole_${NEW_GUAC_VERSION}_upgrade.log"
 
-# Non interactive silent setup options - add true/false or specific values
-MYSQL_HOST=""     # leave blank for localhost default, only specify for remote servers
-MYSQL_PORT=""     # If blank default is 3306
-GUAC_DB=""        # If blank default is guacamole_db
-GUAC_USER=""      # if blank default is guacamole_user
-GUAC_PWD=""       # Should not be blank as this may break some aspects of install
-MYSQL_ROOT_PWD="" # Should not be blank as this may break some aspects of install
-
-echo
-# For convenience & sanity check, display status of preset script options at start of install
-echo -e "${GREY}Enabled non-interactive presets listed below, blank entries will prompt. Ctrl+x to stop/edit"
-echo -e "${DGREY}Current Guacamole version\t= ${GREY}${OLD_GUAC_VERSION}"
-echo -e "${DGREY}Guacamole upgrade version\t= ${GREY}${NEW_GUAC_VERSION}"
-echo -e "${DGREY}MySQL hostname/IP\t\t= ${GREY}${MYSQL_HOST}"
-echo -e "${DGREY}MySQL port\t\t\t= ${GREY}${MYSQL_PORT}"
-echo -e "${DGREY}Guacamole db name\t\t= ${GREY}${GUAC_DB}"
-echo -e "${DGREY}Guacamole db user name\t\t= ${GREY}${GUAC_USER}"
-echo -e "${DGREY}Guacamole user pwd\t\t= ${GREY}${GUAC_PWD}"
-echo -e "${DGREY}MySQL root pwd\t\t\t= ${GREY}${MYSQL_ROOT_PWD}${GREY}"
-echo
+# Auto updated values from main installer
+MYSQL_HOST=
+MYSQL_PORT=
+GUAC_USER=
+GUAC_PWD=
+GUAC_DB=
+MYSQL_ROOT_PWD=
 
 #######################################################################################################################
-# Prompt inputs #######################################################################################################
+# Prompt inputs if used as a standalone script (without auto updated variables) #######################################
 #######################################################################################################################
 
+echo
 # Get MySQL Hostname or IP
 if [ -z "${MYSQL_HOST}" ]; then
-    read -s -p "Enter MySQL server hostname or IP [localhost]: " MYSQL_HOST
+    read -p "Enter MySQL server hostname or IP [localhost]: " MYSQL_HOST
     echo
 fi
 
 # Get MySQL Port
 if [ -z "${MYSQL_PORT}" ]; then
-    read -s -p "Enter MySQL server port [3306]: " MYSQL_PORT
+    read -p "Enter MySQL server port [3306]: " MYSQL_PORT
     echo
 fi
 
 # Get MySQL database name
 if [ -z "${GUAC_DB}" ]; then
-    read -s -p "Enter Guacamole database name [guacamole_db]: " GUAC_DB
+    read -p "Enter Guacamole database name [guacamole_db]: " GUAC_DB
     echo
 fi
 
 # Get MySQL user name
 if [ -z "${GUAC_USER}" ]; then
-    read -s -p "Enter Guacamole user name [guacamole_user]: " GUAC_USER
+    read -p "Enter Guacamole user name [guacamole_user]: " GUAC_USER
     echo
 fi
 
@@ -114,6 +114,7 @@ fi
 
 # Get MySQL root password
 if [ -z "${MYSQL_ROOT_PWD}" ]; then
+    echo
     read -s -p "Enter MySQL root password: " MYSQL_ROOT_PWD
     echo
 fi
@@ -140,6 +141,7 @@ if [ -z "${GUAC_USER}" ]; then
     GUAC_USER="guacamole_user"
 fi
 
+
 #######################################################################################################################
 # Start upgrade actions  ##############################################################################################
 #######################################################################################################################
@@ -153,7 +155,7 @@ systemctl stop guacd
 cd $DOWNLOAD_DIR
 
 echo
-echo -e "${GREY}Beggining Guacamole ${OLD_GUAC_VERSION} to ${NEW_GUAC_VERSION} upgrade..."
+echo -e "${GREY}Beginning Guacamole ${OLD_GUAC_VERSION} to ${NEW_GUAC_VERSION} upgrade..."
 wget -q --show-progress -O guacamole-${NEW_GUAC_VERSION}.war ${GUAC_SOURCE_LINK}/binary/guacamole-${NEW_GUAC_VERSION}.war
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed to download guacamole-${NEW_GUAC_VERSION}.war" 1>&2
@@ -210,7 +212,7 @@ else
     echo
 fi
 
-echo -e "${GREY}Running Make and building the upgraded Guacamole-Server application..."
+echo -e "${GREY}Running make and building the upgraded Guacamole-Server application..."
 make &>>${LOG_LOCATION}
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
@@ -303,8 +305,46 @@ for file in /etc/guacamole/extensions/guacamole-auth-totp*.jar; do
             exit 1
         fi
         tar -xzf guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz &>>${LOG_LOCATION}
-        mv -f guacamole-auth-totp-${NEW_GUAC_VERSION}/guacamole-auth-totp-${GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${LOG_LOCATION}
+        mv -f guacamole-auth-totp-${NEW_GUAC_VERSION}/guacamole-auth-totp-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${LOG_LOCATION}
         echo -e "${LGREEN}Upgraded TOTP extension to version ${NEW_GUAC_VERSION}${GREY}"
+        echo
+        break
+    fi
+done
+
+# Check for Quick Connection extension and upgrade if found
+for file in /etc/guacamole/extensions/guacamole-auth-quickconnect*.jar; do
+    if [[ -f $file ]]; then
+        echo -e "${LGREEN}Quick Connect extension was found, upgrading...${GREY}"
+        rm /etc/guacamole/extensions/guacamole-auth-quickconnect*.jar &>>${LOG_LOCATION}
+        wget -q --show-progress -O guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.tar.gz
+        if [ $? -ne 0 ]; then
+            echo -e "${LRED}Failed to download guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.tar.gz" 1>&2
+            echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.tar.gz"
+            exit 1
+        fi
+        tar -xzf guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.tar.gz &>>${LOG_LOCATION}
+        mv -f guacamole-auth-quickconnect-${NEW_GUAC_VERSION}/guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${LOG_LOCATION}
+        echo -e "${LGREEN}Upgraded Quick Connect extension to version ${NEW_GUAC_VERSION}${GREY}"
+        echo
+        break
+    fi
+done
+
+# Check for History Recording Storage extension and upgrade if found
+for file in /etc/guacamole/extensions/guacamole-history-recording-storage*.jar; do
+    if [[ -f $file ]]; then
+        echo -e "${LGREEN}History Recording Storage extension was found, upgrading...${GREY}"
+        rm /etc/guacamole/extensions/guacamole-history-recording-storage*.jar &>>${LOG_LOCATION}
+        wget -q --show-progress -O guacamole-history-recording-storage-${NEW_GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-history-recording-storage-${NEW_GUAC_VERSION}.tar.gz
+        if [ $? -ne 0 ]; then
+            echo -e "${LRED}Failed to download guacamole-history-recording-storage-${NEW_GUAC_VERSION}.tar.gz" 1>&2
+            echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-history-recording-storage-${NEW_GUAC_VERSION}.tar.gz"
+            exit 1
+        fi
+        tar -xzf guacamole-history-recording-storage-${NEW_GUAC_VERSION}.tar.gz &>>${LOG_LOCATION}
+        mv -f guacamole-history-recording-storage-${NEW_GUAC_VERSION}/guacamole-history-recording-storage-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${LOG_LOCATION}
+        echo -e "${LGREEN}Upgraded History Recording Storage extension to version ${NEW_GUAC_VERSION}${GREY}"
         echo
         break
     fi
@@ -317,6 +357,7 @@ chown daemon:daemon /usr/sbin/.config/freerdp
 # Fix for #197 see https://github.com/MysticRyuujin/guac-install/issues/197
 mkdir -p /var/guacamole
 chown daemon:daemon /var/guacamole
+
 
 # Bring guacd and Tomcat back up
 echo -e "${GREY}Starting guacd and Tomcat services..."
@@ -332,7 +373,7 @@ else
 fi
 
 # Cleanup
-echo -e "${GREY}Cleanup install files...${GREY}"
+echo -e "${GREY}Clean up install files...${GREY}"
 rm -rf guacamole-*
 unset MYSQL_PWD
 if [ $? -ne 0 ]; then

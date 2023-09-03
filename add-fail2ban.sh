@@ -236,7 +236,7 @@ REGEX='failregex = ^.*WARN  o\.a\.g\.r\.auth\.AuthenticationService - Authentica
 sed -i -e "/Authentication attempt from/a ${REGEX}" /etc/fail2ban/filter.d/guacamole.conf
 
 # Done
-echo -e "${LGREEN}Guacamole security policy applied${GREY}\n- ${SED_NETADDR}are whitelisted from all IP bans.\n- To alter this whitelist, edit /etc/fail2ban/jail.local & sudo systemctl restart fail2ban"
+echo -e "${LGREEN}Guacamole security policy applied${GREY}\n- ${SED_NETADDR}are whitelisted from all IP bans.\n- To alter this whitelist, edit /etc/fail2ban/jail.local & sudo systemctl restart fail2ban \n \n This script may take a while to complete..."
 
 # Bounce the service to reload the new config
 sudo systemctl restart fail2ban

@@ -1,9 +1,9 @@
 #!/bin/bash
 #######################################################################################################################
-# Add TOTP (MFA) support for Guacamole
+# Add Quick Connect extension to Guacamole
 # For Ubuntu / Debian / Raspbian
 # David Harrop
-# April 2023
+# September 2023
 #######################################################################################################################
 
 # Prepare text output colours
@@ -29,11 +29,11 @@ GUAC_VERSION=$(grep -oP 'Guacamole.API_VERSION = "\K[0-9\.]+' /var/lib/${TOMCAT_
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
 
 echo
-wget -q --show-progress -O guacamole-auth-totp-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-totp-${GUAC_VERSION}.tar.gz
-tar -xzf guacamole-auth-totp-${GUAC_VERSION}.tar.gz
-mv -f guacamole-auth-totp-${GUAC_VERSION}/guacamole-auth-totp-${GUAC_VERSION}.jar /etc/guacamole/extensions/
-chmod 664 /etc/guacamole/extensions/guacamole-auth-totp-${GUAC_VERSION}.jar
-echo -e "${LGREEN}Installed guacamole-auth-totp-${GUAC_VERSION}${GREY}"
+wget -q --show-progress -O guacamole-auth-quickconnect-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-quickconnect-${GUAC_VERSION}.tar.gz
+tar -xzf guacamole-auth-quickconnect-${GUAC_VERSION}.tar.gz
+mv -f guacamole-auth-quickconnect-${GUAC_VERSION}/guacamole-auth-quickconnect-${GUAC_VERSION}.jar /etc/guacamole/extensions/
+chmod 664 /etc/guacamole/extensions/guacamole-auth-quickconnect-${GUAC_VERSION}.jar
+echo -e "${LGREEN}Installed guacamole-auth-quickconnect-${GUAC_VERSION}${GREY}"
 
 systemctl restart ${TOMCAT_VERSION}
 systemctl restart guacd

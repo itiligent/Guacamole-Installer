@@ -63,12 +63,9 @@ else
     echo -e "${LGREEN}OK${GREY}"
 fi
 
-# Reduce logging noise
-ufw logging off &>>${LOG_LOCATION}
-
 # Install Postfix with default settings for smtp email relay
 echo
-echo -e "${GREY}Installing SMTP email for backup email notifications and alerts, see separate SMTP relay configuration script..."
+echo -e "${GREY}Installing Postfix MTA for backup email notifications and alerts, see separate SMTP relay configuration script..."
 DEBIAN_FRONTEND="noninteractive" apt-get install postfix mailutils -qq -y &>>${LOG_LOCATION}
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
@@ -150,6 +147,32 @@ if [ "${INSTALL_LDAP}" = true ]; then
     echo -e "${LGREEN}Downloaded guacamole-auth-ldap-${GUAC_VERSION}.tar.gz${GREY}"
 fi
 
+# Download Guacamole quick-connect extension
+if [ "${INSTALL_QCONNECT}" = true ]; then
+    wget -q --show-progress -O guacamole-auth-quickconnect-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-quickconnect-${GUAC_VERSION}.tar.gz
+    if [ $? -ne 0 ]; then
+        echo -e "${LRED}Failed to download guacamole-auth-quickconnect-${GUAC_VERSION}.tar.gz" 1>&2
+        echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-quickconnect-${GUAC_VERSION}.tar.gz"
+        exit 1
+    else
+        tar -xzf guacamole-auth-quickconnect-${GUAC_VERSION}.tar.gz
+    fi
+echo -e "${LGREEN}Downloaded guacamole-auth-quickconnect-${GUAC_VERSION}.tar.gz${GREY}"
+fi
+
+# Download Guacamole history recording storage extension
+if [ "${INSTALL_HISTREC}" = true ]; then
+    wget -q --show-progress -O guacamole-history-recording-storage-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-history-recording-storage-${GUAC_VERSION}.tar.gz
+    if [ $? -ne 0 ]; then
+        echo -e "${LRED}Failed to download guacamole-history-recording-storage-${GUAC_VERSION}.tar.gz" 1>&2
+        echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-history-recording-storage-${GUAC_VERSION}.tar.gz"
+        exit 1
+    else
+        tar -xzf guacamole-history-recording-storage-${GUAC_VERSION}.tar.gz
+    fi
+    echo -e "${LGREEN}Downloaded guacamole-history-recording-storage-${GUAC_VERSION}.tar.gz${GREY}"
+fi
+
 # Download MySQL connector/j
 wget -q --show-progress -O mysql-connector-j-${MYSQLJCON}.tar.gz https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${MYSQLJCON}.tar.gz
 if [ $? -ne 0 ]; then
@@ -168,8 +191,8 @@ echo -e "Source download complete.${GREY}"
 #echo -e "${GREY}"
 
 # Add customised RDP share names and printer labels, remove Guacamole default labelling
-sed -i -e 's/IDX_CLIENT_NAME, "Guacamole RDP"/IDX_CLIENT_NAME, "'"${RDP_SHARE_LABEL}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${GUAC_VERSION}/src/protocols/rdp/settings.c
-sed -i -e 's/IDX_DRIVE_NAME, "Guacamole Filesystem"/IDX_CLIENT_NAME, "'"${RDP_DRIVE_LABEL}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${GUAC_VERSION}/src/protocols/rdp/settings.c
+sed -i -e 's/IDX_CLIENT_NAME, "Guacamole RDP"/IDX_CLIENT_NAME, "'"${RDP_SHARE_HOST}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${GUAC_VERSION}/src/protocols/rdp/settings.c
+sed -i -e 's/IDX_DRIVE_NAME, "Guacamole Filesystem"/IDX_CLIENT_NAME, "'"${RDP_SHARE_LABEL}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${GUAC_VERSION}/src/protocols/rdp/settings.c
 sed -i -e 's/IDX_PRINTER_NAME, "Guacamole Printer"/IDX_PRINTER_NAME, "'"${RDP_PRINTER_LABEL}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${GUAC_VERSION}/src/protocols/rdp/settings.c
 
 # Make Guacamole directories
@@ -314,9 +337,39 @@ if [ "${INSTALL_LDAP}" = true ]; then
     fi
 fi
 
-# Apply branded interface, you may delete this file and restart guacd & tomcat for default branding
-echo -e "${GREY}Applying branded Guacamole login page and favicons..."
-# For details on how to brand Guacamole, see https://github.com/Zer0CoolX/guacamole-customize-loginscreen-extension
+# Move quick-connect extension files
+if [ "${INSTALL_QCONNECT}" = true ]; then
+    echo -e "${GREY}Moving guacamole-auth-quickconnect-${GUAC_VERSION}.jar (/etc/guacamole/extensions/)..."
+    mv -f guacamole-auth-quickconnect-${GUAC_VERSION}/guacamole-auth-quickconnect-${GUAC_VERSION}.jar /etc/guacamole/extensions/
+    if [ $? -ne 0 ]; then
+        echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+        exit 1
+    else
+        echo -e "${LGREEN}OK${GREY}"
+        echo
+    fi
+fi
+
+# Move history recording storage extension files
+if [ "${INSTALL_HISTREC}" = true ]; then
+    echo -e "${GREY}Moving guacamole-history-recording-storage-${GUAC_VERSION}.jar (/etc/guacamole/extensions/)..."
+    mv -f guacamole-history-recording-storage-${GUAC_VERSION}/guacamole-history-recording-storage-${GUAC_VERSION}.jar /etc/guacamole/extensions/
+    #Setup the default recording path
+    mkdir -p ${HISTREC_PATH}
+    chown daemon:tomcat ${HISTREC_PATH}
+    chmod 2750 ${HISTREC_PATH}
+    echo "recording-search-path: ${HISTREC_PATH}" >>/etc/guacamole/guacamole.properties
+    if [ $? -ne 0 ]; then
+        echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+        exit 1
+    else
+        echo -e "${LGREEN}OK${GREY}"
+        echo
+    fi
+fi
+
+# Apply a branded interface and dark theme. You may delete this file and restart guacd & tomcat for the default console
+echo -e "${GREY}Setting the Guacamole console to a branded and customisable dark mode themed template..."
 mv branding.jar /etc/guacamole/extensions
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
@@ -532,21 +585,38 @@ expect eof
         exit 1
     else
         echo -e "${LGREEN}OK${GREY}"
+        echo
     fi
 fi
 
 if [ "${CHANGE_ROOT}" = true ]; then
 echo -e "${GREY}Setting default Guacamole url to http root...${DGREY}"
-systemctl stop ${TOMCAT_VERSION}
-rm -rf /var/lib/${TOMCAT_VERSION}/webapps/ROOT
-mv /var/lib/${TOMCAT_VERSION}/webapps/guacamole.war /var/lib/${TOMCAT_VERSION}/webapps/ROOT.war
-systemctl start ${TOMCAT_VERSION}
+    systemctl stop ${TOMCAT_VERSION}
+    rm -rf /var/lib/${TOMCAT_VERSION}/webapps/ROOT
+    mv /var/lib/${TOMCAT_VERSION}/webapps/guacamole.war /var/lib/${TOMCAT_VERSION}/webapps/ROOT.war
+    systemctl start ${TOMCAT_VERSION}
     if [ $? -ne 0 ]; then
         echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
         exit 1
     else
         echo -e "${LGREEN}OK${GREY}"
+        echo
     fi
+fi
+
+echo -e "${GREY}Updating firewall rules to allow only SSH and tcp 8080..."
+sudo ufw default allow outgoing >/dev/null 2>&1
+sudo ufw default deny incoming >/dev/null 2>&1
+sudo ufw allow OpenSSH >/dev/null 2>&1
+sudo ufw allow 8080/tcp >/dev/null 2>&1
+echo "y" | sudo ufw enable >/dev/null 2>&1
+# Reduce firewall logging noise
+sudo ufw logging off >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    exit 1
+else
+    echo -e "${LGREEN}OK${GREY}"
 fi
 
 # Done

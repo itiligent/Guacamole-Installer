@@ -106,6 +106,7 @@ sudo ufw default allow outgoing >/dev/null 2>&1
 sudo ufw default deny incoming >/dev/null 2>&1
 sudo ufw allow OpenSSH >/dev/null 2>&1
 sudo ufw allow 80/tcp >/dev/null 2>&1
+sudo ufw delete allow 8080/tcp >/dev/null 2>&1
 echo "y" | sudo ufw enable >/dev/null 2>&1
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
