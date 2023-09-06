@@ -599,10 +599,11 @@ expect eof
 fi
 
 if [ "${CHANGE_ROOT}" = true ]; then
-echo -e "${GREY}Setting default Guacamole url to http root...${DGREY}"
+    echo -e "${GREY}Shortening the Guacamole root url and setting up redirect...${DGREY}"
     systemctl stop ${TOMCAT_VERSION}
-    rm -rf /var/lib/${TOMCAT_VERSION}/webapps/ROOT
-    mv /var/lib/${TOMCAT_VERSION}/webapps/guacamole.war /var/lib/${TOMCAT_VERSION}/webapps/ROOT.war
+    mv /var/lib/${TOMCAT_VERSION}/webapps/ROOT/index.html index.html.old
+    touch /var/lib/${TOMCAT_VERSION}/webapps/ROOT/index.jsp
+    echo "<% response.sendRedirect(\"/guacamole\");%>" >>/var/lib/${TOMCAT_VERSION}/webapps/ROOT/index.jsp
     systemctl start ${TOMCAT_VERSION}
     if [ $? -ne 0 ]; then
         echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
