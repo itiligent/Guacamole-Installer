@@ -38,7 +38,7 @@ fi
 
 echo -e "${GREY}New self signed TLS certificate attributes are shown below...${DGREY}"
 # Display the new TLS cert parameters.
-cat <<EOF | tee -a $TMP_DIR/cert_attributes.txt
+cat <<EOF | tee $TMP_DIR/cert_attributes.txt
 [req]
 distinguished_name  = req_distinguished_name
 x509_extensions     = v3_req
