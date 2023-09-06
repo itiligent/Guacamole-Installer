@@ -256,14 +256,16 @@ ldconfig
 # Move files to correct install locations (guacamole-client & Guacamole authentication extensions)
 cd ..
 mv -f guacamole-${GUAC_VERSION}.war /etc/guacamole/guacamole.war
+chmod 664 /etc/guacamole/guacamole.war
 mv -f guacamole-auth-jdbc-${GUAC_VERSION}/mysql/guacamole-auth-jdbc-mysql-${GUAC_VERSION}.jar /etc/guacamole/extensions/
+chmod 664 /etc/guacamole/extensions/guacamole-auth-jdbc-mysql-${GUAC_VERSION}.jar
 
 # Create a symbolic link for Tomcat
 ln -sf /etc/guacamole/guacamole.war /var/lib/${TOMCAT_VERSION}/webapps/
-
 # Move MySQL connector/j files
 echo -e "${GREY}Moving mysql-connector-j-${MYSQLJCON}.jar (/etc/guacamole/lib/mysql-connector-java.jar)..."
 mv -f mysql-connector-j-${MYSQLJCON}/mysql-connector-j-${MYSQLJCON}.jar /etc/guacamole/lib/mysql-connector-java.jar
+chmod 664 /etc/guacamole/lib/mysql-connector-java.jar
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
     exit 1
@@ -285,6 +287,7 @@ echo "mysql-password: ${GUAC_PWD}" >>/etc/guacamole/guacamole.properties
 if [ "${INSTALL_TOTP}" = true ]; then
     echo -e "${GREY}Moving guacamole-auth-totp-${GUAC_VERSION}.jar (/etc/guacamole/extensions/)..."
     mv -f guacamole-auth-totp-${GUAC_VERSION}/guacamole-auth-totp-${GUAC_VERSION}.jar /etc/guacamole/extensions/
+    chmod 664 /etc/guacamole/extensions/guacamole-auth-totp-${GUAC_VERSION}.jar
     if [ $? -ne 0 ]; then
         echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
         exit 1
@@ -298,6 +301,7 @@ fi
 if [ "${INSTALL_DUO}" = true ]; then
     echo -e "${GREY}Moving guacamole-auth-duo-${GUAC_VERSION}.jar (/etc/guacamole/extensions/)..."
     mv -f guacamole-auth-duo-${GUAC_VERSION}/guacamole-auth-duo-${GUAC_VERSION}.jar /etc/guacamole/extensions/
+    chmod 664 /etc/guacamole/extensions/guacamole-auth-duo-${GUAC_VERSION}.jar
     echo "#duo-api-hostname: " >>/etc/guacamole/guacamole.properties
     echo "#duo-integration-key: " >>/etc/guacamole/guacamole.properties
     echo "#duo-secret-key: " >>/etc/guacamole/guacamole.properties
@@ -316,6 +320,7 @@ fi
 if [ "${INSTALL_LDAP}" = true ]; then
     echo -e "${GREY}Moving guacamole-auth-ldap-${GUAC_VERSION}.jar (/etc/guacamole/extensions/)..."
     mv -f guacamole-auth-ldap-${GUAC_VERSION}/guacamole-auth-ldap-${GUAC_VERSION}.jar /etc/guacamole/extensions/
+    chmod 664 /etc/guacamole/extensions/guacamole-auth-ldap-${GUAC_VERSION}.jar
     echo "#If you have issues with LDAP, check the formatting is exactly as below or you will despair!" >>/etc/guacamole/guacamole.properties
     echo "#Be extra careful with spaces at line ends or with windows line feeds." >>/etc/guacamole/guacamole.properties
     echo "#ldap-hostname: dc1.yourdomain.com dc2.yourdomain.com" >>/etc/guacamole/guacamole.properties
@@ -341,6 +346,7 @@ fi
 if [ "${INSTALL_QCONNECT}" = true ]; then
     echo -e "${GREY}Moving guacamole-auth-quickconnect-${GUAC_VERSION}.jar (/etc/guacamole/extensions/)..."
     mv -f guacamole-auth-quickconnect-${GUAC_VERSION}/guacamole-auth-quickconnect-${GUAC_VERSION}.jar /etc/guacamole/extensions/
+    chmod 664 /etc/guacamole/extensions/guacamole-auth-quickconnect-${GUAC_VERSION}.jar
     if [ $? -ne 0 ]; then
         echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
         exit 1
@@ -354,6 +360,7 @@ fi
 if [ "${INSTALL_HISTREC}" = true ]; then
     echo -e "${GREY}Moving guacamole-history-recording-storage-${GUAC_VERSION}.jar (/etc/guacamole/extensions/)..."
     mv -f guacamole-history-recording-storage-${GUAC_VERSION}/guacamole-history-recording-storage-${GUAC_VERSION}.jar /etc/guacamole/extensions/
+    chmod 664 /etc/guacamole/extensions/guacamole-history-recording-storage-${GUAC_VERSION}.jar
     #Setup the default recording path
     mkdir -p ${HISTREC_PATH}
     chown daemon:tomcat ${HISTREC_PATH}
@@ -369,8 +376,9 @@ if [ "${INSTALL_HISTREC}" = true ]; then
 fi
 
 # Apply a branded interface and dark theme. You may delete this file and restart guacd & tomcat for the default console
-echo -e "${GREY}Setting the Guacamole console to a branded and customisable dark mode themed template..."
+echo -e "${GREY}Setting the Guacamole console to a (customisable) dark mode themed template..."
 mv branding.jar /etc/guacamole/extensions
+chmod 664 /etc/guacamole/extensions/branding.jar
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
     exit 1

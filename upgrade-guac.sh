@@ -164,6 +164,7 @@ if [ $? -ne 0 ]; then
 else
     rm /etc/guacamole/guacamole.war
     mv -f guacamole-${NEW_GUAC_VERSION}.war /etc/guacamole/guacamole.war
+    chmod 664 /etc/guacamole/guacamole.war
 fi
 echo -e "${LGREEN}Upgraded Guacamole client to version ${NEW_GUAC_VERSION}${GREY}"
 
@@ -177,6 +178,7 @@ else
     tar -xzf guacamole-auth-jdbc-${NEW_GUAC_VERSION}.tar.gz
     rm /etc/guacamole/extensions/guacamole-auth-jdbc-*.jar
     mv -f guacamole-auth-jdbc-${NEW_GUAC_VERSION}/mysql/guacamole-auth-jdbc-mysql-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/
+    chmod 664 /etc/guacamole/extensions/guacamole-auth-jdbc-mysql-${NEW_GUAC_VERSION}.jar
 fi
 echo -e "${LGREEN}Upgraded Guacamole SQL jdbc to version ${NEW_GUAC_VERSION}${GREY}"
 
@@ -255,6 +257,26 @@ else
     echo
 fi
 
+# Check for TOTP extension and upgrade if found
+for file in /etc/guacamole/extensions/guacamole-auth-totp*.jar; do
+    if [[ -f $file ]]; then
+        echo -e "${LGREEN}TOTP authentication extension was found, upgrading...${GREY}"
+        rm /etc/guacamole/extensions/guacamole-auth-totp*.jar &>>${LOG_LOCATION}
+        wget -q --show-progress -O guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz
+        if [ $? -ne 0 ]; then
+            echo -e "${LRED}Failed to download guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz" 1>&2
+            echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz"
+            exit 1
+        fi
+        tar -xzf guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz &>>${LOG_LOCATION}
+        mv -f guacamole-auth-totp-${NEW_GUAC_VERSION}/guacamole-auth-totp-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${LOG_LOCATION}
+        chmod 664 /etc/guacamole/extensions/guacamole-auth-totp-${NEW_GUAC_VERSION}.jar
+        echo -e "${LGREEN}Upgraded TOTP extension to version ${NEW_GUAC_VERSION}${GREY}"
+        echo
+        break
+    fi
+done
+
 # Check for DUO extension and upgrade if found
 for file in /etc/guacamole/extensions/guacamole-auth-duo*.jar; do
     if [[ -f $file ]]; then
@@ -268,6 +290,7 @@ for file in /etc/guacamole/extensions/guacamole-auth-duo*.jar; do
         fi
         tar -xzf guacamole-auth-duo-${NEW_GUAC_VERSION}.tar.gz &>>${LOG_LOCATION}
         mv -f guacamole-auth-duo-${NEW_GUAC_VERSION}/guacamole-auth-duo-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${LOG_LOCATION}
+        chmod 664 /etc/guacamole/extensions/guacamole-auth-duo-${NEW_GUAC_VERSION}.jar
         echo -e "${LGREEN}Upgraded DUO extension to version ${NEW_GUAC_VERSION}${GREY}"
         echo
         break
@@ -287,26 +310,8 @@ for file in /etc/guacamole/extensions/guacamole-auth-ldap*.jar; do
         fi
         tar -xzf guacamole-auth-ldap-${NEW_GUAC_VERSION}.tar.gz &>>${LOG_LOCATION}
         mv -f guacamole-auth-ldap-${NEW_GUAC_VERSION}/guacamole-auth-ldap-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${LOG_LOCATION}
+        chmod 664 /etc/guacamole/extensions/guacamole-auth-ldap-${NEW_GUAC_VERSION}.jar
         echo -e "${LGREEN}Upgraded LDAP extension to version ${NEW_GUAC_VERSION}${GREY}"
-        echo
-        break
-    fi
-done
-
-# Check for TOTP extension and upgrade if found
-for file in /etc/guacamole/extensions/guacamole-auth-totp*.jar; do
-    if [[ -f $file ]]; then
-        echo -e "${LGREEN}TOTP authentication extension was found, upgrading...${GREY}"
-        rm /etc/guacamole/extensions/guacamole-auth-totp*.jar &>>${LOG_LOCATION}
-        wget -q --show-progress -O guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz
-        if [ $? -ne 0 ]; then
-            echo -e "${LRED}Failed to download guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz" 1>&2
-            echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz"
-            exit 1
-        fi
-        tar -xzf guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz &>>${LOG_LOCATION}
-        mv -f guacamole-auth-totp-${NEW_GUAC_VERSION}/guacamole-auth-totp-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${LOG_LOCATION}
-        echo -e "${LGREEN}Upgraded TOTP extension to version ${NEW_GUAC_VERSION}${GREY}"
         echo
         break
     fi
@@ -325,6 +330,7 @@ for file in /etc/guacamole/extensions/guacamole-auth-quickconnect*.jar; do
         fi
         tar -xzf guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.tar.gz &>>${LOG_LOCATION}
         mv -f guacamole-auth-quickconnect-${NEW_GUAC_VERSION}/guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${LOG_LOCATION}
+        chmod 664 /etc/guacamole/extensions/guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.jar
         echo -e "${LGREEN}Upgraded Quick Connect extension to version ${NEW_GUAC_VERSION}${GREY}"
         echo
         break
@@ -344,6 +350,7 @@ for file in /etc/guacamole/extensions/guacamole-history-recording-storage*.jar; 
         fi
         tar -xzf guacamole-history-recording-storage-${NEW_GUAC_VERSION}.tar.gz &>>${LOG_LOCATION}
         mv -f guacamole-history-recording-storage-${NEW_GUAC_VERSION}/guacamole-history-recording-storage-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${LOG_LOCATION}
+        chmod 664 /etc/guacamole/extensions/guacamole-history-recording-storage-${NEW_GUAC_VERSION}.jar
         echo -e "${LGREEN}Upgraded History Recording Storage extension to version ${NEW_GUAC_VERSION}${GREY}"
         echo
         break
