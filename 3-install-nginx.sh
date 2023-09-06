@@ -84,22 +84,6 @@ else
     echo
 fi
 
-# Bind guacd to localhost and force all Guacamole connections via reverse proxy
-echo -e "${GREY}Binding guacd to 127.0.0.1 port 4822..."
-cp /etc/guacamole/guacd.conf /etc/guacamole/guacd.conf.bak
-cat >/etc/guacamole/guacd.conf <<-"EOF"
-[server]
-bind_host = 127.0.0.1
-bind_port = 4822
-EOF
-if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
-    exit 1
-else
-    echo -e "${LGREEN}OK${GREY}"
-    echo
-fi
-
 # Update general ufw rules so force traffic via reverse proxy. Only Nginx and SSH will be available over the network.
 echo -e "${GREY}Updating firewall rules to allow only SSH and tcp 80/443..."
 sudo ufw default allow outgoing >/dev/null 2>&1

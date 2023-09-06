@@ -48,7 +48,7 @@ echo
 
 #Setup download and temp directory paths
 USER_HOME_DIR=$(eval echo ~${SUDO_USER})
-DOWNLOAD_DIR=$USER_HOME_DIR/guac-setup/upgrade
+DOWNLOAD_DIR=$USER_HOME_DIR/guac-setup
 
 # Setup directory locations
 mkdir -p $DOWNLOAD_DIR

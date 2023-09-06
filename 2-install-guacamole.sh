@@ -95,7 +95,7 @@ if [ $? -ne 0 ]; then
     echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-${GUAC_VERSION}.war${GREY}"
     exit 1
 fi
-echo -e "${LGREEN}Downloaded guacamole-${GUAC_VERSION}.war (Guacamole client web application)${GREY}"
+echo -e "${LGREEN}Downloaded guacamole-${GUAC_VERSION}.war (Guacamole client)${GREY}"
 
 # Download MySQL connector/j
 wget -q --show-progress -O mysql-connector-j-${MYSQLJCON}.tar.gz https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${MYSQLJCON}.tar.gz
@@ -122,6 +122,7 @@ echo -e "${LGREEN}Downloaded guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz${GREY}"
 # Download TOTP extension
 if [ "${INSTALL_TOTP}" = true ]; then
     wget -q --show-progress -O guacamole-auth-totp-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-totp-${GUAC_VERSION}.tar.gz
+    rm -f add-auth-totp.sh 
     if [ $? -ne 0 ]; then
         echo -e "${LRED}Failed to download guacamole-auth-totp-${GUAC_VERSION}.tar.gz" 1>&2
         echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-totp-${GUAC_VERSION}.tar.gz"
@@ -135,6 +136,7 @@ fi
 # Download DUO extension
 if [ "${INSTALL_DUO}" = true ]; then
     wget -q --show-progress -O guacamole-auth-duo-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-duo-${GUAC_VERSION}.tar.gz
+    rm -f add-auth-duo.sh
     if [ $? -ne 0 ]; then
         echo -e "${LRED}Failed to download guacamole-auth-duo-${GUAC_VERSION}.tar.gz" 1>&2
         echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-duo-${GUAC_VERSION}.tar.gz"
@@ -148,6 +150,7 @@ fi
 # Download LDAP extension
 if [ "${INSTALL_LDAP}" = true ]; then
     wget -q --show-progress -O guacamole-auth-ldap-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-ldap-${GUAC_VERSION}.tar.gz
+    rm -f add-auth-ldap.sh  
     if [ $? -ne 0 ]; then
         echo -e "${LRED}Failed to download guacamole-auth-ldap-${GUAC_VERSION}.tar.gz" 1>&2
         echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-ldap-${GUAC_VERSION}.tar.gz"
@@ -161,6 +164,7 @@ fi
 # Download Guacamole quick-connect extension
 if [ "${INSTALL_QCONNECT}" = true ]; then
     wget -q --show-progress -O guacamole-auth-quickconnect-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-quickconnect-${GUAC_VERSION}.tar.gz
+    rm -f add-xtra-quickconnect.sh 
     if [ $? -ne 0 ]; then
         echo -e "${LRED}Failed to download guacamole-auth-quickconnect-${GUAC_VERSION}.tar.gz" 1>&2
         echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-quickconnect-${GUAC_VERSION}.tar.gz"
@@ -174,6 +178,7 @@ fi
 # Download Guacamole history recording storage extension
 if [ "${INSTALL_HISTREC}" = true ]; then
     wget -q --show-progress -O guacamole-history-recording-storage-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-history-recording-storage-${GUAC_VERSION}.tar.gz
+    rm -f add-xtra-histrecstor.sh 
     if [ $? -ne 0 ]; then
         echo -e "${LRED}Failed to download guacamole-history-recording-storage-${GUAC_VERSION}.tar.gz" 1>&2
         echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-history-recording-storage-${GUAC_VERSION}.tar.gz"
@@ -523,11 +528,11 @@ else
     echo
 fi
 
-# Create guacd.conf. This is later changed to 127.0.0.1 during Nginx reverse proxy install.
-echo -e "${GREY}Binding guacd to 0.0.0.0 port 4822..."
+# Create guacd.conf and locahost IP binding.
+echo -e "${GREY}Binding guacd to 127.0.0.1 port 4822..."
 cat >/etc/guacamole/guacd.conf <<-"EOF"
 [server]
-bind_host = 0.0.0.0
+bind_host = 127.0.0.1
 bind_port = 4822
 EOF
 if [ $? -ne 0 ]; then

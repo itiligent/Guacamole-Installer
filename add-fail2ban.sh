@@ -55,12 +55,12 @@ fi
 
 # Prompt to install Guacamole fail2ban config defaults, default of no
 if [[ -z ${FAIL2BAN_GUAC} ]] && [[ "${FAIL2BAN_BASE}" = true ]]; then
-    echo -e -n "${GREY}POLICY: Apply Guacamole fail2ban security policy? (y/n) [default n]:${GREY}"
+    echo -e -n "${GREY}POLICY: Apply Guacamole fail2ban security policy? (Y/n) [default y]:${GREY}"
     read PROMPT
-    if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
-        FAIL2BAN_GUAC=true
-    else
+    if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
         FAIL2BAN_GUAC=false
+    else
+        FAIL2BAN_GUAC=true
     fi
 fi
 
@@ -236,7 +236,7 @@ REGEX='failregex = ^.*WARN  o\.a\.g\.r\.auth\.AuthenticationService - Authentica
 sed -i -e "/Authentication attempt from/a ${REGEX}" /etc/fail2ban/filter.d/guacamole.conf
 
 # Done
-echo -e "${LGREEN}Guacamole security policy applied${GREY}\n- ${SED_NETADDR}are whitelisted from all IP bans.\n- To alter this whitelist, edit /etc/fail2ban/jail.local & sudo systemctl restart fail2ban \n \n This script may take a while to complete..."
+echo -e "${LGREEN}Guacamole security policy applied${GREY}\n- ${SED_NETADDR}are whitelisted from all IP bans.\n- To alter this whitelist, edit /etc/fail2ban/jail.local & sudo systemctl restart fail2ban \n \n This script may take a while to complete on first run..."
 
 # Bounce the service to reload the new config
 sudo systemctl restart fail2ban

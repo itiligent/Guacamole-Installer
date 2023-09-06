@@ -26,15 +26,7 @@ SSLNAME=$1
 SSLDAYS=$2
 
 # Discover IPv4 interface
-echo -e "${GREY}Discovering the default route interface and Proxy DNS name to bind with the new TLS certificate..."
 DEFAULT_IP=$(ip addr show $(ip route | awk '/default/ { print $5 }') | grep "inet" | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1)
-if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
-    exit 1
-else
-    echo -e "${LGREEN}OK${GREY}"
-    echo
-fi
 
 echo -e "${GREY}New self signed TLS certificate attributes are shown below...${DGREY}"
 # Display the new TLS cert parameters.

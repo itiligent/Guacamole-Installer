@@ -76,11 +76,11 @@ GITHUB="https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/"
 # Version of Guacamole to install
 GUAC_VERSION="1.5.3"
 
+# MySQL Connector/J version to install
+MYSQLJCON="8.1.0"
+
 # Set preferred Apache CDN download link)
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
-
-# MySQL Connector/J version
-MYSQLJCON="8.1.0"
 
 # Force a specific MySQL version e.g. 11.1.2 See https://mariadb.org/mariadb/all-releases/
 # If MYSQL_VERSION is left blank, script will default to the Linux distro default MYSQL packages.
@@ -491,23 +491,23 @@ echo
 # Prompt the user to install the Quick Connect feature (some higher security use cases may not want this)
 echo -e "${LGREEN}Guacamole console optional extras:${GREY}"
 if [[ -z "${INSTALL_QCONNECT}" ]]; then
-    echo -e -n "${GREY}EXTRAS: Install Quick Connect feature? [Y/n] [default y]: "
+    echo -e -n "${GREY}EXTRAS: Install Quick Connect feature? [y/N] [default n]: "
     read PROMPT
-    if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
-        INSTALL_QCONNECT=false
-    else
+    if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
         INSTALL_QCONNECT=true
+    else
+        INSTALL_QCONNECT=false
     fi
 fi
 
 # Prompt the user to install the History Recorded Storage feature
 if [[ -z "${INSTALL_HISTREC}" ]]; then
-    echo -e -n "${GREY}EXTRAS: Install History Recorded Storage (session replay console integration) [Y/n] [default y]: "
+    echo -e -n "${GREY}EXTRAS: Install History Recorded Storage (session replay console integration) [y/N] [default n]: "
     read PROMPT
-    if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
-        INSTALL_HISTREC=false
-    else
+    if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
         INSTALL_HISTREC=true
+    else
+        INSTALL_HISTREC=false
     fi
     fi
     HISTREC_PATH_DEFAULT=/var/lib/guacamole/recordings # Apache default
@@ -527,13 +527,13 @@ echo
 # Prompt for Guacamole front end reverse proxy option
 echo -e "${LGREEN}Reverse Proxy & front end options:${GREY}"
 if [[ -z ${INSTALL_NGINX} ]]; then
-    echo -e -n "FRONT END: Protect Guacamole behind Nginx reverse proxy [Y/n]? [default y]: "
+    echo -e -n "FRONT END: Protect Guacamole behind Nginx reverse proxy [y/N]? [default n]: "
     read PROMPT
-    if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
-        INSTALL_NGINX=false
-    else
+    if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
         INSTALL_NGINX=true
         CHANGE_ROOT=false
+    else
+        INSTALL_NGINX=false
     fi
 fi
 
@@ -775,6 +775,13 @@ fi
 # Final tidy up
 mv $USER_HOME_DIR/1-setup.sh $DOWNLOAD_DIR
 sudo rm -R $TMP_DIR
+
+# Installer and Nginx scripts can't be run standalone without modification, so removing to keep things tidy.
+rm -f 1-setup.sh
+rm -f 2-install-guacamole.sh
+rm -f 3-install-nginx.sh 
+rm -f 4a-install-tls-self-signed-nginx.sh 
+rm -f 4b-install-tls-letsencrypt-nginx.sh
 
 # Done
 echo
