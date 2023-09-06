@@ -80,7 +80,7 @@ GUAC_VERSION="1.5.3"
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
 
 # MySQL Connector/J version
-MYSQLJCON="8.0.33"
+MYSQLJCON="8.1.0"
 
 # Force a specific MySQL version e.g. 11.1.2 See https://mariadb.org/mariadb/all-releases/
 # If MYSQL_VERSION is left blank, script will default to the Linux distro default MYSQL packages.
@@ -250,7 +250,7 @@ echo
 sudo chmod -R 770 $TMP_DIR
 sudo chown -R $SUDO_USER:root $TMP_DIR
 
-# Workaround for current Debian 12 & Tomcat 10 incompatibilities (August 2023)
+# Workaround for current Debian 12 & Tomcat 10 incompatibilities (Experimental in August 2023)
 if [[ $OS_FLAVOUR = "debian" ]] && [[ $OS_VERSION = *"bookworm"* ]]; then
     # Add the oldstable repo and downgrade tomcat version install
     echo "deb http://deb.debian.org/debian/ bullseye main" | sudo tee /etc/apt/sources.list.d/bullseye.list >/dev/null
