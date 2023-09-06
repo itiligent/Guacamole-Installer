@@ -628,6 +628,7 @@ echo -e "${GREYB}Itiligent VDI & Jump Server Appliance Setup."
 echo -e "                       ${LGREEN}Powered by Guacamole"
 echo
 echo
+
 echo -e "${LGREEN}Beginning Guacamole setup...${GREY}"
 echo
 echo -e "${GREY}Checking Linux distro specific dependencies..."

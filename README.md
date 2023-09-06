@@ -85,6 +85,9 @@ See theme and branding instructions [here](https://github.com/itiligent/Guacamol
    - **Quick connect** allows for add-hoc unauthenticated connections. Whilst users must still authenticate directly with the endpoint, all other controls such as file sharing restrictions can be bypassed as add-hoc connections allow the user full access to all connection parameters. Also, add-hoc connections are not recorded or logged. 
    - **History Recorded Storage** creates a locked down location for recorded session storage, however potentially sensitive recorded session data may require additional considerations beyond just Guacamole console & local filesystem access controls. Risk mitigations across the full storage and data lifecylce may also be a requirement.
 
+## **Upgrading Guacamole**
+To upgrade Guacamole, edit `upgrade-guac.sh` to reflect the desired `NEW_GUAC_VERSION` and `NEW_MYSQLJCON` values prior to running. The upgrade script will automatically update any pre-existing extensions already present (duo, ldap, totp, quick-connect or history-recored-storage) to the new Guacamole version.
+
 ## **Download manifest**
 
 The autorun link above downloads the following items into the `$DOWNLOAD_DIR/guac-setup` directory:
@@ -103,5 +106,5 @@ The autorun link above downloads the following items into the `$DOWNLOAD_DIR/gua
 - `add-tls-guac-daemon.sh`: A hardening script to add a TLS wrapper between the guacd server daemon and Guacamole application traffic (optional, consider extra performance impact mitigations)
 - `add-fail2ban.sh`: A hardening script to add a fail2ban policy (with local subnet override) to secure Guacamole against external brute force attacks
 - `backup-guacamole.sh`: A simple MySQL Guacamole backup script
-- `upgrade-guac.sh` upgrades the currently installed version of Guacamole to a new version (new version must specified in the script.)
+- `upgrade-guac.sh` Upgrades the currently installed versions of Guacamole and MySQL connector.
 - `branding.jar`: An example template for a custom (dark mode) Guacamole theme. Delete this file to keep the default Guacamole UI. This extension's source is also included for easier study and customisation.

@@ -95,7 +95,18 @@ if [ $? -ne 0 ]; then
     echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-${GUAC_VERSION}.war${GREY}"
     exit 1
 fi
-echo -e "${LGREEN}Downloaded guacamole-${GUAC_VERSION}.war${GREY}"
+echo -e "${LGREEN}Downloaded guacamole-${GUAC_VERSION}.war (Guacamole client web application)${GREY}"
+
+# Download MySQL connector/j
+wget -q --show-progress -O mysql-connector-j-${MYSQLJCON}.tar.gz https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${MYSQLJCON}.tar.gz
+if [ $? -ne 0 ]; then
+    echo -e "${LRED}Failed to download mysql-connector-j-${MYSQLJCON}.tar.gz" 1>&2
+    echo -e "https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${MYSQLJCON}}.tar.gz${GREY}"
+    exit 1
+else
+    tar -xzf mysql-connector-j-${MYSQLJCON}.tar.gz
+fi
+echo -e "${LGREEN}Downloaded mysql-connector-j-${MYSQLJCON}.tar.gz${GREY}"
 
 # Download Guacamole authentication extensions
 wget -q --show-progress -O guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz
@@ -172,17 +183,6 @@ if [ "${INSTALL_HISTREC}" = true ]; then
     fi
     echo -e "${LGREEN}Downloaded guacamole-history-recording-storage-${GUAC_VERSION}.tar.gz${GREY}"
 fi
-
-# Download MySQL connector/j
-wget -q --show-progress -O mysql-connector-j-${MYSQLJCON}.tar.gz https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${MYSQLJCON}.tar.gz
-if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed to download mysql-connector-j-${MYSQLJCON}.tar.gz" 1>&2
-    echo -e "https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${MYSQLJCON}}.tar.gz${GREY}"
-    exit 1
-else
-    tar -xzf mysql-connector-j-${MYSQLJCON}.tar.gz
-fi
-echo -e "${LGREEN}Downloaded mysql-connector-j-${MYSQLJCON}.tar.gz${GREY}"
 echo -e "Source download complete.${GREY}"
 
 # Option to pause script here as we might want to make final tweaks to source code just before compiling
@@ -262,6 +262,7 @@ chmod 664 /etc/guacamole/extensions/guacamole-auth-jdbc-mysql-${GUAC_VERSION}.ja
 
 # Create a symbolic link for Tomcat
 ln -sf /etc/guacamole/guacamole.war /var/lib/${TOMCAT_VERSION}/webapps/
+
 # Move MySQL connector/j files
 echo -e "${GREY}Moving mysql-connector-j-${MYSQLJCON}.jar (/etc/guacamole/lib/mysql-connector-java.jar)..."
 mv -f mysql-connector-j-${MYSQLJCON}/mysql-connector-j-${MYSQLJCON}.jar /etc/guacamole/lib/mysql-connector-java.jar

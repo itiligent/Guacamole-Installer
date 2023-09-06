@@ -28,13 +28,6 @@ if ! [ $(id -u) = 0 ]; then
     exit 1
 fi
 
-#Setup download and temp directory paths
-USER_HOME_DIR=$(eval echo ~${SUDO_USER})
-DOWNLOAD_DIR=$USER_HOME_DIR/guac-setup/upgrade
-
-# Setup directory locations
-mkdir -p $DOWNLOAD_DIR
-
 # Check to see if any previous version of build/install files exist, if so stop and check to be safe.
 if [ "$(find . -maxdepth 2 \( -name 'guacamole-*' -o -name 'mysql-connector-j-*' \))" != "" ]; then
     echo
@@ -49,12 +42,22 @@ fi
 
 # Script branding header
 echo
-echo -e "${GREYB}Itiligent Virtual Desktop Appliance UPGRADE"
+echo -e "${GREYB}Itiligent VDI & Jump Server Appliance UPGRADE."
 echo -e "                    ${LGREEN}Powered by Guacamole"
 echo
 
-# Version of Guacamole to upgrade to
+#Setup download and temp directory paths
+USER_HOME_DIR=$(eval echo ~${SUDO_USER})
+DOWNLOAD_DIR=$USER_HOME_DIR/guac-setup/upgrade
+
+# Setup directory locations
+mkdir -p $DOWNLOAD_DIR
+
+# Version of Guacamole to upgrade to. See https://guacamole.apache.org/releases/ for latest version info.
 NEW_GUAC_VERSION="1.5.3"
+
+# MySQL Connector/J version. See https://dev.mysql.com/downloads/connector/j/ for latest version number.
+NEW_MYSQLJCON="8.1.0"
 
 # Get the currently installed Tomcat version.
 TOMCAT_VERSION=$(ls /etc/ | grep tomcat)
@@ -69,78 +72,13 @@ GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guac
 # Install log Location
 LOG_LOCATION="${DOWNLOAD_DIR}/guacamole_${NEW_GUAC_VERSION}_upgrade.log"
 
-# Auto updated values from main installer
+# Auto updated values from main installer (manually update if blank)
 MYSQL_HOST=
 MYSQL_PORT=
 GUAC_USER=
 GUAC_PWD=
 GUAC_DB=
 MYSQL_ROOT_PWD=
-
-#######################################################################################################################
-# Prompt inputs if used as a standalone script (without auto updated variables) #######################################
-#######################################################################################################################
-
-echo
-# Get MySQL Hostname or IP
-if [ -z "${MYSQL_HOST}" ]; then
-    read -p "Enter MySQL server hostname or IP [localhost]: " MYSQL_HOST
-    echo
-fi
-
-# Get MySQL Port
-if [ -z "${MYSQL_PORT}" ]; then
-    read -p "Enter MySQL server port [3306]: " MYSQL_PORT
-    echo
-fi
-
-# Get MySQL database name
-if [ -z "${GUAC_DB}" ]; then
-    read -p "Enter Guacamole database name [guacamole_db]: " GUAC_DB
-    echo
-fi
-
-# Get MySQL user name
-if [ -z "${GUAC_USER}" ]; then
-    read -p "Enter Guacamole user name [guacamole_user]: " GUAC_USER
-    echo
-fi
-
-# Get Guacamole User password, confirm correct password entry and prevent blank passwords
-if [ -z "${GUAC_PWD}" ]; then
-    read -s -p "Enter MySQL guacamole_user password: " GUAC_PWD
-    echo
-fi
-
-# Get MySQL root password
-if [ -z "${MYSQL_ROOT_PWD}" ]; then
-    echo
-    read -s -p "Enter MySQL root password: " MYSQL_ROOT_PWD
-    echo
-fi
-
-# Set prompt input defaults if values not given
-
-# Checking if a mysql host given, if not set a default
-if [ -z "${MYSQL_HOST}" ]; then
-    MYSQL_HOST="localhost"
-fi
-
-# Checking if a mysql port given, if not set a default
-if [ -z "${MYSQL_PORT}" ]; then
-    MYSQL_PORT="3306"
-fi
-
-# Checking if a database name given, if not set a default
-if [ -z "${GUAC_DB}" ]; then
-    GUAC_DB="guacamole_db"
-fi
-
-# Checking if a mysql user given, if not set a default
-if [ -z "${GUAC_USER}" ]; then
-    GUAC_USER="guacamole_user"
-fi
-
 
 #######################################################################################################################
 # Start upgrade actions  ##############################################################################################
@@ -155,7 +93,7 @@ systemctl stop guacd
 cd $DOWNLOAD_DIR
 
 echo
-echo -e "${GREY}Beginning Guacamole ${OLD_GUAC_VERSION} to ${NEW_GUAC_VERSION} upgrade..."
+echo -e "${GREY}Downloading updated Guacamole source files and beginning Guacamole ${OLD_GUAC_VERSION} to ${NEW_GUAC_VERSION} upgrade..."
 wget -q --show-progress -O guacamole-${NEW_GUAC_VERSION}.war ${GUAC_SOURCE_LINK}/binary/guacamole-${NEW_GUAC_VERSION}.war
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed to download guacamole-${NEW_GUAC_VERSION}.war" 1>&2
@@ -181,6 +119,19 @@ else
     chmod 664 /etc/guacamole/extensions/guacamole-auth-jdbc-mysql-${NEW_GUAC_VERSION}.jar
 fi
 echo -e "${LGREEN}Upgraded Guacamole SQL jdbc to version ${NEW_GUAC_VERSION}${GREY}"
+
+# Download MySQL connector/j
+wget -q --show-progress -O mysql-connector-j-${NEW_MYSQLJCON}.tar.gz https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${NEW_MYSQLJCON}.tar.gz
+if [ $? -ne 0 ]; then
+    echo -e "${LRED}Failed to download mysql-connector-j-${NEW_MYSQLJCON}.tar.gz" 1>&2
+    echo -e "https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${NEW_MYSQLJCON}}.tar.gz${GREY}"
+    exit 1
+else
+    tar -xzf mysql-connector-j-${NEW_MYSQLJCON}.tar.gz
+    rm /etc/guacamole/lib/mysql-connector-java.jar
+    mv -f mysql-connector-j-${NEW_MYSQLJCON}/mysql-connector-j-${NEW_MYSQLJCON}.jar /etc/guacamole/lib/mysql-connector-java.jar
+fi
+echo -e "${LGREEN}Upgraded MySQL connector/j to ${NEW_MYSQLJCON}${GREY}"
 
 # Download Guacamole Server
 wget -q --show-progress -O guacamole-server-${NEW_GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/source/guacamole-server-${NEW_GUAC_VERSION}.tar.gz
@@ -382,6 +333,7 @@ fi
 # Cleanup
 echo -e "${GREY}Clean up install files...${GREY}"
 rm -rf guacamole-*
+rm -rf mysql-connector-j-*
 unset MYSQL_PWD
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
