@@ -67,7 +67,7 @@ fi
 #  Setup download and temp directory paths
 USER_HOME_DIR=$(eval echo ~${SUDO_USER})
 DOWNLOAD_DIR=$USER_HOME_DIR/guac-setup
-DB_BACKUP_DIR=$USER_HOME_DIR/mysqlbackups/
+DB_BACKUP_DIR=$USER_HOME_DIR/mysqlbackups
 TMP_DIR=$DOWNLOAD_DIR/tmp
 
 # GitHub download branch
@@ -727,11 +727,12 @@ elif [ "${CHANGE_ROOT}" = true ]; then
 fi
 
 # Add a Guacamole database backup (mon-fri 12:00am) into cron
+mv $DOWNLOAD_DIR/backup-guac.sh $DB_BACKUP_DIR
 crontab -l >cron_1
-# Remove existing entry to allow multiple runs
+# Remove any existing entry
 sed -i '/# backup guacamole/d' cron_1
 # Create the job
-echo "0 0 * * 1-5 ${DOWNLOAD_DIR}/backup-guac.sh # backup guacamole" >>cron_1
+echo "0 0 * * 1-5 ${DB_BACKUP_DIR}/backup-guac.sh # backup guacamole" >>cron_1
 # Overwrite the cron settings and cleanup
 crontab cron_1
 rm cron_1
@@ -758,30 +759,27 @@ if [[ "${INSTALL_NGINX}" = true ]] && [[ "${LETS_ENCRYPT}" = true ]]; then
     echo -e "${LGREEN}Let's Encrypt TLS configured for Nginx \n${LYELLOW}https:${LGREEN}//${LE_DNS_NAME} - admin login: guacadmin pass: guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
 fi
 
-# Duo Settings reminder - If Duo is selected you can't login to Guacamole at all until this extension is fully configured
+# Duo Settings reminder - If Duo is selected you can't login to Guacamole until this extension is fully configured
 if [ $INSTALL_DUO == "true" ]; then
     echo
     echo -e "${LYELLOW}Reminder: Duo requires extra account specific info configured in the\n/etc/guacamole/guacamole.properties file before you can log in to Guacamole."
     echo -e "See https://guacamole.apache.org/doc/gug/duo-auth.html"
 fi
 
-# LDAP Settings reminder, LDAP auth is not active functional until the config is complete
+# LDAP Settings reminder, LDAP auth is not functional until the config is complete
 if [ $INSTALL_LDAP == "true" ]; then
     echo
     echo -e "${LYELLOW}Reminder: LDAP requires that your LDAP directory configuration match the exact format\nadded to the /etc/guacamole/guacamole.properties file before LDAP auth will be active."
     echo -e "See https://guacamole.apache.org/doc/gug/ldap-auth.html"
 fi
 
-# Final tidy up
-mv $USER_HOME_DIR/1-setup.sh $DOWNLOAD_DIR
-sudo rm -R $TMP_DIR
-
-# Installer and Nginx scripts can't be run standalone without modification, so removing to keep things tidy.
-rm -f 1-setup.sh
+# Tidy up. (Installer and Nginx scripts can't be run again or standalone without modification, so removing.)
+rm -f $USER_HOME_DIR/1-setup.sh
 rm -f 2-install-guacamole.sh
 rm -f 3-install-nginx.sh 
 rm -f 4a-install-tls-self-signed-nginx.sh 
 rm -f 4b-install-tls-letsencrypt-nginx.sh
+sudo rm -R $TMP_DIR
 
 # Done
 echo
