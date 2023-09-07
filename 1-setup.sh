@@ -17,7 +17,7 @@
 # Scripts with "add" in their name can be run post install to add optional features not included in the main install
 
 # If something isn't working:
-#     tail -f /var/log/syslog /var/log/tomcat*/*.out /var/log/mysql/*.log guac-setup/guacamole_${GUAC_VERSION}_setup.log
+#     tail -f /var/log/syslog /var/log/tomcat*/*.out guac-setup/guacamole_${GUAC_VERSION}_setup.log
 # Or for Guacamole debug mode & verbose logs in the console:
 #     sudo systemctl stop guacd && sudo /usr/local/sbin/guacd -L debug -f
 
@@ -82,8 +82,8 @@ MYSQLJCON="8.1.0"
 # Set preferred Apache CDN download link)
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
 
-# Force a specific MySQL version e.g. 11.1.2 See https://mariadb.org/mariadb/all-releases/
-# If MYSQL_VERSION is left blank, script will default to the Linux distro default MYSQL packages.
+# Force a specific MySQL version e.g. 11.1.2 See https://mariadb.org/mariadb/all-releases/ for available versions.
+# If MYSQL_VERSION is left blank, script will default to the distro default MYSQL packages.
 MYSQL_VERSION=""
 if [ -z "${MYSQL_VERSION}" ]; then
     # Use Linux distro default version.
@@ -95,7 +95,7 @@ if [ -z "${MYSQL_VERSION}" ]; then
     MYSQLCLIENT="mariadb-client"
 fi
 
-# Check for the latest version of Tomcat currently supported by the Linux distro
+# Check for the latest version of Tomcat currently supported by the distro
 if [[ $(apt-cache show tomcat10 2>/dev/null | egrep "Version: 10" | wc -l) -gt 0 ]]; then
     TOMCAT_VERSION="tomcat10"
     elif [[ $(apt-cache show tomcat9 2>/dev/null | egrep "Version: 9" | wc -l) -gt 0 ]]; then
@@ -226,6 +226,7 @@ wget -q --show-progress ${GITHUB}add-tls-guac-daemon.sh -O add-tls-guac-daemon.s
 wget -q --show-progress ${GITHUB}add-fail2ban.sh -O add-fail2ban.sh
 wget -q --show-progress ${GITHUB}backup-guac.sh -O backup-guac.sh
 wget -q --show-progress ${GITHUB}upgrade-guac.sh -O upgrade-guac.sh
+wget -q --show-progress ${GITHUB}refresh-tls-self-signed.sh -O refresh-tls-self-signed.sh
 # Download the (customisable) dark theme & branding template
 wget -q --show-progress ${GITHUB}branding.jar -O branding.jar
 chmod +x *.sh
@@ -649,9 +650,7 @@ else
     echo
 fi
 
-# Because the below scripts may be run manually after install, we need to sync them
-# with our global variables or any setup prompt choices we made. This way we can run them
-# later and they will all work as a set without any manual changes.
+# Sync the various manual config scripts with the relevant variables selected at install 
 sed -i "s|MYSQL_HOST=|MYSQL_HOST='${MYSQL_HOST}'|g" $DOWNLOAD_DIR/backup-guac.sh
 sed -i "s|MYSQL_PORT=|MYSQL_PORT='${MYSQL_PORT}'|g" $DOWNLOAD_DIR/backup-guac.sh
 sed -i "s|GUAC_USER=|GUAC_USER='${GUAC_USER}'|g" $DOWNLOAD_DIR/backup-guac.sh
@@ -660,18 +659,29 @@ sed -i "s|GUAC_DB=|GUAC_DB='${GUAC_DB}'|g" $DOWNLOAD_DIR/backup-guac.sh
 sed -i "s|DB_BACKUP_DIR=|DB_BACKUP_DIR='${DB_BACKUP_DIR}'|g" $DOWNLOAD_DIR/backup-guac.sh
 sed -i "s|BACKUP_EMAIL=|BACKUP_EMAIL='${BACKUP_EMAIL}'|g" $DOWNLOAD_DIR/backup-guac.sh
 sed -i "s|BACKUP_RETENTION=|BACKUP_RETENTION='${BACKUP_RETENTION}'|g" $DOWNLOAD_DIR/backup-guac.sh
+
 sed -i "s|CERT_COUNTRY=|CERT_COUNTRY='${CERT_COUNTRY}'|g" $DOWNLOAD_DIR/add-tls-guac-daemon.sh
 sed -i "s|CERT_STATE=|CERT_STATE='${CERT_STATE}'|g" $DOWNLOAD_DIR/add-tls-guac-daemon.sh
 sed -i "s|CERT_LOCATION=|CERT_LOCATION='${CERT_LOCATION=}'|g" $DOWNLOAD_DIR/add-tls-guac-daemon.sh
 sed -i "s|CERT_ORG=|CERT_ORG='${CERT_ORG}'|g" $DOWNLOAD_DIR/add-tls-guac-daemon.sh
 sed -i "s|CERT_OU=|CERT_OU='${CERT_OU}'|g" $DOWNLOAD_DIR/add-tls-guac-daemon.sh
 sed -i "s|CERT_DAYS=|CERT_DAYS='${CERT_DAYS}'|g" $DOWNLOAD_DIR/add-tls-guac-daemon.sh
+
 sed -i "s|MYSQL_HOST=|MYSQL_HOST='${MYSQL_HOST}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
 sed -i "s|MYSQL_PORT=|MYSQL_PORT='${MYSQL_PORT}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
 sed -i "s|GUAC_USER=|GUAC_USER='${GUAC_USER}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
 sed -i "s|GUAC_PWD=|GUAC_PWD='${GUAC_PWD}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
 sed -i "s|GUAC_DB=|GUAC_DB='${GUAC_DB}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
 sed -i "s|MYSQL_ROOT_PWD=|MYSQL_ROOT_PWD='${MYSQL_ROOT_PWD}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
+
+sed -i "s|CERT_COUNTRY=|CERT_COUNTRY='${CERT_COUNTRY}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
+sed -i "s|CERT_STATE=|CERT_STATE='${CERT_STATE}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
+sed -i "s|CERT_LOCATION=|CERT_LOCATION='${CERT_LOCATION}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
+sed -i "s|CERT_ORG=|CERT_ORG='${CERT_ORG}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
+sed -i "s|CERT_OU=|CERT_OU='${CERT_OU}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
+sed -i "s|PROXY_SITE=|PROXY_SITE='${PROXY_SITE}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
+sed -i "s|DEFAULT_IP=|DEFAULT_IP='${DEFAULT_IP}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
+sed -i "s|CERT_DAYS=|CERT_DAYS='${CERT_DAYS}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
 
 # Export the relevant variable selections to child install scripts
 export DOWNLOAD_DIR="${DOWNLOAD_DIR}"
@@ -749,7 +759,7 @@ fi
 
 # Apply self signed TLS certificates to Nginx reverse proxy if option is selected
 if [[ "${INSTALL_NGINX}" = true ]] && [[ "${SELF_SIGN}" = true ]]; then
-    sudo -E ./4a-install-tls-self-signed-nginx.sh ${PROXY_SITE} ${CERT_DAYS}
+    sudo -E ./4a-install-tls-self-signed-nginx.sh ${PROXY_SITE} ${CERT_DAYS} | tee -a ${LOG_LOCATION}
     echo -e "${LGREEN}Self signed certificate configured for Nginx \n${LYELLOW}https:${LGREEN}//${PROXY_SITE} - admin login: guacadmin pass: guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
 fi
 

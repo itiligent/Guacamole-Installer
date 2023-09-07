@@ -107,4 +107,5 @@ The autorun link above downloads the following items into the `$DOWNLOAD_DIR/gua
 - `add-fail2ban.sh`: A hardening script to add a fail2ban policy (with local subnet override) to secure Guacamole against external brute force attacks
 - `backup-guacamole.sh`: A simple MySQL Guacamole backup script
 - `upgrade-guac.sh` Upgrades the currently installed versions of Guacamole and MySQL connector.
+- `refresh-tls-self-signed` Creates and installs updated TLS certificates into Nginx. (Can be configured to generate certs for any other application).
 - `branding.jar`: An example template for a custom (dark mode) Guacamole theme. Delete this file to keep the default Guacamole UI. This extension's source is also included for easier study and customisation.

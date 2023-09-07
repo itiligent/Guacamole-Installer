@@ -73,7 +73,7 @@ if [[ $SSLDAYS == "" ]]; then
 fi
 
 echo
-echo "{$GREY}Creating a new Nginx TLS Certificate ..."
+echo "{$GREY}Creating a new Nginx TLS Certificate..."
 openssl req -x509 -nodes -newkey rsa:2048 -keyout $SSLNAME.key -out $SSLNAME.crt -days $SSLDAYS -config $TMP_DIR/cert_attributes.txt
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
@@ -111,7 +111,7 @@ else
 fi
 
 # Update Nginx config to accept the new certificates
-echo -e "${GREY}Configuring Nginx proxy to use self signed TLS certificates and setting up automatic HTTP to HTTPS redirect...${DGREY}"
+echo -e "${GREY}Configuring Nginx proxy to use the self signed TLS certificate and setting up HTTP redirect...${DGREY}"
 #cat > /etc/nginx/sites-available/$PROXY_SITE <<EOL | > /dev/null
 cat <<EOF | tee /etc/nginx/sites-available/$PROXY_SITE
 server {
@@ -188,7 +188,7 @@ else
     echo
 fi
 
-# Hack to assist with displaying "$" symbols and " ' quotes in a (cut/pasteable) bash screen output format for Nginx configs
+# Hack to assist with displaying "$" symbols and " ' quotes in a (cut/paste-able) bash screen output format
 SHOWASTEXT1='$mypwd'
 SHOWASTEXT2='"Cert:\LocalMachine\Root"'
 
