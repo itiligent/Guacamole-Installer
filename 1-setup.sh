@@ -173,7 +173,7 @@ SERVER_NAME=""                  # Preferred server hostname
 LOCAL_DOMAIN=""                 # Local DNS space in use
 INSTALL_MYSQL=""                # Install locally (true/false)
 SECURE_MYSQL=""                 # Apply mysql secure configuration tool (true/false)
-MYSQL_HOST=""                   # leave blank for localhost default, only specify for remote servers
+MYSQL_HOST=""                   # Blank or localhost for a local MySQL install, a specific IP for remote MySQL option.
 MYSQL_PORT=""                   # If blank default is 3306
 GUAC_DB=""                      # If blank default is guacamole_db
 GUAC_USER=""                    # If blank default is guacamole_user
@@ -381,13 +381,13 @@ fi
 # Get additional MYSQL values
 if [ "${INSTALL_MYSQL}" = false ]; then
     [ -z "${MYSQL_HOST}" ] &&
-        read -p "SQL: Enter MySQL server hostname or IP: " MYSQL_HOST
+        read -p "SQL: Enter remote MySQL server hostname or IP: " MYSQL_HOST
     [ -z "${MYSQL_PORT}" ] &&
-        read -p "SQL: Enter MySQL server port [3306]: " MYSQL_PORT
+        read -p "SQL: Enter remote MySQL server port [3306]: " MYSQL_PORT
     [ -z "${GUAC_DB}" ] &&
-        read -p "SQL: Enter Guacamole database name [guacamole_db]: " GUAC_DB
+        read -p "SQL: Enter remote Guacamole database name [guacamole_db]: " GUAC_DB
     [ -z "${GUAC_USER}" ] &&
-        read -p "SQL: Enter Guacamole user name [guacamole_user]: " GUAC_USER
+        read -p "SQL: Enter remote Guacamole user name [guacamole_user]: " GUAC_USER
     fi
     # Checking if a mysql host given, if not set a default
     if [ -z "${MYSQL_HOST}" ]; then
@@ -418,8 +418,8 @@ if [ -z "${GUAC_PWD}" ]; then
     done
 fi
 
-# Get MySQL root password, confirm correct password entry and prevent blank passwords
-if [ -z "${MYSQL_ROOT_PWD}" ]; then
+# Get MySQL root password, confirm correct password entry and prevent blank passwords. No root pw needed for remote instances.
+if [ -z "${MYSQL_ROOT_PWD}" ] && [ "${INSTALL_MYSQL}" = true ]; then
     while true; do
         read -s -p "SQL: Enter ${MYSQL_HOST}'s MySQL root password: " MYSQL_ROOT_PWD
         echo

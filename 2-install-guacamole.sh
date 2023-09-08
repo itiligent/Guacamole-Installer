@@ -249,6 +249,7 @@ fi
 
 echo -e "${GREY}Installing Guacamole-Server..."
 make install &>>${LOG_LOCATION}
+ldconfig
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
     exit 1
@@ -256,7 +257,6 @@ else
     echo -e "${LGREEN}OK${GREY}"
     echo
 fi
-ldconfig
 
 # Move files to correct install locations (guacamole-client & Guacamole authentication extensions)
 cd ..
@@ -406,6 +406,7 @@ fi
 systemctl enable ${TOMCAT_VERSION}
 echo
 
+if [ "${INSTALL_MYSQL}" = true ]; then
 # Set MySQL password
 export MYSQL_PWD=${MYSQL_ROOT_PWD}
 
@@ -451,21 +452,6 @@ else
     echo
 fi
 
-# Restart MySQL service
-if [ "${INSTALL_MYSQL}" = true ]; then
-    echo -e "${GREY}Restarting MySQL service & enable at boot..."
-    # Set MySQl to start at boot
-    systemctl enable mysql
-    systemctl restart mysql
-    if [ $? -ne 0 ]; then
-        echo -e "${LRED}Failed${GREY}" 1>&2
-        exit 1
-    else
-        echo -e "${LGREEN}OK${GREY}"
-        echo
-    fi
-fi
-
 # Create ${GUAC_DB} and grant ${GUAC_USER} permissions to it
 GUAC_USERHost="localhost"
 if [[ "${MYSQL_HOST}" != "localhost" ]]; then
@@ -473,48 +459,22 @@ if [[ "${MYSQL_HOST}" != "localhost" ]]; then
     echo -e "${YELLOW}MySQL Guacamole user is set to accept login from any host, please change this for security reasons if possible.${GREY}"
 fi
 
-# Check if ${GUAC_DB} is already present
-echo -e "${GREY}Checking MySQL for existing database (${GUAC_DB})"
-SQLCODE="
-SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='${GUAC_DB}';"
-
 # Execute SQL code
-MYSQL_RESULT=$(echo ${SQLCODE} | mysql -u root -D information_schema -h ${MYSQL_HOST} -P ${MYSQL_PORT})
-if [[ $MYSQL_RESULT != "" ]]; then
-    echo -e "${LRED}It appears there is already a MySQL database (${GUAC_DB}) on ${MYSQL_HOST}${GREY}" 1>&2
-    echo -e "${LRED}Try:    mysql -e 'DROP DATABASE ${GUAC_DB}'${GREY}" 1>&2
-    exit 1
-else
-    echo -e "${LGREEN}OK${GREY}"
-    echo
-fi
-
-# Check if ${GUAC_USER} is already present
-echo -e "${GREY}Checking MySQL for existing user (${GUAC_USER})"
-SQLCODE="
-SELECT COUNT(*) FROM mysql.user WHERE user = '${GUAC_USER}';"
-
-# Execute SQL code
-MYSQL_RESULT=$(echo ${SQLCODE} | mysql -u root -D mysql -h ${MYSQL_HOST} -P ${MYSQL_PORT} | grep '0')
-if [[ $MYSQL_RESULT == "" ]]; then
-    echo -e "${LRED}It appears there is already a MySQL user (${GUAC_USER}) on ${MYSQL_HOST}${GREY}" 1>&2
-    echo -e "${LRED}Try:    mysql -e \"DROP USER '${GUAC_USER}'@'${GUAC_USERHost}'; FLUSH PRIVILEGES;\"${GREY}" 1>&2
-    exit 1
-else
-    echo -e "${LGREEN}OK${GREY}"
-    echo
-fi
-
-# Create database & user, then set permissions
+echo -e "${GREY}Creating the Guacamole database..."
 SQLCODE="
 DROP DATABASE IF EXISTS ${GUAC_DB};
 CREATE DATABASE IF NOT EXISTS ${GUAC_DB};
 CREATE USER IF NOT EXISTS '${GUAC_USER}'@'${GUAC_USERHost}' IDENTIFIED BY \"${GUAC_PWD}\";
 GRANT SELECT,INSERT,UPDATE,DELETE ON ${GUAC_DB}.* TO '${GUAC_USER}'@'${GUAC_USERHost}';
 FLUSH PRIVILEGES;"
-
-# Execute SQL code
 echo ${SQLCODE} | mysql -u root -D mysql -h ${MYSQL_HOST} -P ${MYSQL_PORT}
+if [ $? -ne 0 ]; then
+    echo -e "${LRED}Failed${GREY}" 1>&2
+    exit 1
+else
+    echo -e "${LGREEN}OK${GREY}"
+    echo
+fi
 
 # Add Guacamole schema to newly created database
 echo -e "${GREY}Adding database tables..."
@@ -525,6 +485,7 @@ if [ $? -ne 0 ]; then
 else
     echo -e "${LGREEN}OK${GREY}"
     echo
+fi
 fi
 
 # Create guacd.conf and locahost IP binding.
@@ -547,20 +508,6 @@ echo -e "${GREY}Starting guacd service & enable at boot..."
 systemctl enable guacd
 systemctl stop guacd 2>/dev/null
 systemctl start guacd
-if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
-    exit 1
-else
-    echo -e "${LGREEN}OK${GREY}"
-    echo
-fi
-
-# Cleanup
-echo -e "${GREY}Cleanup install files...${GREY}"
-rm -rf guacamole-*
-rm -rf mysql-connector-j-*
-rm -rf mariadb_repo_setup
-unset MYSQL_PWD
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
     exit 1
@@ -593,8 +540,24 @@ send \"y\r\"
 expect eof
 ")
     echo "$SECURE_MYSQL"
+    systemctl restart mysql
     if [ $? -ne 0 ]; then
         echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+        exit 1
+    else
+        echo -e "${LGREEN}OK${GREY}"
+        echo
+    fi
+fi
+
+# Restart MySQL service
+if [ "${INSTALL_MYSQL}" = true ]; then
+    echo -e "${GREY}Restarting MySQL service & enable at boot..."
+    # Set MySQl to start at boot
+    systemctl enable mysql
+    systemctl restart mysql
+    if [ $? -ne 0 ]; then
+        echo -e "${LRED}Failed${GREY}" 1>&2
         exit 1
     else
         echo -e "${LGREEN}OK${GREY}"
@@ -631,6 +594,20 @@ if [ $? -ne 0 ]; then
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
+fi
+
+# Cleanup
+echo -e "${GREY}Cleanup install files...${GREY}"
+rm -rf guacamole-*
+rm -rf mysql-connector-j-*
+rm -rf mariadb_repo_setup
+unset MYSQL_PWD
+if [ $? -ne 0 ]; then
+    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    exit 1
+else
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Done
