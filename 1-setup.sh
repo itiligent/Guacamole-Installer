@@ -346,7 +346,7 @@ echo
 # Prompt the user to install MySQL
 echo -e "${LGREEN}MySQL setup options:${GREY}"
 if [[ -z ${INSTALL_MYSQL} ]]; then
-    echo -e -n "SQL: Install MySQL? (to use a remote MySQL Server select 'n') [Y/n] [default y]: ${GREY}"
+    echo -e -n "SQL: Install MySQL locally? (to use a remote MySQL Server select 'n') [Y/n] [default y]: ${GREY}"
     read PROMPT
     if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
         INSTALL_MYSQL=false

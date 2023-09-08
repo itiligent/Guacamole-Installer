@@ -15,8 +15,8 @@ LGREEN='\033[0;92m'
 LYELLOW='\033[0;93m'
 NC='\033[0m' #No Colour
 
-# Pre-seed MySQL install values
-if [ "${INSTALL_MYSQL}" = true ]; then
+# Pre-seed MySQL root password values for Linux Distro default packages only
+if [ "${INSTALL_MYSQL}" = true ] && [ -z "${MYSQL_VERSION}" ]; then
     debconf-set-selections <<<"mysql-server mysql-server/root_password password ${MYSQL_ROOT_PWD}"
     debconf-set-selections <<<"mysql-server mysql-server/root_password_again password ${MYSQL_ROOT_PWD}"
 fi
@@ -30,7 +30,7 @@ else
     MYSQL="${MYSQLCLIENT}"
 fi
 
-# Don't do annoying prompts during apt installs
+# Update everything but don't do the annoying prompts during apt installs
 echo -e "${GREY}Updating base Linux OS..."
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq &>>${LOG_LOCATION}
@@ -409,7 +409,7 @@ echo
 # Set MySQL password
 export MYSQL_PWD=${MYSQL_ROOT_PWD}
 
-# Default locations of MySQL config files
+# Find the location of the MySQL config files
 for x in /etc/mysql/mariadb.conf.d/50-server.cnf \
     /etc/mysql/mysql.conf.d/mysqld.cnf \
     /etc/mysql/my.cnf; do
@@ -426,8 +426,8 @@ done
 if [ -z "${mysqlconfig}" ]; then
     echo -e "${GREY}Couldn't detect MySQL config file - you may need to manually enter timezone settings"
 else
-    # Is there already a value?
-    if grep -q "^default_time_zone[[:space:]]?=" "${mysqlconfig}"; then
+    # Is there already a timzeone value configured?
+    if grep -q "^default_time_zone[[:space:]]=" "${mysqlconfig}"; then
         echo -e "MySQL database timezone already defined in ${mysqlconfig}"
     else
         timezone="$(cat /etc/timezone)"
@@ -467,14 +467,13 @@ if [ "${INSTALL_MYSQL}" = true ]; then
 fi
 
 # Create ${GUAC_DB} and grant ${GUAC_USER} permissions to it
-# SQL code
 GUAC_USERHost="localhost"
 if [[ "${MYSQL_HOST}" != "localhost" ]]; then
     GUAC_USERHost="%"
     echo -e "${YELLOW}MySQL Guacamole user is set to accept login from any host, please change this for security reasons if possible.${GREY}"
 fi
 
-# Check for ${GUAC_DB} already being there
+# Check if ${GUAC_DB} is already present
 echo -e "${GREY}Checking MySQL for existing database (${GUAC_DB})"
 SQLCODE="
 SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME='${GUAC_DB}';"
@@ -484,13 +483,13 @@ MYSQL_RESULT=$(echo ${SQLCODE} | mysql -u root -D information_schema -h ${MYSQL_
 if [[ $MYSQL_RESULT != "" ]]; then
     echo -e "${LRED}It appears there is already a MySQL database (${GUAC_DB}) on ${MYSQL_HOST}${GREY}" 1>&2
     echo -e "${LRED}Try:    mysql -e 'DROP DATABASE ${GUAC_DB}'${GREY}" 1>&2
-#exit 1
+    exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
     echo
 fi
 
-# Check for ${GUAC_USER} already being there
+# Check if ${GUAC_USER} is already present
 echo -e "${GREY}Checking MySQL for existing user (${GUAC_USER})"
 SQLCODE="
 SELECT COUNT(*) FROM mysql.user WHERE user = '${GUAC_USER}';"
@@ -500,7 +499,7 @@ MYSQL_RESULT=$(echo ${SQLCODE} | mysql -u root -D mysql -h ${MYSQL_HOST} -P ${MY
 if [[ $MYSQL_RESULT == "" ]]; then
     echo -e "${LRED}It appears there is already a MySQL user (${GUAC_USER}) on ${MYSQL_HOST}${GREY}" 1>&2
     echo -e "${LRED}Try:    mysql -e \"DROP USER '${GUAC_USER}'@'${GUAC_USERHost}'; FLUSH PRIVILEGES;\"${GREY}" 1>&2
-#exit 1
+    exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
     echo
