@@ -112,7 +112,7 @@ fi
 # TOMCAT_VERSION="tomcat9"
 
 # Install log Location
-LOG_LOCATION="${DOWNLOAD_DIR}/guacamole_${GUAC_VERSION}_setup.log"
+INSTALL_LOG="${DOWNLOAD_DIR}/guacamole_${GUAC_VERSION}_setup.log"
 
 # Guacamole default install URL
 GUAC_URL=http://localhost:8080/guacamole/
@@ -282,18 +282,18 @@ if [[ -z ${SERVER_NAME} ]]; then
     echo
     # A SERVER_NAME was derived via the prompt
     # Apply the SERVER_NAME value & remove and update any old 127.0.1.1 local host references
-    sudo hostnamectl set-hostname $SERVER_NAME &>>${LOG_LOCATION}
-    sudo sed -i '/127.0.1.1/d' /etc/hosts &>>${LOG_LOCATION}
-    echo '127.0.1.1       '${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${LOG_LOCATION}
-    sudo systemctl restart systemd-hostnamed &>>${LOG_LOCATION}
+    sudo hostnamectl set-hostname $SERVER_NAME &>>${INSTALL_LOG}
+    sudo sed -i '/127.0.1.1/d' /etc/hosts &>>${INSTALL_LOG}
+    echo '127.0.1.1       '${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${INSTALL_LOG}
+    sudo systemctl restart systemd-hostnamed &>>${INSTALL_LOG}
 else
     echo
     # A SERVER_NAME value was derived from a pre-set silent install option.
     # Apply the SERVER_NAME value & remove and update any old 127.0.1.1 local host references
-    sudo hostnamectl set-hostname $SERVER_NAME &>>${LOG_LOCATION}
-    sudo sed -i '/127.0.1.1/d' /etc/hosts &>>${LOG_LOCATION}
-    echo '127.0.1.1       '${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${LOG_LOCATION}
-    sudo systemctl restart systemd-hostnamed &>>${LOG_LOCATION}
+    sudo hostnamectl set-hostname $SERVER_NAME &>>${INSTALL_LOG}
+    sudo sed -i '/127.0.1.1/d' /etc/hosts &>>${INSTALL_LOG}
+    echo '127.0.1.1       '${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${INSTALL_LOG}
+    sudo systemctl restart systemd-hostnamed &>>${INSTALL_LOG}
 fi
 
 # Ensure SERVER_NAME, LOCAL_DOMAIN suffix and host entries are all consistent
@@ -311,11 +311,11 @@ if [[ -z ${LOCAL_DOMAIN} ]]; then
     sudo sed -i '/domain/d' /etc/resolv.conf
     sudo sed -i '/search/d' /etc/resolv.conf
     # Refresh the /etc/hosts file with the server name and new local domain value
-    echo ''${DEFAULT_IP}'	'${SERVER_NAME}.${LOCAL_DOMAIN} ${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${LOG_LOCATION}
+    echo ''${DEFAULT_IP}'	'${SERVER_NAME}.${LOCAL_DOMAIN} ${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${INSTALL_LOG}
     # Refresh /etc/resolv.conf with new domain and search suffix values
-    echo 'domain	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${LOG_LOCATION}
-    echo 'search	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${LOG_LOCATION}
-    sudo systemctl restart systemd-hostnamed &>>${LOG_LOCATION}
+    echo 'domain	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${INSTALL_LOG}
+    echo 'search	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${INSTALL_LOG}
+    sudo systemctl restart systemd-hostnamed &>>${INSTALL_LOG}
 else
     echo
     # A LOCAL_DOMIN value was derived from a pre-set silent install option.
@@ -324,11 +324,11 @@ else
     sudo sed -i '/domain/d' /etc/resolv.conf
     sudo sed -i '/search/d' /etc/resolv.conf
     # Refresh the /etc/hosts file with the server name and new local domain value
-    echo ''${DEFAULT_IP}'	'${SERVER_NAME}.${LOCAL_DOMAIN} ${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${LOG_LOCATION}
+    echo ''${DEFAULT_IP}'	'${SERVER_NAME}.${LOCAL_DOMAIN} ${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${INSTALL_LOG}
     # Refresh /etc/resolv.conf with new domain and search suffix values
-    echo 'domain	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${LOG_LOCATION}
-    echo 'search	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${LOG_LOCATION}
-    sudo systemctl restart systemd-hostnamed &>>${LOG_LOCATION}
+    echo 'domain	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${INSTALL_LOG}
+    echo 'search	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${INSTALL_LOG}
+    sudo systemctl restart systemd-hostnamed &>>${INSTALL_LOG}
 fi
 
     # Now that $SERVER_NAME and $LOCAL_DOMAIN values are updated and refreshed:
@@ -643,13 +643,13 @@ if [[ $OS_FLAVOUR == "ubuntu" ]] || [[ $OS_FLAVOUR == *"ubuntu"* ]]; then # pote
     JPEGTURBO="libjpeg-turbo8-dev"
     LIBPNG="libpng-dev"
     # Just in case this repo is not added by default in the distro
-    sudo add-apt-repository -y universe &>>${LOG_LOCATION}
+    sudo add-apt-repository -y universe &>>${INSTALL_LOG}
 elif [[ $OS_FLAVOUR == "debian" ]] || [[ $OS_FLAVOUR == "raspbian" ]]; then # expand distro choices here if required
     JPEGTURBO="libjpeg62-turbo-dev"
     LIBPNG="libpng-dev"
 fi
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -700,7 +700,7 @@ export MYSQL_VERSION=$MYSQL_VERSION
 export MYSQLSRV="${MYSQLSRV}"
 export MYSQLCLIENT="${MYSQLCLIENT}"
 export TOMCAT_VERSION=$TOMCAT_VERSION
-export LOG_LOCATION=$LOG_LOCATION
+export INSTALL_LOG=$INSTALL_LOG
 export GUAC_URL=$GUAC_URL
 export JPEGTURBO=$JPEGTURBO
 export LIBPNG=$LIBPNG
@@ -735,7 +735,7 @@ export RDP_PRINTER_LABEL="${RDP_PRINTER_LABEL}"
 # Run the Guacamole install script
 sudo -E ./2-install-guacamole.sh
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}2-install-guacamole.sh FAILED. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}2-install-guacamole.sh FAILED. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 elif [ "${CHANGE_ROOT}" = true ]; then
     echo -e "${LGREEN}Guacamole install complete\nhttp://${PROXY_SITE}:8080 - login user/pass: guacadmin/guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
@@ -767,7 +767,7 @@ fi
 
 # Apply self signed TLS certificates to Nginx reverse proxy if option is selected
 if [[ "${INSTALL_NGINX}" = true ]] && [[ "${SELF_SIGN}" = true ]]; then
-    sudo -E ./4a-install-tls-self-signed-nginx.sh ${PROXY_SITE} ${CERT_DAYS} | tee -a ${LOG_LOCATION}
+    sudo -E ./4a-install-tls-self-signed-nginx.sh ${PROXY_SITE} ${CERT_DAYS} | tee -a ${INSTALL_LOG}
     echo -e "${LGREEN}Self signed certificate configured for Nginx \n${LYELLOW}https:${LGREEN}//${PROXY_SITE} - admin login: guacadmin pass: guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
 fi
 

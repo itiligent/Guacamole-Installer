@@ -72,7 +72,7 @@ echo
 echo "{$GREY}Creating a new Nginx TLS Certificate..."
 openssl req -x509 -nodes -newkey rsa:2048 -keyout $TLSNAME.key -out $TLSNAME.crt -days $TLSDAYS -config $TMP_DIR/cert_attributes.txt
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -87,7 +87,7 @@ sudo cp $TLSNAME.crt $DIR_SSL_CERT/$TLSNAME.crt
 echo -e "${GREY}Converting client certificates for Windows & Linux...${GREY}"
 sudo openssl pkcs12 -export -out $TLSNAME.pfx -inkey $TLSNAME.key -in $TLSNAME.crt -password pass:1234
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -103,7 +103,7 @@ sudo chown $SUDO_USER:root $TLSNAME.key
 echo -e "${GREY}Backing up previous Nginx proxy to $DOWNLOAD_DIR/$TLSNAME-nginx.bak"
 cp /etc/nginx/sites-enabled/${TLSNAME} $DOWNLOAD_DIR/${TLSNAME}-nginx.bak
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -151,7 +151,7 @@ server {
 }
 EOF
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -167,7 +167,7 @@ sudo ufw allow 80/tcp >/dev/null 2>&1
 sudo ufw allow 443/tcp >/dev/null 2>&1
 echo "y" | sudo ufw enable >/dev/null 2>&1
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -180,7 +180,7 @@ sudo systemctl restart $TOMCAT_VERSION
 sudo systemctl restart guacd
 sudo systemctl restart nginx
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -209,7 +209,7 @@ echo -e "(If certutil is not installed, run apt-get install libnss3-tools)"
 echo -e "mkdir -p $HOME/.pki/nssdb && certutil -d $HOME/.pki/nssdb -N"
 echo -e "certutil -d sql:$HOME/.pki/nssdb -A -t "CT,C,c" -n $TLSNAME -i $TLSNAME.crt"
 printf "+-------------------------------------------------------------------------------------------------------------\n"
-echo -e "${LYELLOW}The above TLS browser config instructions are saved in ${LGREEN}$LOG_LOCATION${GREY}"
+echo -e "${LYELLOW}The above TLS browser config instructions are saved in ${LGREEN}$INSTALL_LOG${GREY}"
 
 # Done
 echo -e ${NC}

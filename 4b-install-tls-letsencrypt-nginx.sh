@@ -22,15 +22,15 @@ echo -e "${LGREEN}Installing Let's Encrypt TLS configuration for Nginx...${GREY}
 echo
 
 # Install nginx
-apt-get update -qq &>>${LOG_LOCATION}
-apt-get install nginx certbot python3-certbot-nginx -qq -y &>>${LOG_LOCATION}
+apt-get update -qq &>>${INSTALL_LOG}
+apt-get install nginx certbot python3-certbot-nginx -qq -y &>>${INSTALL_LOG}
 
 # Backup the current Nginx config
 echo
 echo -e "${GREY}Backing up previous Nginx proxy to $DOWNLOAD_DIR/$PROXY_SITE-nginx.bak"
 cp /etc/nginx/sites-enabled/${PROXY_SITE} $DOWNLOAD_DIR/${PROXY_SITE}-nginx.bak
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -58,7 +58,7 @@ server {
 }
 EOL
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -74,7 +74,7 @@ sudo ufw allow 80/tcp >/dev/null 2>&1
 sudo ufw allow 443/tcp >/dev/null 2>&1
 echo "y" | sudo ufw enable >/dev/null 2>&1
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -89,7 +89,7 @@ certbot --nginx -n -d $LE_DNS_NAME --email $LE_EMAIL --agree-tos --redirect --hs
 echo -e
 echo -e "${GREY}Let's Encrypt successfully installed, but check for any errors above (DNS & firewall are the usual culprits).${GREY}"
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -111,7 +111,7 @@ echo "${MINUTE} ${HOUR} * * * /usr/bin/certbot renew --quiet --pre-hook 'systemc
 crontab cron_1
 rm cron_1
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -124,7 +124,7 @@ sudo systemctl restart $TOMCAT_VERSION
 sudo systemctl restart guacd
 sudo systemctl restart nginx
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"

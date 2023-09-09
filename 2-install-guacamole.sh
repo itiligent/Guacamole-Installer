@@ -33,10 +33,10 @@ fi
 # Update everything but don't do the annoying prompts during apt installs
 echo -e "${GREY}Updating base Linux OS..."
 export DEBIAN_FRONTEND=noninteractive
-apt-get update -qq &>>${LOG_LOCATION}
-apt-get upgrade -qq -y &>>${LOG_LOCATION}
+apt-get update -qq &>>${INSTALL_LOG}
+apt-get upgrade -qq -y &>>${INSTALL_LOG}
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -48,16 +48,16 @@ echo -e "${GREY}Installing dependencies required for building Guacamole, this mi
 
 if [ -n "${MYSQL_VERSION}" ]; then
     # Add the Official MariaDB repo.
-    apt-get -qq -y install curl gnupg2 &>>${LOG_LOCATION}
-    curl -LsS -O https://downloads.mariadb.com/MariaDB/mariadb_repo_setup &>>${LOG_LOCATION}
-    bash mariadb_repo_setup --mariadb-server-version=$MYSQL_VERSION &>>${LOG_LOCATION}
+    apt-get -qq -y install curl gnupg2 &>>${INSTALL_LOG}
+    curl -LsS -O https://downloads.mariadb.com/MariaDB/mariadb_repo_setup &>>${INSTALL_LOG}
+    bash mariadb_repo_setup --mariadb-server-version=$MYSQL_VERSION &>>${INSTALL_LOG}
 fi
 
 apt-get -qq -y install ${JPEGTURBO} ${LIBPNG} ufw htop pwgen wget crudini expect build-essential libcairo2-dev libtool-bin uuid-dev libavcodec-dev libavformat-dev libavutil-dev \
     libswscale-dev freerdp2-dev libpango1.0-dev libssh2-1-dev libtelnet-dev libvncserver-dev libwebsockets-dev libpulse-dev libssl-dev \
-    libvorbis-dev libwebp-dev ghostscript ${MYSQL} ${TOMCAT_VERSION} &>>${LOG_LOCATION}
+    libvorbis-dev libwebp-dev ghostscript ${MYSQL} ${TOMCAT_VERSION} &>>${INSTALL_LOG}
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -66,9 +66,9 @@ fi
 # Install Postfix with default settings for smtp email relay
 echo
 echo -e "${GREY}Installing Postfix MTA for backup email notifications and alerts, see separate SMTP relay configuration script..."
-DEBIAN_FRONTEND="noninteractive" apt-get install postfix mailutils -qq -y &>>${LOG_LOCATION}
+DEBIAN_FRONTEND="noninteractive" apt-get install postfix mailutils -qq -y &>>${INSTALL_LOG}
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -223,7 +223,7 @@ echo -e "${GREY}Compiling Guacamole-Server from source with with GCC $(gcc --ver
 export CFLAGS="-Wno-error"
 
 # Configure Guacamole Server source
-./configure --with-systemd-dir=/etc/systemd/system &>>${LOG_LOCATION}
+./configure --with-systemd-dir=/etc/systemd/system &>>${INSTALL_LOG}
 if [ $? -ne 0 ]; then
     echo "Failed to configure guacamole-server"
     echo "Trying again with --enable-allow-freerdp-snapshots"
@@ -238,9 +238,9 @@ else
 fi
 
 echo -e "${GREY}Running make and building the Guacamole-Server application..."
-make &>>${LOG_LOCATION}
+make &>>${INSTALL_LOG}
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -248,10 +248,10 @@ else
 fi
 
 echo -e "${GREY}Installing Guacamole-Server..."
-make install &>>${LOG_LOCATION}
+make install &>>${INSTALL_LOG}
 ldconfig
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -273,7 +273,7 @@ echo -e "${GREY}Moving mysql-connector-j-${MYSQLJCON}.jar (/etc/guacamole/lib/my
 mv -f mysql-connector-j-${MYSQLJCON}/mysql-connector-j-${MYSQLJCON}.jar /etc/guacamole/lib/mysql-connector-java.jar
 chmod 664 /etc/guacamole/lib/mysql-connector-java.jar
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -295,7 +295,7 @@ if [ "${INSTALL_TOTP}" = true ]; then
     mv -f guacamole-auth-totp-${GUAC_VERSION}/guacamole-auth-totp-${GUAC_VERSION}.jar /etc/guacamole/extensions/
     chmod 664 /etc/guacamole/extensions/guacamole-auth-totp-${GUAC_VERSION}.jar
     if [ $? -ne 0 ]; then
-        echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+        echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
         exit 1
     else
         echo -e "${LGREEN}OK${GREY}"
@@ -314,7 +314,7 @@ if [ "${INSTALL_DUO}" = true ]; then
     echo "#duo-application-key: " >>/etc/guacamole/guacamole.properties
     echo -e "Duo auth is installed, it will need to be configured via guacamole.properties"
     if [ $? -ne 0 ]; then
-        echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+        echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
         exit 1
     else
         echo -e "${LGREEN}OK${GREY}"
@@ -340,7 +340,7 @@ if [ "${INSTALL_LDAP}" = true ]; then
     echo "#ldap-user-search-filter:(objectClass=user)(!(objectCategory=computer))" >>/etc/guacamole/guacamole.properties
     echo "#ldap-max-search-results:200" >>/etc/guacamole/guacamole.properties
     if [ $? -ne 0 ]; then
-        echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+        echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
         exit 1
     else
         echo -e "${LGREEN}OK${GREY}"
@@ -354,7 +354,7 @@ if [ "${INSTALL_QCONNECT}" = true ]; then
     mv -f guacamole-auth-quickconnect-${GUAC_VERSION}/guacamole-auth-quickconnect-${GUAC_VERSION}.jar /etc/guacamole/extensions/
     chmod 664 /etc/guacamole/extensions/guacamole-auth-quickconnect-${GUAC_VERSION}.jar
     if [ $? -ne 0 ]; then
-        echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+        echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
         exit 1
     else
         echo -e "${LGREEN}OK${GREY}"
@@ -373,7 +373,7 @@ if [ "${INSTALL_HISTREC}" = true ]; then
     chmod 2750 ${HISTREC_PATH}
     echo "recording-search-path: ${HISTREC_PATH}" >>/etc/guacamole/guacamole.properties
     if [ $? -ne 0 ]; then
-        echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+        echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
         exit 1
     else
         echo -e "${LGREEN}OK${GREY}"
@@ -386,7 +386,7 @@ echo -e "${GREY}Setting the Guacamole console to a (customisable) dark mode them
 mv branding.jar /etc/guacamole/extensions
 chmod 664 /etc/guacamole/extensions/branding.jar
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -496,7 +496,7 @@ bind_host = 127.0.0.1
 bind_port = 4822
 EOF
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -509,7 +509,7 @@ systemctl enable guacd
 systemctl stop guacd 2>/dev/null
 systemctl start guacd
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -542,7 +542,7 @@ expect eof
     echo "$SECURE_MYSQL"
     systemctl restart mysql
     if [ $? -ne 0 ]; then
-        echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+        echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
         exit 1
     else
         echo -e "${LGREEN}OK${GREY}"
@@ -573,7 +573,7 @@ if [ "${CHANGE_ROOT}" = true ]; then
     echo "<% response.sendRedirect(\"/guacamole\");%>" >>/var/lib/${TOMCAT_VERSION}/webapps/ROOT/index.jsp
     systemctl start ${TOMCAT_VERSION}
     if [ $? -ne 0 ]; then
-        echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+        echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
         exit 1
     else
         echo -e "${LGREEN}OK${GREY}"
@@ -590,7 +590,7 @@ echo "y" | sudo ufw enable >/dev/null 2>&1
 # Reduce firewall logging noise
 sudo ufw logging off >/dev/null 2>&1
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -603,7 +603,7 @@ rm -rf mysql-connector-j-*
 rm -rf mariadb_repo_setup
 unset MYSQL_PWD
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
