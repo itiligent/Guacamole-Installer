@@ -1,6 +1,6 @@
 # Guacamole 1.5.3 VDI/Jump Server Appliance Build Script
 
-<img src="https://github.githubassets.com/images/icons/emoji/sparkles.png" width="35"> This repo makes setting up Guacamole 1.5.3 a breeze, with added features like TLS reverse proxy, Active Directory integration, multi-factor authentication, Quick Connect, History Recording Storage, dark mode and custom UI templates, auto database backup, O365 email alerts, and enhanced security options. See below for enterprise and high availability deployments too.
+<img src="https://github.githubassets.com/images/icons/emoji/sparkles.png" width="35"> This repo makes setting up a Guacamole a breeze. Its got installer support for TLS reverse proxy, Active Directory integration, multi-factor authentication, Quick Connect & History Recording Storage UI enhancements, dark mode and custom UI templates, auto database backup, O365 email alerts and even fail2ban and internal daemon security hardening options. There's also code in here to get you up and running with Guacamole in an enterprise or high availability deployment too!
 
 ## Automatic Installation
 
@@ -21,7 +21,7 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 
 ## Installation Menu
 
-<img src="https://github.githubassets.com/images/icons/emoji/wrench.png" width="35"> **This script guides you through the installation process in the following steps:**
+<img src="https://github.githubassets.com/images/icons/emoji/wrench.png" width="35"> **The main script guides you through the installation process in the following steps:**
 
 1. Confirm your system hostname and local DNS domain suffix. (Must be consistent for TLS proxy)
 2. Choose a locally installed or remote MySQL instance, set database security preferences.
@@ -40,7 +40,7 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 
 <img src="https://github.githubassets.com/images/icons/emoji/key.png" width="35"> **Need help with Active Directory authentication?** Check [here](https://github.com/itiligent/Guacamole-Install/blob/main/ACTIVE-DIRECTORY-HOW-TO.md).
 
-## Customise and Brand Your Guacamole Theme
+## Customise & Brand Your Guacamole Theme
 
 <img src="https://github.githubassets.com/images/icons/emoji/art.png" width="35"> **Want to give Guacamole your personal touch? Follow the theme and branding instructions** [here](https://github.com/itiligent/Guacamole-Install/tree/main/custom-theme-builder).
 
@@ -51,7 +51,7 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 1. Paste and run the wget autorun link in your home directory.
 2. Exit `1-setup.sh` at the first prompt. (At this point the scripts are downloaded only.)
 3. Customise the huge number of installation variables available in `1-setup.sh` as required. (Certain combinations of edits will produce a fully unattended install.)
-4. **Caution: If editing `1-setup.sh`, be aware that running the autorun link again re-downloads and overwrites all changes. You must run setup locally after editing.** (Also be sure to comment out the download links in the setup script for any other edited scripts. (There should be little need to edit outside of the setup script's options.)
+4. **Caution: If editing `1-setup.sh`, be aware that running the autorun link again re-downloads and overwrites all changes. You must run setup locally after editing.** (Also be sure to comment out the download links in the setup script for any other edited scripts. There should be little need to edit outside of the setup script's options.)
 5. The **upgrade-guac.sh, add-tls-guac-daemon.sh, refresh-tls-self-signed.sh & backup-guac.sh** scripts are automatically adjusted at installation to match your chosen installation settings. These can be run after install without any modification.
 6. If the self-signed TLS proxy option is selected, browser client TLS certificates will be automatically created and saved to `$HOME/guac-setup`.
 7. Note that Nginx is automatically configured to use TLS 1.2 or above (so really old browser versions may not work.)
@@ -64,10 +64,10 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 
 ## Enterprise Scale Out & High Availability 
 
-<img src="https://github.githubassets.com/images/icons/emoji/unicode/1f454.png" width="35"> For Enterprise deployments, did you know that Guacamole can be run in a load balanced farm? To achieve this, the database, application and front end components are usually **split into 2 or 3 layers.** (VLANs & firewalls between the layers helps with security too.) See [here](https://github.com/itiligent/Guacamole-Install/tree/main/guac-enterprise-build) for useful related materials.
-- **For the DATABASE layer:** Find the included `install-mysql-backend-only.sh` to install just a standalone backend instance of the Guacamole MySQL database. 
-- **For the APPLICATION layer:** Simply use the main setup script to build as many application servers as you like. For a true 3 layer load balanced system, make sure to **say no to both the "Install MySQL locally" option and all Nginx front end options.** 
-- **For the Front end**: There are may choices here. You can slightly modify the Nginx scripts for a front end TLS layer, however **HA Proxy** provides far superior session affinity under load balanced conditions when compared to Open Source Nginx (The paid for Nginx Plus gives you all the good stuff!) There's so many possible ways to achieve this in hardware and software. For this target audience there's plenty of config detail here help you begin to roll your own HA solution.
+<img src="https://github.githubassets.com/images/icons/emoji/unicode/1f454.png" width="35"> For Enterprise deployments, did you know that Guacamole can be run in a load balanced farm? To achieve this, the database, application and front end components are usually **split into 2 or 3 layers.** (VLANs & firewalls between the layers helps with security too.) See [here](https://github.com/itiligent/Guacamole-Install/tree/main/guac-enterprise-build) for how to get started.
+- **For the DATABASE layer:** Find the included `install-mysql-backend-only.sh` to install a standalone instance of the Guacamole MySQL database for your backend.
+- **For the APPLICATION layer:** Simply use the main setup script to build as many application servers as you like. For a true 3 layer load balanced system, make sure to **say no to both the "Install MySQL locally" option and all Nginx front end options** so as only the Guacamole server and Apache Tomcat services are installed.
+- **For the Front end**: There are may choices here. You can slightly modify the Nginx scripts for a separate front end TLS layer, however **HA Proxy** provides far superior session affinity under load balanced conditions when compared to Open Source Nginx, but an Nginx Plus subscription gets you all the good stuff! There's so many possible ways to achieve this in hardware and software. There's plenty of config details in here to help you begin to roll your own HA solution.
 
 ## Auto Download Manifest
 

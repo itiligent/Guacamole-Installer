@@ -1,6 +1,6 @@
 #!/bin/bash
 #######################################################################################################################
-# Guacamole MySQL backend install script. (For split DB and guacamole application layers.) 
+# Guacamole MySQL backend install script. (For split DB and guacamole application layers.)
 # For Ubuntu / Debian / Raspbian
 # David Harrop
 # September 2023
@@ -90,11 +90,11 @@ MYSQL_ROOT_PWD="test"       # Requires an entry.
 DB_TZ=$(cat /etc/timezone)  # Typically system default (cat /etc/timezone) or change to "UTC" if required.
 
 # For a remotely accessed back end DB instance, keep this script set to BACKEND_MYSQL="true".
-# Other options are fairly straight forward. For a typical back end server only the $FRONTEND_NET and $MYSQL_BIND_ADDR 
+# Other options are fairly straight forward. For a typical back end server only the $FRONTEND_NET and $MYSQL_BIND_ADDR
 # values may need closer attention.
 
-# This script can also accommodate DR or migration scenarios: E.g Migration away from XML user mappings, PostGres to MySQL etc). 
-# To install a new MySQL database on the same server as the Guacamole application, set BACKEND_MYSQL="false" & 
+# This script can also accommodate DR or migration scenarios: E.g Migration away from XML user mappings, PostGres to MySQL etc).
+# To install a new MySQL database on the same server as the Guacamole application, set BACKEND_MYSQL="false" &
 # MYSQL_BIND_ADDR="127.0.0.1". See bottom of this script for some remaining DB migration actions.
 
 
@@ -106,11 +106,11 @@ DB_TZ=$(cat /etc/timezone)  # Typically system default (cat /etc/timezone) or ch
 MYSQL_VERSION="" # Blank "" forces distro default MySQL packages.
 if [ -z "${MYSQL_VERSION}" ]; then
     # Use Linux distro default version.
-    MYSQLV="default-mysql-server default-mysql-client mysql-common"
+    MYSQLPKG="default-mysql-server default-mysql-client mysql-common"
     DB_CMD="mysql" # mysql command is depricated
   else
     # Use official mariadb.org repo
-    MYSQLV="mariadb-server mariadb-client mariadb-common"
+    MYSQLPKG="mariadb-server mariadb-client mariadb-common"
     DB_CMD="mariadb" # mysql command is depricated on newer versions
 fi
 
@@ -129,8 +129,8 @@ fi
 
 cd $DOWNLOAD_DIR
 
+# Add the official MariaDB repo
 if [ -n "${MYSQL_VERSION}" ]; then
-    # Add the Official MariaDB repo.
     apt-get -qq -y install curl gnupg2 &>>${INSTALL_LOG}
     curl -LsS -O https://downloads.mariadb.com/MariaDB/mariadb_repo_setup &>>${INSTALL_LOG}
     bash mariadb_repo_setup --mariadb-server-version=$MYSQL_VERSION &>>${INSTALL_LOG}
@@ -150,7 +150,7 @@ echo -e "${LGREEN}Downloaded guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz${GREY}"
 
 echo
 echo -e "${GREY}Installing MySQL packages..."
-apt-get -qq -y install ${MYSQLV} &>>${INSTALL_LOG}
+apt-get -qq -y install ${MYSQLPKG} &>>${INSTALL_LOG}
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
@@ -226,7 +226,7 @@ else
     echo
 fi
 
-# Establish the appropriate form of Guacamole user account access (remote or localhost login permissions) 
+# Establish the appropriate form of Guacamole user account access (remote or localhost login permissions)
 echo -e "${GREY}Setting up database access parameters for the Guacamole user ..."
 if [ "${BACKEND_MYSQL}" = true ] && [ -z "${FRONTEND_NET}" ]; then
     echo -e "${LYELLOW}${GUAC_USER} is set to accept db logins from any host, you may wish to limit this to specific IPs.${GREY}"
