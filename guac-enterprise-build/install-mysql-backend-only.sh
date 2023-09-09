@@ -1,6 +1,6 @@
 #!/bin/bash
 #######################################################################################################################
-# Guacamole db build script. 
+# Guacamole MySQL backend install script. (For split DB and guacamole application layers.) 
 # For Ubuntu / Debian / Raspbian
 # David Harrop
 # September 2023
@@ -11,6 +11,13 @@
 # Layer 2 = GUAC SERVER & APPLICATION - use the main setup script, and select remote MYSQL DB option.
 # Layer 3 = FRONT END REV PROXY (Potentially load balanced & HA) - approach TBA
 
+
+#######################################################################################################################
+# Script pre-flight checks and settings ###############################################################################
+#######################################################################################################################
+
+clear
+
 # Prepare text output colours
 GREY='\033[0;37m'
 DGREY='\033[0;90m'
@@ -20,20 +27,42 @@ LGREEN='\033[0;92m'
 LYELLOW='\033[0;93m'
 NC='\033[0m' #No Colour
 
-#  Setup download and temp directory paths
+# Check if user is root or sudo
+if ! [ $(id -u) = 0 ]; then
+    echo
+    echo -e "${LRED}Please run this script as sudo or root${NC}" 1>&2
+    exit 1
+fi
+
+# Check to see if any previous version of build/install files exist, if so stop and check to be safe.
+if [ "$(find . -maxdepth 1 \( -name 'guacamole-*' -o -name 'mysql-connector-j-*' \))" != "" ]; then
+    echo
+    echo -e "${LRED}Possible previous install files detected. Please review and remove old guacamole install files before proceeding.${GREY}" 1>&2
+    echo
+    exit 1
+fi
+
+
+#######################################################################################################################
+# Initial environment setup ###########################################################################################
+#######################################################################################################################
+
+#Setup download and temp directory paths
 USER_HOME_DIR=$(eval echo ~${SUDO_USER})
 DOWNLOAD_DIR=$USER_HOME_DIR/guac-setup
-mkdir -p $DOWNLOAD_DIR
-chown -R $SUDO_USER:root $DOWNLOAD_DIR
 
-# Install log Location
-INSTALL_LOG="${DOWNLOAD_DIR}/mysql_install.log"
+# Setup directory locations
+mkdir -p $DOWNLOAD_DIR
+sudo chown -R $SUDO_USER:root $DOWNLOAD_DIR
 
 # Version of Guacamole auth jdbc database schema to use
 GUAC_VERSION="1.5.3"
 
 # Set preferred Apache CDN download link)
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
+
+# Install log Location
+INSTALL_LOG="${DOWNLOAD_DIR}/guacamole_${GUAC_VERSION}_mysql_install.log"
 
 clear
 
@@ -44,30 +73,45 @@ echo -e "             ${LGREEN}Powered by Itiligent"
 echo
 echo
 
-#######################################################################################################################
-# Silent setup options - adding true/false or specific values below prevents prompt at install ########################
-#######################################################################################################################
-BACKEND_MYSQL="true"                # Separate the MySQL database and Guacamole application servers? (true/false)
-MYSQL_BIND_ADDR="0.0.0.0"           # Active when BACKEND_MYSQL="true". The the IP address to bind MySQL to.
-SECURE_MYSQL="true"                 # Apply the mysql secure configuration tool (true/false)
-MYSQL_PORT="3306"                   # Default is 3306
-GUAC_DB="guacamole_db"              # Default is guacamole_db
-GUAC_USER="guacamole_user"          # Default is guacamole_user
-GUAC_PWD="test"                     # Requires an entry
-MYSQL_ROOT_PWD="test"               # Requires an entry.
-DB_TZ=$(cat /etc/timezone)          # Database timezone defaults is system TZ. Change to "UTC" if appropriate
 
-# Force a specific MySQL version e.g. 11.1.2 See https://mariadb.org/mariadb/all-releases/ for available versions.
-# If MYSQL_VERSION is left blank, script will default to the distro default MYSQL packages.
-MYSQL_VERSION=""
+#######################################################################################################################
+# Setup options. ######################################################################################################
+#######################################################################################################################
+
+BACKEND_MYSQL="true"        # True: Allow $GUAC_USER remote login. False or "": Limits $GUAC_USER to localhost only login.
+FRONTEND_NET=""             # "" = allow login from any IP or wildcards e.g. 192.168.1.% (Needs BACKEND_SQL="true", else ignored)
+MYSQL_BIND_ADDR="0.0.0.0"   # Bind MySQL to this IP. (127.0.0.1, a specific IP or 0.0.0.0 for all interfaces)
+SECURE_MYSQL="true"         # Apply the mysql secure configuration tool (true/false)
+MYSQL_PORT="3306"           # Default is 3306
+GUAC_DB="guacamole_db"      # Default is guacamole_db
+GUAC_USER="guacamole_user"  # Default is guacamole_user
+GUAC_PWD="test"             # Requires an entry
+MYSQL_ROOT_PWD="test"       # Requires an entry.
+DB_TZ=$(cat /etc/timezone)  # Typically system default (cat /etc/timezone) or change to "UTC" if required.
+
+# For a remotely accessed back end DB instance, keep this script set to BACKEND_MYSQL="true".
+# Other options are fairly straight forward. For a typical back end server only the $FRONTEND_NET and $MYSQL_BIND_ADDR 
+# values may need closer attention.
+
+# This script can also accommodate DR or migration scenarios: E.g Migration away from XML user mappings, PostGres to MySQL etc). 
+# To install a new MySQL database on the same server as the Guacamole application, set BACKEND_MYSQL="false" & 
+# MYSQL_BIND_ADDR="127.0.0.1". See bottom of this script for some remaining DB migration actions.
+
+
+#######################################################################################################################
+# Start install actions  ##############################################################################################
+#######################################################################################################################
+
+# Choose a specific MySQL version e.g. 11.1.2 See https://mariadb.org/mariadb/all-releases/ for available versions.
+MYSQL_VERSION="" # Blank "" forces distro default MySQL packages.
 if [ -z "${MYSQL_VERSION}" ]; then
     # Use Linux distro default version.
     MYSQLV="default-mysql-server default-mysql-client mysql-common"
-    DB_CMD="mysql"
+    DB_CMD="mysql" # mysql command is depricated
   else
     # Use official mariadb.org repo
     MYSQLV="mariadb-server mariadb-client mariadb-common"
-    DB_CMD="mariadb"
+    DB_CMD="mariadb" # mysql command is depricated on newer versions
 fi
 
 # Update everything but don't do the annoying prompts during apt installs
@@ -92,7 +136,7 @@ if [ -n "${MYSQL_VERSION}" ]; then
     bash mariadb_repo_setup --mariadb-server-version=$MYSQL_VERSION &>>${INSTALL_LOG}
 fi
 
-# Download Guacamole mysql specific components
+# Download and extract the Guacamole SQL authentication extension containing the database schema
 echo -e "${GREY}Downloading Guacamole database source files..."
 wget -q --show-progress -O guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz
 if [ $? -ne 0 ]; then
@@ -115,6 +159,7 @@ else
     echo
 fi
 
+# Set the root password without a reliance on debconf.
 echo -e "${GREY}Setting MySQL root password..."
 SQLCODE="
 FLUSH PRIVILEGES;
@@ -128,21 +173,22 @@ else
     echo
 fi
 
-# Find the location of the MySQL or MariaDB config files. Add to this list for more candidates..
+# Find the location of the MySQL or MariaDB config files. (Add to this list for more potential candidates.)
 for x in /etc/mysql/mariadb.conf.d/50-server.cnf \
     /etc/mysql/mysql.conf.d/mysqld.cnf \
     /etc/mysql/my.cnf; do
-    # Check inside each to see if a [mysqld] or [mariadbd] section exists and assign x the correct filename.
+    # Check inside each candidate to see if a [mysqld] or [mariadbd] section exists, assign $x the correct filename.
     if [ -e "${x}" ]; then
            if grep -qE '^\[(mysqld|mariadbd)\]$' "${x}"; then
             mysqlconfig="${x}"
-            # Reduce any duplicated section names, then remove the [ ] special characters (for sed cmd below)
+            # Reduce any duplicated section names, then sanitise the [ ] special characters for sed below)
             config_section=$(grep -m 1 -E '^\[(mysqld|mariadbd)\]$' "${x}" | sed 's/\[\(.*\)\]/\1/') 
             break
         fi
     fi
 done
 
+# Set the MySQL Timezone
 if [ -z "${mysqlconfig}" ]; then
     echo -e "${GREY}Couldn't detect MySQL config file - you will need to manually configure database timezone settings"
 else
@@ -169,10 +215,9 @@ else
     echo
 fi
 
-# Change the default localhost MySQL binding IP address for remote Guacamole server accessibility
-if [[ "${BACKEND_MYSQL}" = true ]]; then
-    echo -e "${GREY}Setting MySQL IP address binding to ${MYSQL_BIND_ADDR}..."
-    sed -i "s/bind-address[[:space:]]*=[[:space:]]*127\.0\.0\.1/bind-address = ${MYSQL_BIND_ADDR}/g" ${mysqlconfig}
+# Set the MySQL binding IP address to whatever the setup variable is set to.
+echo -e "${GREY}Setting MySQL IP address binding to ${MYSQL_BIND_ADDR}..."
+sed -i "s/^bind-address[[:space:]]*=[[:space:]]*.*/bind-address = ${MYSQL_BIND_ADDR}/g" ${mysqlconfig}
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed${GREY}" 1>&2
     exit 1
@@ -180,17 +225,22 @@ else
     echo -e "${LGREEN}OK${GREY}"
     echo
 fi
-fi
 
-# Create ${GUAC_DB} and grant ${GUAC_USER} permissions to it
+# Establish the appropriate form of Guacamole user account access (remote or localhost login permissions) 
 echo -e "${GREY}Setting up database access parameters for the Guacamole user ..."
-if [[ "${BACKEND_MYSQL}" = true ]]; then
-    GUAC_USERHost="%"
-    echo -e "${YELLOW} MySQL ${GUAC_USER} is set to accept db login from any host, you may wish to limit this to specific IPs.${GREY}"
-#   e.g. RENAME USER '${GUAC_USER}'@'%' TO '${GUAC_USER}'@'xx.xx.xx.%';"
-else
-    GUAC_USERHost=localhost
-    echo -e "${YELLOW}MySQL Guacamole user is set to only allow login from localhost.${GREY}"
+if [ "${BACKEND_MYSQL}" = true ] && [ -z "${FRONTEND_NET}" ]; then
+    echo -e "${LYELLOW}${GUAC_USER} is set to accept db logins from any host, you may wish to limit this to specific IPs.${GREY}"
+    # e.g. RENAME USER '${GUAC_USER}'@'%' TO '${GUAC_USER}'@'xx.xx.xx.%';"
+    GUAC_USERHost="%" # Allow all IPs
+        elif [ "${BACKEND_MYSQL}" = true ] && [ -n "${FRONTEND_NET}" ]; then
+            echo -e "${LYELLOW}${GUAC_USER} is set to accept db logins from ${FRONTEND_NET}.${GREY}"
+            GUAC_USERHost="${FRONTEND_NET}" # Apply the given range
+        elif  [ "${BACKEND_MYSQL}" = false ] || [ -z "${BACKEND_MYSQL}" ]; then
+           echo -e "${LYELLOW}${GUAC_USER} is set to accept db logins from localhost only.${GREY}"
+           GUAC_USERHost=localhost # Assume a localhost only install
+        else
+    echo -e "${LYELLOW}${GUAC_USER} is set to accept db logins from localhost only.${GREY}"
+    GUAC_USERHost=localhost # Assume a localhost only install
 fi
 if [ $? -ne 0 ]; then
     echo -e "${LRED}Failed${GREY}" 1>&2
@@ -218,7 +268,7 @@ else
     echo
 fi
 
-# Add Guacamole schema to newly created database
+# Add Guacamole's schema code to newly created database
 echo -e "${GREY}Adding the Guacamole database schema..."
 cat guacamole-auth-jdbc-${GUAC_VERSION}/mysql/schema/*.sql | $DB_CMD -u root -D ${GUAC_DB} -p${MYSQL_ROOT_PWD}
 if [ $? -ne 0 ]; then
@@ -262,9 +312,8 @@ expect eof
     fi
 fi
 
-# Restart MySQL service
+# Restart & enable MySQL service at boot
 echo -e "${GREY}Restarting MySQL service & enable at boot..."
-# Set MySQl to start at boot
 systemctl enable mysql
 systemctl restart mysql
 if [ $? -ne 0 ]; then
@@ -292,3 +341,31 @@ fi
 echo
 printf "${LGREEN}Guacamole ${GUAC_VERSION} MySQL backend install complete! \n${NC}"
 echo -e ${NC}
+
+
+#######################################################################################################################
+# Additional migration steps for adding MySQL to an existing Guacamole application server
+#######################################################################################################################
+
+# Download and upgrade Guacamole SQL authentication extension
+#wget -q --show-progress -O guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz
+#tar -xzf guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz
+#rm /etc/guacamole/extensions/guacamole-auth-jdbc-*.jar
+#mv -f guacamole-auth-jdbc-${GUAC_VERSION}/mysql/guacamole-auth-jdbc-mysql-${GUAC_VERSION}.jar /etc/guacamole/extensions/
+#chmod 664 /etc/guacamole/extensions/guacamole-auth-jdbc-mysql-${GUAC_VERSION}.jar
+
+# Download MySQL connector/j
+# MYSQLJCON="8.1.0"
+#wget -q --show-progress -O mysql-connector-j-${MYSQLJCON}.tar.gz https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${MYSQLJCON}.tar.gz
+#tar -xzf mysql-connector-j-${MYSQLJCON}.tar.gz
+#rm /etc/guacamole/lib/mysql-connector-java.jar
+#mv -f mysql-connector-j-${MYSQLJCON}/mysql-connector-j-${MYSQLJCON}.jar /etc/guacamole/lib/mysql-connector-java.jar
+
+# Configure guacamole.properties file
+#rm -f /etc/guacamole/guacamole.properties
+#touch /etc/guacamole/guacamole.properties
+#echo "mysql-hostname: ${MYSQL_HOST}" >>/etc/guacamole/guacamole.properties
+#echo "mysql-port: ${MYSQL_PORT}" >>/etc/guacamole/guacamole.properties
+#echo "mysql-database: ${GUAC_DB}" >>/etc/guacamole/guacamole.properties
+#echo "mysql-username: ${GUAC_USER}" >>/etc/guacamole/guacamole.properties
+#echo "mysql-password: ${GUAC_PWD}" >>/etc/guacamole/guacamole.properties

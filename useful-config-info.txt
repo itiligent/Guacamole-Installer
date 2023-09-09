@@ -67,6 +67,23 @@ UPDATE guacamole_user_attribute SET attribute_value='false' WHERE attribute_name
 quit;
 
 
+###############################################
+# Quick troubleshoot SQL commands
+###############################################
+# Login
+sudo mysql -u root -p
+
+# Check time zone
+SELECT @@time_zone;
+
+# Rename user from local to remove access
+use guacamole_db;
+RENAME USER '${GUAC_USER}'@'%' TO '${GUAC_USER}'@'xx.xx.xx.%';
+
+# Check user access
+SELECT user,host FROM mysql.user;
+SHOW GRANTS FOR guacamole_user;
+
 #########################
 Nginx load / DoS testing 
 #########################

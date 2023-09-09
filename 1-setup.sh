@@ -6,6 +6,7 @@
 # April 2023
 #######################################################################################################################
 
+
 # To install latest code snapshot:
 # wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.sh && chmod +x 1-setup.sh && ./1-setup.sh
 
@@ -20,6 +21,7 @@
 #     tail -f /var/log/syslog /var/log/tomcat*/*.out guac-setup/guacamole_${GUAC_VERSION}_setup.log
 # Or for Guacamole debug mode & verbose logs in the console:
 #     sudo systemctl stop guacd && sudo /usr/local/sbin/guacd -L debug -f
+
 
 #######################################################################################################################
 # Script pre-flight checks and settings ###############################################################################
@@ -60,6 +62,7 @@ if [ "$(find . -maxdepth 1 \( -name 'guacamole-*' -o -name 'mysql-connector-j-*'
     exit 1
 fi
 
+
 #######################################################################################################################
 # Core setup variables and mandatory inputs ###########################################################################
 #######################################################################################################################
@@ -71,7 +74,7 @@ DB_BACKUP_DIR=$USER_HOME_DIR/mysqlbackups
 TMP_DIR=$DOWNLOAD_DIR/tmp
 
 # GitHub download branch
-GITHUB="https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/"
+GITHUB="https://raw.githubusercontent.com/itiligent/Guacamole-Install/main"
 
 # Version of Guacamole to install
 GUAC_VERSION="1.5.3"
@@ -82,9 +85,8 @@ MYSQLJCON="8.1.0"
 # Set preferred Apache CDN download link)
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
 
-# Force a specific MySQL version e.g. 11.1.2 See https://mariadb.org/mariadb/all-releases/ for available versions.
-# If MYSQL_VERSION is left blank, script will default to the distro default MYSQL packages.
-MYSQL_VERSION=""
+# Choose a specific MySQL version e.g. 11.1.2 See https://mariadb.org/mariadb/all-releases/ for available versions.
+MYSQL_VERSION="" # Blank "" forces distro default MySQL packages.
 if [ -z "${MYSQL_VERSION}" ]; then
     # Use Linux distro default version.
     MYSQLSRV="default-mysql-server default-mysql-client mysql-common"
@@ -161,10 +163,11 @@ mkdir -p $TMP_DIR
 
 # Script branding header
 echo
-echo -e "${GREYB}Itiligent VDI & Jump Server Appliance Setup."
-echo -e "                       ${LGREEN}Powered by Guacamole"
+echo -e "${GREYB}Guacamole VDI & Jump Server Appliance Setup."
+echo -e "                         ${LGREEN}Powered by Itiligent"
 echo
 echo
+
 
 #######################################################################################################################
 # Silent setup options - adding true/false or specific values below prevents prompt at install ########################
@@ -204,6 +207,7 @@ RDP_SHARE_HOST=""               # Custom Windows RDP share host name. (e.g. RDP_
 RDP_SHARE_LABEL="RDP Share"     # Custom Windows RDP share drive label (e.g. RDP_SHARE_LABEL on RDP_SHARE_HOST)
 RDP_PRINTER_LABEL="RDP Printer" # Custom Windows RDP printer label
 
+
 #######################################################################################################################
 # Download GitHub setup scripts. To prevent overwrite, comment out lines of any scripts you have edited. ##############
 #######################################################################################################################
@@ -211,32 +215,32 @@ RDP_PRINTER_LABEL="RDP Printer" # Custom Windows RDP printer label
 # Download the set of config scripts from GitHub
 cd $DOWNLOAD_DIR
 echo -e "${GREY}Downloading setup files...${DGREY}"
-wget -q --show-progress ${GITHUB}2-install-guacamole.sh -O 2-install-guacamole.sh
-wget -q --show-progress ${GITHUB}3-install-nginx.sh -O 3-install-nginx.sh
-wget -q --show-progress ${GITHUB}4a-install-tls-self-signed-nginx.sh -O 4a-install-tls-self-signed-nginx.sh
-wget -q --show-progress ${GITHUB}4b-install-tls-letsencrypt-nginx.sh -O 4b-install-tls-letsencrypt-nginx.sh
-# Download the Guacamole manual add on/upgrade scripts
-wget -q --show-progress ${GITHUB}add-auth-duo.sh -O add-auth-duo.sh
-wget -q --show-progress ${GITHUB}add-auth-ldap.sh -O add-auth-ldap.sh
-wget -q --show-progress ${GITHUB}add-auth-totp.sh -O add-auth-totp.sh
-wget -q --show-progress ${GITHUB}add-xtra-quickconnect.sh -O add-xtra-quickconnect.sh
-wget -q --show-progress ${GITHUB}add-xtra-histrecstor.sh -O add-xtra-histrecstor.sh
-wget -q --show-progress ${GITHUB}add-smtp-relay-o365.sh -O add-smtp-relay-o365.sh
-wget -q --show-progress ${GITHUB}add-tls-guac-daemon.sh -O add-tls-guac-daemon.sh
-wget -q --show-progress ${GITHUB}add-fail2ban.sh -O add-fail2ban.sh
-wget -q --show-progress ${GITHUB}backup-guac.sh -O backup-guac.sh
-wget -q --show-progress ${GITHUB}upgrade-guac.sh -O upgrade-guac.sh
-wget -q --show-progress ${GITHUB}refresh-tls-self-signed.sh -O refresh-tls-self-signed.sh
+wget -q --show-progress ${GITHUB}/2-install-guacamole.sh -O 2-install-guacamole.sh
+wget -q --show-progress ${GITHUB}/3-install-nginx.sh -O 3-install-nginx.sh
+wget -q --show-progress ${GITHUB}/4a-install-tls-self-signed-nginx.sh -O 4a-install-tls-self-signed-nginx.sh
+wget -q --show-progress ${GITHUB}/4b-install-tls-letsencrypt-nginx.sh -O 4b-install-tls-letsencrypt-nginx.sh
+# Download the Guacamole optional feature scripts
+wget -q --show-progress ${GITHUB}/guac-optional-features/add-auth-duo.sh -O add-auth-duo.sh
+wget -q --show-progress ${GITHUB}/guac-optional-features/add-auth-ldap.sh -O add-auth-ldap.sh
+wget -q --show-progress ${GITHUB}/guac-optional-features/add-auth-totp.sh -O add-auth-totp.sh
+wget -q --show-progress ${GITHUB}/guac-optional-features/add-xtra-quickconnect.sh -O add-xtra-quickconnect.sh
+wget -q --show-progress ${GITHUB}/guac-optional-features/add-xtra-histrecstor.sh -O add-xtra-histrecstor.sh
+wget -q --show-progress ${GITHUB}/guac-optional-features/add-smtp-relay-o365.sh -O add-smtp-relay-o365.sh
+wget -q --show-progress ${GITHUB}/guac-optional-features/add-tls-guac-daemon.sh -O add-tls-guac-daemon.sh
+wget -q --show-progress ${GITHUB}/guac-optional-features/add-fail2ban.sh -O add-fail2ban.sh
+wget -q --show-progress ${GITHUB}/guac-management/backup-guac.sh -O backup-guac.sh
+wget -q --show-progress ${GITHUB}/guac-management/upgrade-guac.sh -O upgrade-guac.sh
+wget -q --show-progress ${GITHUB}/guac-management/refresh-tls-self-signed.sh -O refresh-tls-self-signed.sh
 # Download the (customisable) dark theme & branding template
-wget -q --show-progress ${GITHUB}branding.jar -O branding.jar
+wget -q --show-progress ${GITHUB}/branding.jar -O branding.jar
 chmod +x *.sh
-sleep 2
+sleep 3
 clear
 
 # Script branding header
 echo
-echo -e "${GREYB}Itiligent VDI & Jump Server Appliance Setup."
-echo -e "                       ${LGREEN}Powered by Guacamole"
+echo -e "${GREYB}Guacamole VDI & Jump Server Appliance Setup."
+echo -e "                         ${LGREEN}Powered by Itiligent"
 echo
 echo
 
@@ -257,6 +261,7 @@ if [[ $OS_FLAVOUR = "debian" ]] && [[ $OS_VERSION = *"bookworm"* ]]; then
     echo "deb http://deb.debian.org/debian/ bullseye main" | sudo tee /etc/apt/sources.list.d/bullseye.list >/dev/null
     TOMCAT_VERSION="tomcat9"
 fi
+
 
 #######################################################################################################################
 # Begin install menu prompts ##########################################################################################
@@ -338,8 +343,8 @@ clear
 
 # Script branding header
 echo
-echo -e "${GREYB}Itiligent VDI & Jump Server Appliance Setup."
-echo -e "                       ${LGREEN}Powered by Guacamole"
+echo -e "${GREYB}Guacamole VDI & Jump Server Appliance Setup."
+echo -e "                         ${LGREEN}Powered by Itiligent"
 echo
 echo
 
@@ -616,6 +621,7 @@ if [[ -z ${LE_EMAIL} ]] && [[ "${LETS_ENCRYPT}" = true ]]; then
     done
 fi
 
+
 #######################################################################################################################
 # Start global setup actions  #########################################################################################
 #######################################################################################################################
@@ -625,8 +631,8 @@ fi
 # names shown here: https://guacamole.apache.org/doc/gug/installing-guacamole.html
 clear
 echo
-echo -e "${GREYB}Itiligent VDI & Jump Server Appliance Setup."
-echo -e "                       ${LGREEN}Powered by Guacamole"
+echo -e "${GREYB}Guacamole VDI & Jump Server Appliance Setup."
+echo -e "                         ${LGREEN}Powered by Itiligent"
 echo
 echo
 
@@ -667,6 +673,7 @@ sed -i "s|CERT_ORG=|CERT_ORG='${CERT_ORG}'|g" $DOWNLOAD_DIR/add-tls-guac-daemon.
 sed -i "s|CERT_OU=|CERT_OU='${CERT_OU}'|g" $DOWNLOAD_DIR/add-tls-guac-daemon.sh
 sed -i "s|CERT_DAYS=|CERT_DAYS='${CERT_DAYS}'|g" $DOWNLOAD_DIR/add-tls-guac-daemon.sh
 
+sed -i "s|INSTALL_MYSQL=|INSTALL_MYSQL='${INSTALL_MYSQL}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
 sed -i "s|MYSQL_HOST=|MYSQL_HOST='${MYSQL_HOST}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
 sed -i "s|MYSQL_PORT=|MYSQL_PORT='${MYSQL_PORT}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
 sed -i "s|GUAC_USER=|GUAC_USER='${GUAC_USER}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
@@ -746,6 +753,7 @@ echo "0 0 * * 1-5 ${DB_BACKUP_DIR}/backup-guac.sh # backup guacamole" >>cron_1
 # Overwrite the cron settings and cleanup
 crontab cron_1
 rm cron_1
+
 
 #######################################################################################################################
 # Start optional setup actions   ######################################################################################

@@ -24,27 +24,22 @@ NC='\033[0m' #No Colour
 # Check if user is root or sudo
 if ! [ $(id -u) = 0 ]; then
     echo
-    echo -e "${LGREEN}Please run this script as sudo or root${NC}" 1>&2
+    echo -e "${LRED}Please run this script as sudo or root${NC}" 1>&2
     exit 1
 fi
 
 # Check to see if any previous version of build/install files exist, if so stop and check to be safe.
-if [ "$(find . -maxdepth 2 \( -name 'guacamole-*' -o -name 'mysql-connector-j-*' \))" != "" ]; then
+if [ "$(find . -maxdepth 1 \( -name 'guacamole-*' -o -name 'mysql-connector-j-*' \))" != "" ]; then
     echo
-    echo -e "${LRED}Possible previous upgrade files detected. Please review and remove old guacamole install files before proceeding.${GREY}" 1>&2
+    echo -e "${LRED}Possible previous install files detected. Please review and remove old guacamole install files before proceeding.${GREY}" 1>&2
     echo
     exit 1
 fi
 
+
 #######################################################################################################################
 # Initial environment setup ###########################################################################################
 #######################################################################################################################
-
-# Script branding header
-echo
-echo -e "${GREYB}Itiligent VDI & Jump Server Appliance UPGRADE."
-echo -e "                    ${LGREEN}Powered by Guacamole"
-echo
 
 #Setup download and temp directory paths
 USER_HOME_DIR=$(eval echo ~${SUDO_USER})
@@ -52,6 +47,7 @@ DOWNLOAD_DIR=$USER_HOME_DIR/guac-setup
 
 # Setup directory locations
 mkdir -p $DOWNLOAD_DIR
+sudo chown -R $SUDO_USER:root $DOWNLOAD_DIR
 
 # Version of Guacamole to upgrade to. See https://guacamole.apache.org/releases/ for latest version info.
 NEW_GUAC_VERSION="1.5.3"
@@ -67,18 +63,25 @@ OLD_GUAC_VERSION=$(grep -oP 'Guacamole.API_VERSION = "\K[0-9\.]+' /var/lib/${TOM
 
 # Set preferred Apache CDN download link
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${NEW_GUAC_VERSION}"
-# Set preferred Apache CDN download link
 
 # Install log Location
-LOG_LOCATION="${DOWNLOAD_DIR}/guacamole_${NEW_GUAC_VERSION}_upgrade.log"
+INSTALL_LOG="${DOWNLOAD_DIR}/guacamole_${NEW_GUAC_VERSION}_upgrade.log"
 
 # Auto updated values from main installer (manually update if blank)
+INSTALL_MYSQL=
 MYSQL_HOST=
 MYSQL_PORT=
 GUAC_USER=
 GUAC_PWD=
 GUAC_DB=
 MYSQL_ROOT_PWD=
+
+# Script branding header
+echo
+echo -e "${GREYB}Guacamole VDI & Jump Server Appliance UPGRADE."
+echo -e "                             ${LGREEN}Powered by Itiligent"
+echo
+
 
 #######################################################################################################################
 # Start upgrade actions  ##############################################################################################
@@ -151,7 +154,7 @@ echo -e "${GREY}Compiling Guacamole-Server ${NEW_GUAC_VERSION} from source with 
 # Fix for warnings see #222 https://github.com/MysticRyuujin/guac-install/issues/222
 export CFLAGS="-Wno-error"
 # Configure Guacamole Server source
-./configure --with-systemd-dir=/etc/systemd/system &>>${LOG_LOCATION}
+./configure --with-systemd-dir=/etc/systemd/system &>>${INSTALL_LOG}
 if [ $? -ne 0 ]; then
     echo "Failed to configure guacamole-server"
     echo "Trying again with --enable-allow-freerdp-snapshots"
@@ -166,9 +169,9 @@ else
 fi
 
 echo -e "${GREY}Running make and building the upgraded Guacamole-Server application..."
-make &>>${LOG_LOCATION}
+make &>>${INSTALL_LOG}
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -176,18 +179,20 @@ else
 fi
 
 echo -e "${GREY}Installing the upgraded Guacamole-Server..."
-make install &>>${LOG_LOCATION}
+make install &>>${INSTALL_LOG}
+ldconfig
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
     echo
 fi
-ldconfig
 
 cd ..
 
+# Don't run the SQL upgrade commands if original setup option was set to remote MySQL instance. - Use separate DB update script.
+if [ "${INSTALL_MYSQL}" = true ]; then
 # Get list of SQL Upgrade Files
 echo -e "${GREY}Upgrading MySQL Schema..."
 UPGRADEFILES=($(ls -1 guacamole-auth-jdbc-${NEW_GUAC_VERSION}/mysql/schema/upgrade/ | sort -V))
@@ -197,30 +202,31 @@ for FILE in ${UPGRADEFILES[@]}; do
     FILEVERSION=$(echo ${FILE} | grep -oP 'upgrade-pre-\K[0-9\.]+(?=\.)')
     if [[ $(echo -e "${FILEVERSION}\n${OLD_GUAC_VERSION}" | sort -V | head -n1) == ${OLD_GUAC_VERSION} && ${FILEVERSION} != ${OLD_GUAC_VERSION} ]]; then
         echo "Patching ${GUAC_DB} with ${FILE}"
-        mysql -u root -D ${GUAC_DB} -h ${MYSQL_HOST} -P ${MYSQL_PORT} <guacamole-auth-jdbc-${NEW_GUAC_VERSION}/mysql/schema/upgrade/${FILE} &>>${LOG_LOCATION}
+        mysql -u root -D ${GUAC_DB} -h ${MYSQL_HOST} -P ${MYSQL_PORT} <guacamole-auth-jdbc-${NEW_GUAC_VERSION}/mysql/schema/upgrade/${FILE} &>>${INSTALL_LOG}
     fi
 done
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}SQL upgrade failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}SQL upgrade failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
     echo
+fi
 fi
 
 # Check for TOTP extension and upgrade if found
 for file in /etc/guacamole/extensions/guacamole-auth-totp*.jar; do
     if [[ -f $file ]]; then
         echo -e "${LGREEN}TOTP authentication extension was found, upgrading...${GREY}"
-        rm /etc/guacamole/extensions/guacamole-auth-totp*.jar &>>${LOG_LOCATION}
+        rm /etc/guacamole/extensions/guacamole-auth-totp*.jar &>>${INSTALL_LOG}
         wget -q --show-progress -O guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz
         if [ $? -ne 0 ]; then
             echo -e "${LRED}Failed to download guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz" 1>&2
             echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz"
             exit 1
         fi
-        tar -xzf guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz &>>${LOG_LOCATION}
-        mv -f guacamole-auth-totp-${NEW_GUAC_VERSION}/guacamole-auth-totp-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${LOG_LOCATION}
+        tar -xzf guacamole-auth-totp-${NEW_GUAC_VERSION}.tar.gz &>>${INSTALL_LOG}
+        mv -f guacamole-auth-totp-${NEW_GUAC_VERSION}/guacamole-auth-totp-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${INSTALL_LOG}
         chmod 664 /etc/guacamole/extensions/guacamole-auth-totp-${NEW_GUAC_VERSION}.jar
         echo -e "${LGREEN}Upgraded TOTP extension to version ${NEW_GUAC_VERSION}${GREY}"
         echo
@@ -232,15 +238,15 @@ done
 for file in /etc/guacamole/extensions/guacamole-auth-duo*.jar; do
     if [[ -f $file ]]; then
         echo -e "${LGREEN}DUO authentication extension was found, upgrading...${GREY}"
-        rm /etc/guacamole/extensions/guacamole-auth-duo*.jar &>>${LOG_LOCATION}
+        rm /etc/guacamole/extensions/guacamole-auth-duo*.jar &>>${INSTALL_LOG}
         wget -q --show-progress -O guacamole-auth-duo-${NEW_GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-duo-${NEW_GUAC_VERSION}.tar.gz
         if [ $? -ne 0 ]; then
             echo -e "${LRED}Failed to download guacamole-auth-duo-${NEW_GUAC_VERSION}.tar.gz" 1>&2
             echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-duo-${NEW_GUAC_VERSION}.tar.gz"
             exit 1
         fi
-        tar -xzf guacamole-auth-duo-${NEW_GUAC_VERSION}.tar.gz &>>${LOG_LOCATION}
-        mv -f guacamole-auth-duo-${NEW_GUAC_VERSION}/guacamole-auth-duo-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${LOG_LOCATION}
+        tar -xzf guacamole-auth-duo-${NEW_GUAC_VERSION}.tar.gz &>>${INSTALL_LOG}
+        mv -f guacamole-auth-duo-${NEW_GUAC_VERSION}/guacamole-auth-duo-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${INSTALL_LOG}
         chmod 664 /etc/guacamole/extensions/guacamole-auth-duo-${NEW_GUAC_VERSION}.jar
         echo -e "${LGREEN}Upgraded DUO extension to version ${NEW_GUAC_VERSION}${GREY}"
         echo
@@ -252,15 +258,15 @@ done
 for file in /etc/guacamole/extensions/guacamole-auth-ldap*.jar; do
     if [[ -f $file ]]; then
         echo -e "${LGREEN}LDAP authentication extension was found, upgrading...${GREY}"
-        rm /etc/guacamole/extensions/guacamole-auth-ldap*.jar &>>${LOG_LOCATION}
+        rm /etc/guacamole/extensions/guacamole-auth-ldap*.jar &>>${INSTALL_LOG}
         wget -q --show-progress -O guacamole-auth-ldap-${NEW_GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-ldap-${NEW_GUAC_VERSION}.tar.gz
         if [ $? -ne 0 ]; then
             echo -e "${LRED}Failed to download guacamole-auth-ldap-${NEW_GUAC_VERSION}.tar.gz" 1>&2
             echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-ldap-${NEW_GUAC_VERSION}.tar.gz"
             exit 1
         fi
-        tar -xzf guacamole-auth-ldap-${NEW_GUAC_VERSION}.tar.gz &>>${LOG_LOCATION}
-        mv -f guacamole-auth-ldap-${NEW_GUAC_VERSION}/guacamole-auth-ldap-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${LOG_LOCATION}
+        tar -xzf guacamole-auth-ldap-${NEW_GUAC_VERSION}.tar.gz &>>${INSTALL_LOG}
+        mv -f guacamole-auth-ldap-${NEW_GUAC_VERSION}/guacamole-auth-ldap-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${INSTALL_LOG}
         chmod 664 /etc/guacamole/extensions/guacamole-auth-ldap-${NEW_GUAC_VERSION}.jar
         echo -e "${LGREEN}Upgraded LDAP extension to version ${NEW_GUAC_VERSION}${GREY}"
         echo
@@ -272,15 +278,15 @@ done
 for file in /etc/guacamole/extensions/guacamole-auth-quickconnect*.jar; do
     if [[ -f $file ]]; then
         echo -e "${LGREEN}Quick Connect extension was found, upgrading...${GREY}"
-        rm /etc/guacamole/extensions/guacamole-auth-quickconnect*.jar &>>${LOG_LOCATION}
+        rm /etc/guacamole/extensions/guacamole-auth-quickconnect*.jar &>>${INSTALL_LOG}
         wget -q --show-progress -O guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.tar.gz
         if [ $? -ne 0 ]; then
             echo -e "${LRED}Failed to download guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.tar.gz" 1>&2
             echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.tar.gz"
             exit 1
         fi
-        tar -xzf guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.tar.gz &>>${LOG_LOCATION}
-        mv -f guacamole-auth-quickconnect-${NEW_GUAC_VERSION}/guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${LOG_LOCATION}
+        tar -xzf guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.tar.gz &>>${INSTALL_LOG}
+        mv -f guacamole-auth-quickconnect-${NEW_GUAC_VERSION}/guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${INSTALL_LOG}
         chmod 664 /etc/guacamole/extensions/guacamole-auth-quickconnect-${NEW_GUAC_VERSION}.jar
         echo -e "${LGREEN}Upgraded Quick Connect extension to version ${NEW_GUAC_VERSION}${GREY}"
         echo
@@ -292,15 +298,15 @@ done
 for file in /etc/guacamole/extensions/guacamole-history-recording-storage*.jar; do
     if [[ -f $file ]]; then
         echo -e "${LGREEN}History Recording Storage extension was found, upgrading...${GREY}"
-        rm /etc/guacamole/extensions/guacamole-history-recording-storage*.jar &>>${LOG_LOCATION}
+        rm /etc/guacamole/extensions/guacamole-history-recording-storage*.jar &>>${INSTALL_LOG}
         wget -q --show-progress -O guacamole-history-recording-storage-${NEW_GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-history-recording-storage-${NEW_GUAC_VERSION}.tar.gz
         if [ $? -ne 0 ]; then
             echo -e "${LRED}Failed to download guacamole-history-recording-storage-${NEW_GUAC_VERSION}.tar.gz" 1>&2
             echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-history-recording-storage-${NEW_GUAC_VERSION}.tar.gz"
             exit 1
         fi
-        tar -xzf guacamole-history-recording-storage-${NEW_GUAC_VERSION}.tar.gz &>>${LOG_LOCATION}
-        mv -f guacamole-history-recording-storage-${NEW_GUAC_VERSION}/guacamole-history-recording-storage-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${LOG_LOCATION}
+        tar -xzf guacamole-history-recording-storage-${NEW_GUAC_VERSION}.tar.gz &>>${INSTALL_LOG}
+        mv -f guacamole-history-recording-storage-${NEW_GUAC_VERSION}/guacamole-history-recording-storage-${NEW_GUAC_VERSION}.jar /etc/guacamole/extensions/ &>>${INSTALL_LOG}
         chmod 664 /etc/guacamole/extensions/guacamole-history-recording-storage-${NEW_GUAC_VERSION}.jar
         echo -e "${LGREEN}Upgraded History Recording Storage extension to version ${NEW_GUAC_VERSION}${GREY}"
         echo
@@ -316,14 +322,13 @@ chown daemon:daemon /usr/sbin/.config/freerdp
 mkdir -p /var/guacamole
 chown daemon:daemon /var/guacamole
 
-
 # Bring guacd and Tomcat back up
 echo -e "${GREY}Starting guacd and Tomcat services..."
 systemctl enable guacd
 systemctl start guacd
 systemctl start ${TOMCAT_VERSION}
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
@@ -334,9 +339,8 @@ fi
 echo -e "${GREY}Clean up install files...${GREY}"
 rm -rf guacamole-*
 rm -rf mysql-connector-j-*
-unset MYSQL_PWD
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
 else
     echo -e "${LGREEN}OK${GREY}"
