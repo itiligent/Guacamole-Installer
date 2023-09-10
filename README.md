@@ -10,11 +10,11 @@
 wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.sh && chmod +x 1-setup.sh && ./1-setup.sh
 ```
 
-## Prerequisites
+## Prerequisites (Debian 12 now working!)
 
 <img src="https://github.githubassets.com/images/icons/emoji/lock.png" width="35"> **Before diving in, make sure you have:**
 
-- A compatible OS: Ubuntu 18.04 - 22.x, Debian 10 or 11, or Raspbian Buster/Bullseye (If using vendor cloud images stick to stable releases).
+- A compatible OS: Ubuntu 18.04 - 22.x, Debian 10, 11 or 12, or Raspbian Buster/Bullseye (If using vendor cloud images stick to stable releases).
 - Minimum 8GB RAM and 40GB HDD.
 - DNS entries matching your default appliance network interface IP (essential for TLS).
 - Open TCP ports: 22, 80, and 443.

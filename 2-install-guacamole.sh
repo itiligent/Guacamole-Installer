@@ -615,7 +615,7 @@ fi
 if [ "${CHANGE_ROOT}" = true ]; then
 	echo -e "${GREY}Shortening the Guacamole root url and setting up redirect...${DGREY}"
 	systemctl stop ${TOMCAT_VERSION}
-	mv /var/lib/${TOMCAT_VERSION}/webapps/ROOT/index.html index.html.old
+	mv /var/lib/${TOMCAT_VERSION}/webapps/ROOT/index.html /var/lib/${TOMCAT_VERSION}/webapps/ROOT/index.html.old
 	touch /var/lib/${TOMCAT_VERSION}/webapps/ROOT/index.jsp
 	echo "<% response.sendRedirect(\"/guacamole\");%>" >>/var/lib/${TOMCAT_VERSION}/webapps/ROOT/index.jsp
 	systemctl start ${TOMCAT_VERSION}
@@ -663,7 +663,6 @@ if [ $? -ne 0 ]; then
 	exit 1
 else
 	echo -e "${LGREEN}OK${GREY}"
-	echo
 fi
 
 # Done

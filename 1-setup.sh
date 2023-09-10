@@ -438,7 +438,7 @@ fi
 
 echo -e ${GREY}
 # Prompt for preferred backup notification email address
-if [[ -z ${BACKUP_EMAIL} ]]; then
+if [ -z ${BACKUP_EMAIL} ]; then
 	while true; do
 		read -p "SQL: Enter email address for SQL backup messages [Enter to skip]: " BACKUP_EMAIL
 		[ "${BACKUP_EMAIL}" = "" ] || [ "${BACKUP_EMAIL}" != "" ] && break
