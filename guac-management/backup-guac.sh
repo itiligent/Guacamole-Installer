@@ -39,28 +39,28 @@ echo -e "${LGREEN}Backup started for database - ${GUAC_DB}"
 echo
 
 mysqldump -h ${MYSQL_HOST} \
-    -P ${MYSQL_PORT} \
-    -u ${GUAC_USER} \
-    -p"${GUAC_PWD}" \
-    ${GUAC_DB} \
-    --single-transaction --quick --lock-tables=false >${DB_BACKUP_DIR}${GUAC_DB}-${TODAY}.sql
+	-P ${MYSQL_PORT} \
+	-u ${GUAC_USER} \
+	-p"${GUAC_PWD}" \
+	${GUAC_DB} \
+	--single-transaction --quick --lock-tables=false >${DB_BACKUP_DIR}${GUAC_DB}-${TODAY}.sql
 SQLFILE=${DB_BACKUP_DIR}${GUAC_DB}-${TODAY}.sql
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Backup failed.${GREY}" 1>&2
-    exit 1
+	echo -e "${LRED}Backup failed.${GREY}" 1>&2
+	exit 1
 else
-    echo -e "${LGREEN}Backup completed ok.${GREY}"
-    echo
+	echo -e "${LGREEN}Backup completed ok.${GREY}"
+	echo
 fi
 gzip -f ${SQLFILE}
 # Error check and email alerts
 if [ $? -ne 0 ]; then
-    echo -e "${LRED}Backup failed.${GREY}" 1>&2
-    exit 1
+	echo -e "${LRED}Backup failed.${GREY}" 1>&2
+	exit 1
 else
-    echo -e "${LGREEN}${GUAC_DB} backup was successfully copied to ${DB_BACKUP_DIR}"
-    #mailx -s "Guacamomle Database Backup Success" ${BACKUP_EMAIL}
-    echo "${GUAC_DB} backup was successfully copied to $DB_BACKUP_DIR" | mailx -s "Guacamole backup " ${BACKUP_EMAIL}
+	echo -e "${LGREEN}${GUAC_DB} backup was successfully copied to ${DB_BACKUP_DIR}"
+	#mailx -s "Guacamomle Database Backup Success" ${BACKUP_EMAIL}
+	echo "${GUAC_DB} backup was successfully copied to $DB_BACKUP_DIR" | mailx -s "Guacamole backup " ${BACKUP_EMAIL}
 fi
 
 echo -e ${NC}

@@ -18,9 +18,9 @@ NC='\033[0m' #No Colour
 clear
 
 if ! [ $(id -u) = 0 ]; then
-    echo
-    echo -e "${LGREEN}Please run this script as sudo or root${NC}" 1>&2
-    exit 1
+	echo
+	echo -e "${LGREEN}Please run this script as sudo or root${NC}" 1>&2
+	exit 1
 fi
 TOMCAT_VERSION=$(ls /etc/ | grep tomcat)
 GUAC_VERSION=$(grep -oP 'Guacamole.API_VERSION = "\K[0-9\.]+' /var/lib/${TOMCAT_VERSION}/webapps/guacamole/guacamole-common-js/modules/Version.js)
