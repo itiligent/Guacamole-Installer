@@ -27,10 +27,10 @@ SERVER=$(uname -n)
 DOMAIN_SEARCH_SUFFIX=$(grep search /etc/resolv.conf | grep -v "#" | sed 's/'search[[:space:]]'//')
 
 # Check if user is root or sudo
-if ! [ $(id -u) = 0 ]; then
-	echo
-	echo -e "${LGREEN}Please run this script as sudo or root${NC}" 1>&2
-	exit 1
+if ! [[ $(id -u) = 0 ]]; then
+    echo
+    echo -e "${LGREEN}Please run this script as sudo or root${NC}" 1>&2
+    exit 1
 fi
 
 echo
@@ -41,11 +41,11 @@ echo
 echo -e "${GREY}Installing Postfix with non-interactive defaults..."
 sudo apt update -qq >/dev/null 2>&1
 DEBIAN_FRONTEND="noninteractive" apt-get install postfix mailutils -qq -y >/dev/null 2>&1
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Postfix install failed. ${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Postfix install failed. ${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
+    echo -e "${LGREEN}OK${GREY}"
 fi
 
 # Get the Office365 smtp authentication credentials
@@ -79,12 +79,12 @@ smtp_tls_security_level = encrypt
 smtp_generic_maps = hash:/etc/postfix/generic
 smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
 EOF
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Postfix restart failed. ${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Postfix restart failed. ${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Setup the password file and postmap
@@ -110,11 +110,11 @@ sudo postmap /etc/postfix/generic
 # Restart and test
 echo -e "${GREY}Restarting Postfix..."
 sudo systemctl restart postfix
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Postfix restart failed. ${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Postfix restart failed. ${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
+    echo -e "${LGREEN}OK${GREY}"
 fi
 
 echo

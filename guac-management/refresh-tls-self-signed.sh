@@ -23,11 +23,11 @@ LYELLOW='\033[0;93m'
 NC='\033[0m' #No Colour
 
 # Check if user is root or sudo
-if ! [ $(id -u) = 0 ]; then
-	echo
-	echo -e "${LRED}Please run this script as sudo or root${NC}" 1>&2
-	echo
-	exit 1
+if ! [[ $(id -u) = 0 ]]; then
+    echo
+    echo -e "${LRED}Please run this script as sudo or root${NC}" 1>&2
+    echo
+    exit 1
 fi
 
 echo
@@ -61,19 +61,19 @@ CERT_DAYS=
 DEFAULT_IP=
 
 # Assume the values used by the guacamole installer if the script is run without any command line options
-if [ -z "$1" ] | [ -z "$2" ] | [ -z "$3" ]; then
-	TLSNAME=$PROXY_SITE
-	TLSDAYS=$CERT_DAYS
-	TLSIP=$DEFAULT_IP
+if [[ -z "$1" ]] | [[ -z "$2" ]] | [[ -z "$3" ]]; then
+    TLSNAME=$PROXY_SITE
+    TLSDAYS=$CERT_DAYS
+    TLSIP=$DEFAULT_IP
 fi
 
 # Make directories to place TLS Certificate if they don't exist
 if [[ ! -d $DIR_SSL_KEY ]]; then
-	sudo mkdir -p $DIR_SSL_KEY
+    sudo mkdir -p $DIR_SSL_KEY
 fi
 
 if [[ ! -d $DIR_SSL_CERT ]]; then
-	sudo mkdir -p $DIR_SSL_CERT
+    sudo mkdir -p $DIR_SSL_CERT
 fi
 
 echo -e "${GREY}New self signed TLS certificate attributes are shown below...${DGREY}"
@@ -107,12 +107,12 @@ echo
 # Create the new certificates
 echo "{$GREY}Creating a new TLS Certificate..."
 openssl req -x509 -nodes -newkey rsa:2048 -keyout $TLSNAME.key -out $TLSNAME.crt -days $TLSDAYS -config cert_attributes.txt
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed.${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed.${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Place TLS Certificate into the defined application path
@@ -122,12 +122,12 @@ cp $TLSNAME.crt $DIR_SSL_CERT/$TLSNAME.crt
 # Create a PFX formatted key for easier import to Windows hosts and change permissions to enable copying elsewhere
 echo -e "${GREY}Converting client certificates for Windows & Linux...${GREY}"
 openssl pkcs12 -export -out $TLSNAME.pfx -inkey $TLSNAME.key -in $TLSNAME.crt -password pass:1234
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed.${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed.${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Change of permissions so certs can be copied via WinSCP.
@@ -139,12 +139,12 @@ TOMCAT=$(ls /etc/ | grep tomcat)
 systemctl restart $TOMCAT
 systemctl restart guacd
 systemctl restart nginx
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed.${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed.${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Hack to assist with displaying "$" symbols and " ' quotes in a (cut/paste-able) bash screen output format

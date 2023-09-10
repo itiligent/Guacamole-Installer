@@ -29,12 +29,12 @@ apt-get install nginx certbot python3-certbot-nginx -qq -y &>>${INSTALL_LOG}
 echo
 echo -e "${GREY}Backing up previous Nginx proxy to $DOWNLOAD_DIR/$PROXY_SITE-nginx.bak"
 cp /etc/nginx/sites-enabled/${PROXY_SITE} $DOWNLOAD_DIR/${PROXY_SITE}-nginx.bak
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Configure Nginx to accept the new certificates
@@ -57,12 +57,12 @@ server {
     }
 }
 EOL
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Update general ufw rules so force traffic via reverse proxy. Only Nginx and SSH will be available over the network.
@@ -73,12 +73,12 @@ sudo ufw allow OpenSSH >/dev/null 2>&1
 sudo ufw allow 80/tcp >/dev/null 2>&1
 sudo ufw allow 443/tcp >/dev/null 2>&1
 echo "y" | sudo ufw enable >/dev/null 2>&1
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Bounce Nginx to reload the new Nginx config so certbot config can continue
@@ -88,12 +88,12 @@ systemctl restart nginx
 certbot --nginx -n -d $LE_DNS_NAME --email $LE_EMAIL --agree-tos --redirect --hsts
 echo -e
 echo -e "${GREY}Let's Encrypt successfully installed, but check for any errors above (DNS & firewall are the usual culprits).${GREY}"
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Select a random daily time to schedule a daily check for Let's Encrypt certificates due to expire in next 30 days.
@@ -110,12 +110,12 @@ echo "${MINUTE} ${HOUR} * * * /usr/bin/certbot renew --quiet --pre-hook 'systemc
 # Overwrite old cron settings and cleanup
 crontab cron_1
 rm cron_1
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Reload everything once again
@@ -123,11 +123,11 @@ echo -e "${GREY}Restaring Guacamole & Ngnix..."
 sudo systemctl restart $TOMCAT_VERSION
 sudo systemctl restart guacd
 sudo systemctl restart nginx
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
+    echo -e "${LGREEN}OK${GREY}"
 fi
 
 # Done

@@ -31,11 +31,11 @@ DIR_SSL_KEY="/etc/nginx/ssl/private"
 
 # Make directories to place TLS Certificate if they don't exist
 if [[ ! -d $DIR_SSL_KEY ]]; then
-	sudo mkdir -p $DIR_SSL_KEY
+    sudo mkdir -p $DIR_SSL_KEY
 fi
 
 if [[ ! -d $DIR_SSL_CERT ]]; then
-	sudo mkdir -p $DIR_SSL_CERT
+    sudo mkdir -p $DIR_SSL_CERT
 fi
 
 # Discover IPv4 interface
@@ -71,12 +71,12 @@ EOF
 echo
 echo "{$GREY}Creating a new Nginx TLS Certificate..."
 openssl req -x509 -nodes -newkey rsa:2048 -keyout $TLSNAME.key -out $TLSNAME.crt -days $TLSDAYS -config $TMP_DIR/cert_attributes.txt
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Place TLS Certificate into the defined application path
@@ -86,12 +86,12 @@ sudo cp $TLSNAME.crt $DIR_SSL_CERT/$TLSNAME.crt
 # Create a PFX formatted key for easier import to Windows hosts and change permissions to enable copying elsewhere
 echo -e "${GREY}Converting client certificates for Windows & Linux...${GREY}"
 sudo openssl pkcs12 -export -out $TLSNAME.pfx -inkey $TLSNAME.key -in $TLSNAME.crt -password pass:1234
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Change of permissions so certs can be copied via WinSCP.
@@ -102,12 +102,12 @@ sudo chown $SUDO_USER:root $TLSNAME.key
 # Backup the current Nginx config before update
 echo -e "${GREY}Backing up previous Nginx proxy to $DOWNLOAD_DIR/$TLSNAME-nginx.bak"
 cp /etc/nginx/sites-enabled/${TLSNAME} $DOWNLOAD_DIR/${TLSNAME}-nginx.bak
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Update Nginx config to accept the new certificates
@@ -150,12 +150,12 @@ server {
     }
 }
 EOF
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Update general ufw rules so force traffic via reverse proxy. Only Nginx and SSH will be available over the network.
@@ -166,12 +166,12 @@ sudo ufw allow OpenSSH >/dev/null 2>&1
 sudo ufw allow 80/tcp >/dev/null 2>&1
 sudo ufw allow 443/tcp >/dev/null 2>&1
 echo "y" | sudo ufw enable >/dev/null 2>&1
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Reload everything
@@ -179,12 +179,12 @@ echo -e "${GREY}Restaring Guacamole & Ngnix..."
 sudo systemctl restart $TOMCAT_VERSION
 sudo systemctl restart guacd
 sudo systemctl restart nginx
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Hack to assist with displaying "$" symbols and " ' quotes in a (cut/paste-able) bash screen output format

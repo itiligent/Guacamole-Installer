@@ -27,18 +27,18 @@ LYELLOW='\033[0;93m'
 NC='\033[0m' #No Colour
 
 # Check if user is root or sudo
-if ! [ $(id -u) = 0 ]; then
-	echo
-	echo -e "${LRED}Please run this script as sudo or root${NC}" 1>&2
-	exit 1
+if ! [[ $(id -u) = 0 ]]; then
+    echo
+    echo -e "${LRED}Please run this script as sudo or root${NC}" 1>&2
+    exit 1
 fi
 
 # Check to see if any previous version of build/install files exist, if so stop and check to be safe.
-if [ "$(find . -maxdepth 1 \( -name 'guacamole-*' -o -name 'mysql-connector-j-*' \))" != "" ]; then
-	echo
-	echo -e "${LRED}Possible previous install files detected. Please review and remove old guacamole install files before proceeding.${GREY}" 1>&2
-	echo
-	exit 1
+if [[ "$(find . -maxdepth 1 \( -name 'guacamole-*' -o -name 'mysql-connector-j-*' \))" != "" ]]; then
+    echo
+    echo -e "${LRED}Possible previous install files detected. Please review and remove old guacamole install files before proceeding.${GREY}" 1>&2
+    echo
+    exit 1
 fi
 
 #######################################################################################################################
@@ -100,14 +100,14 @@ DB_TZ=$(cat /etc/timezone) # Typically system default (cat /etc/timezone) or cha
 
 # Choose a specific MySQL version e.g. 11.1.2 See https://mariadb.org/mariadb/all-releases/ for available versions.
 MYSQL_VERSION="" # Blank "" forces distro default MySQL packages.
-if [ -z "${MYSQL_VERSION}" ]; then
-	# Use Linux distro default version.
-	MYSQLPKG="default-mysql-server default-mysql-client mysql-common"
-	DB_CMD="mysql" # mysql command is depricated
+if [[ -z "${MYSQL_VERSION}" ]]; then
+    # Use Linux distro default version.
+    MYSQLPKG="default-mysql-server default-mysql-client mysql-common"
+    DB_CMD="mysql" # mysql command is depricated
 else
-	# Use official mariadb.org repo
-	MYSQLPKG="mariadb-server mariadb-client mariadb-common"
-	DB_CMD="mariadb" # mysql command is depricated on newer versions
+    # Use official mariadb.org repo
+    MYSQLPKG="mariadb-server mariadb-client mariadb-common"
+    DB_CMD="mariadb" # mysql command is depricated on newer versions
 fi
 
 # Update everything but don't do the annoying prompts during apt installs
@@ -115,44 +115,44 @@ echo -e "${GREY}Updating base Linux OS..."
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq &>>${INSTALL_LOG}
 apt-get upgrade -qq -y &>>${INSTALL_LOG}
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 cd $DOWNLOAD_DIR
 
 # Add the official MariaDB repo
-if [ -n "${MYSQL_VERSION}" ]; then
-	apt-get -qq -y install curl gnupg2 &>>${INSTALL_LOG}
-	curl -LsS -O https://downloads.mariadb.com/MariaDB/mariadb_repo_setup &>>${INSTALL_LOG}
-	bash mariadb_repo_setup --mariadb-server-version=$MYSQL_VERSION &>>${INSTALL_LOG}
+if [[ -n "${MYSQL_VERSION}" ]]; then
+    apt-get -qq -y install curl gnupg2 &>>${INSTALL_LOG}
+    curl -LsS -O https://downloads.mariadb.com/MariaDB/mariadb_repo_setup &>>${INSTALL_LOG}
+    bash mariadb_repo_setup --mariadb-server-version=$MYSQL_VERSION &>>${INSTALL_LOG}
 fi
 
 # Download and extract the Guacamole SQL authentication extension containing the database schema
 echo -e "${GREY}Downloading Guacamole database source files..."
 wget -q --show-progress -O guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed to download guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz" 1>&2
-	echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz"
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed to download guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz" 1>&2
+    echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz"
+    exit 1
 else
-	tar -xzf guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz
+    tar -xzf guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz
 fi
 echo -e "${LGREEN}Downloaded guacamole-auth-jdbc-${GUAC_VERSION}.tar.gz${GREY}"
 
 echo
 echo -e "${GREY}Installing MySQL packages..."
 apt-get -qq -y install ${MYSQLPKG} &>>${INSTALL_LOG}
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Set the root password without a reliance on debconf.
@@ -161,89 +161,89 @@ SQLCODE="
 FLUSH PRIVILEGES;
 ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PWD';"
 echo ${SQLCODE} | $DB_CMD -u root
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Find the location of the MySQL or MariaDB config files. (Add to this list for more potential candidates.)
 for x in /etc/mysql/mariadb.conf.d/50-server.cnf \
-	/etc/mysql/mysql.conf.d/mysqld.cnf \
-	/etc/mysql/my.cnf; do
-	# Check inside each candidate to see if a [mysqld] or [mariadbd] section exists, assign $x the correct filename.
-	if [ -e "${x}" ]; then
-		if grep -qE '^\[(mysqld|mariadbd)\]$' "${x}"; then
-			mysqlconfig="${x}"
-			# Reduce any duplicated section names, then sanitise the [ ] special characters for sed below)
-			config_section=$(grep -m 1 -E '^\[(mysqld|mariadbd)\]$' "${x}" | sed 's/\[\(.*\)\]/\1/')
-			break
-		fi
-	fi
+    /etc/mysql/mysql.conf.d/mysqld.cnf \
+    /etc/mysql/my.cnf; do
+    # Check inside each candidate to see if a [mysqld] or [mariadbd] section exists, assign $x the correct filename.
+    if [[ -e "${x}" ]]; then
+        if grep -qE '^\[(mysqld|mariadbd)\]$' "${x}"; then
+            mysqlconfig="${x}"
+            # Reduce any duplicated section names, then sanitise the [ ] special characters for sed below)
+            config_section=$(grep -m 1 -E '^\[(mysqld|mariadbd)\]$' "${x}" | sed 's/\[\(.*\)\]/\1/')
+            break
+        fi
+    fi
 done
 
 # Set the MySQL Timezone
-if [ -z "${mysqlconfig}" ]; then
-	echo -e "${GREY}Couldn't detect MySQL config file - you will need to manually configure database timezone settings"
+if [[ -z "${mysqlconfig}" ]]; then
+    echo -e "${GREY}Couldn't detect MySQL config file - you will need to manually configure database timezone settings"
 else
-	# Is there already a timzeone value configured?
-	if grep -q "^default_time_zone[[:space:]]=" "${mysqlconfig}"; then
-		echo -e "MySQL database timezone defined in ${mysqlconfig}"
-	else
-		timezone=${DB_TZ}
-		if [ -z "${DB_TZ}" ]; then
-			echo -e "Couldn't find system timezone, using UTC$"
-			timezone="UTC"
-		fi
-		echo -e "Setting MySQL database timezone as ${timezone}${GREY}"
-		mysql_tzinfo_to_sql /usr/share/zoneinfo 2>/dev/null | ${DB_CMD} -u root -D mysql -p${MYSQL_ROOT_PWD}
-		# Add the timzone value to the sanitsed server file section name.
-		sed -i -e "/^\[${config_section}\]/a default_time_zone = ${timezone}" "${mysqlconfig}"
-	fi
+    # Is there already a timzeone value configured?
+    if grep -q "^default_time_zone[[:space:]]=" "${mysqlconfig}"; then
+        echo -e "MySQL database timezone defined in ${mysqlconfig}"
+    else
+        timezone=${DB_TZ}
+        if [[ -z "${DB_TZ}" ]]; then
+            echo -e "Couldn't find system timezone, using UTC$"
+            timezone="UTC"
+        fi
+        echo -e "Setting MySQL database timezone as ${timezone}${GREY}"
+        mysql_tzinfo_to_sql /usr/share/zoneinfo 2>/dev/null | ${DB_CMD} -u root -D mysql -p${MYSQL_ROOT_PWD}
+        # Add the timzone value to the sanitsed server file section name.
+        sed -i -e "/^\[${config_section}\]/a default_time_zone = ${timezone}" "${mysqlconfig}"
+    fi
 fi
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Set the MySQL binding IP address to whatever the setup variable is set to.
 echo -e "${GREY}Setting MySQL IP address binding to ${MYSQL_BIND_ADDR}..."
 sed -i "s/^bind-address[[:space:]]*=[[:space:]]*.*/bind-address = ${MYSQL_BIND_ADDR}/g" ${mysqlconfig}
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Establish the appropriate form of Guacamole user account access (remote or localhost login permissions)
 echo -e "${GREY}Setting up database access parameters for the Guacamole user ..."
-if [ "${BACKEND_MYSQL}" = true ] && [ -z "${FRONTEND_NET}" ]; then
-	echo -e "${LYELLOW}${GUAC_USER} is set to accept db logins from any host, you may wish to limit this to specific IPs.${GREY}"
-	# e.g. RENAME USER '${GUAC_USER}'@'%' TO '${GUAC_USER}'@'xx.xx.xx.%';"
-	GUAC_USERHost="%" # Allow all IPs
-elif [ "${BACKEND_MYSQL}" = true ] && [ -n "${FRONTEND_NET}" ]; then
-	echo -e "${LYELLOW}${GUAC_USER} is set to accept db logins from ${FRONTEND_NET}.${GREY}"
-	GUAC_USERHost="${FRONTEND_NET}" # Apply the given range
-elif [ "${BACKEND_MYSQL}" = false ] || [ -z "${BACKEND_MYSQL}" ]; then
-	echo -e "${LYELLOW}${GUAC_USER} is set to accept db logins from localhost only.${GREY}"
-	GUAC_USERHost=localhost # Assume a localhost only install
+if [[ "${BACKEND_MYSQL}" = true ]] && [[ -z "${FRONTEND_NET}" ]]; then
+    echo -e "${LYELLOW}${GUAC_USER} is set to accept db logins from any host, you may wish to limit this to specific IPs.${GREY}"
+    # e.g. RENAME USER '${GUAC_USER}'@'%' TO '${GUAC_USER}'@'xx.xx.xx.%';"
+    GUAC_USERHost="%" # Allow all IPs
+elif [[ "${BACKEND_MYSQL}" = true ]] && [[ -n "${FRONTEND_NET}" ]]; then
+    echo -e "${LYELLOW}${GUAC_USER} is set to accept db logins from ${FRONTEND_NET}.${GREY}"
+    GUAC_USERHost="${FRONTEND_NET}" # Apply the given range
+elif [[ "${BACKEND_MYSQL}" = false ]] || [[ -z "${BACKEND_MYSQL}" ]]; then
+    echo -e "${LYELLOW}${GUAC_USER} is set to accept db logins from localhost only.${GREY}"
+    GUAC_USERHost=localhost # Assume a localhost only install
 else
-	echo -e "${LYELLOW}${GUAC_USER} is set to accept db logins from localhost only.${GREY}"
-	GUAC_USERHost=localhost # Assume a localhost only install
+    echo -e "${LYELLOW}${GUAC_USER} is set to accept db logins from localhost only.${GREY}"
+    GUAC_USERHost=localhost # Assume a localhost only install
 fi
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Create the new Guacamole database
@@ -256,30 +256,30 @@ GRANT SELECT,INSERT,UPDATE,DELETE ON ${GUAC_DB}.* TO '${GUAC_USER}'@'${GUAC_USER
 FLUSH PRIVILEGES;"
 # Execute SQL code
 echo ${SQLCODE} | $DB_CMD -u root -D mysql -p${MYSQL_ROOT_PWD}
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Add Guacamole's schema code to newly created database
 echo -e "${GREY}Adding the Guacamole database schema..."
 cat guacamole-auth-jdbc-${GUAC_VERSION}/mysql/schema/*.sql | $DB_CMD -u root -D ${GUAC_DB} -p${MYSQL_ROOT_PWD}
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Apply Secure MySQL installation settings
-if [ "${SECURE_MYSQL}" = true ]; then
-	apt-get -qq -y install expect &>>${INSTALL_LOG}
-	echo -e "${GREY}Applying mysql_secure_installation settings...${DGREY}"
-	SECURE_MYSQL=$(expect -c "
+if [[ "${SECURE_MYSQL}" = true ]]; then
+    apt-get -qq -y install expect &>>${INSTALL_LOG}
+    echo -e "${GREY}Applying mysql_secure_installation settings...${DGREY}"
+    SECURE_MYSQL=$(expect -c "
 set timeout 10
 spawn mysql_secure_installation
 expect \"Enter current password for root (enter for none):\"
@@ -298,26 +298,26 @@ expect \"Reload privilege tables now?\"
 send \"y\r\"
 expect eof
 ")
-	echo "$SECURE_MYSQL"
-	if [ $? -ne 0 ]; then
-		echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-		exit 1
-	else
-		echo -e "${LGREEN}OK${GREY}"
-		echo
-	fi
+    echo "$SECURE_MYSQL"
+    if [[ $? -ne 0 ]]; then
+        echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+        exit 1
+    else
+        echo -e "${LGREEN}OK${GREY}"
+        echo
+    fi
 fi
 
 # Restart & enable MySQL service at boot
 echo -e "${GREY}Restarting MySQL service & enable at boot..."
 systemctl enable mysql
 systemctl restart mysql
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Cleanup
@@ -325,12 +325,12 @@ echo -e "${GREY}Cleaning up install files...${GREY}"
 apt-get -y remove expect &>>${INSTALL_LOG}
 apt-get -y autoremove &>>${INSTALL_LOG}
 rm -rf guacamole-*
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${LOG_LOCATION}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Done

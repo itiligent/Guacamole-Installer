@@ -1,6 +1,6 @@
 # Guacamole 1.5.3 VDI/Jump Server Appliance Build Script
 
-<img src="https://github.githubassets.com/images/icons/emoji/sparkles.png" width="35"> This repo makes setting up a Guacamole a breeze. Its got installer support for TLS reverse proxy, Active Directory integration, multi-factor authentication, Quick Connect & History Recording Storage UI enhancements, dark mode and custom UI templates, auto database backup, O365 email alerts and even fail2ban and internal daemon security hardening options. There's also code in here to get you up and running with Guacamole in an enterprise or high availability deployment too!
+<img src="https://github.githubassets.com/images/icons/emoji/sparkles.png" width="35"> This repo makes setting up a Guacamole a breeze. Its got installer support for TLS reverse proxy, Active Directory integration, multi-factor authentication, Quick Connect & History Recording Storage UI enhancements, dark mode and custom UI templates, auto database backup, O365 email alerts and even fail2ban and internal daemon security hardening options. There's also code in here to get you up and running with an enterprise high availability deployment too!
 
 ## Automatic Installation
 
@@ -10,14 +10,20 @@
 wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.sh && chmod +x 1-setup.sh && ./1-setup.sh
 ```
 
-## Prerequisites (Debian 12 now working!)
+## Prerequisites (Yes! Debian 12 is now supported!)
 
 <img src="https://github.githubassets.com/images/icons/emoji/lock.png" width="35"> **Before diving in, make sure you have:**
 
-- A compatible OS: Ubuntu 18.04 - 22.x, Debian 10, 11 or 12, or Raspbian Buster/Bullseye (If using vendor cloud images stick to stable releases).
+- **A compatible OS:**
+    - **Debian 12, 11 or 10**
+    - **Ubuntu 23.04, 22.04, 20.04 & 18.04**
+    - **Raspbian Buster & Bullseye**
+    - **Official vendor cloud images equivalent to the above.**
 - Minimum 8GB RAM and 40GB HDD.
 - DNS entries matching your default appliance network interface IP (essential for TLS).
 - Open TCP ports: 22, 80, and 443.
+
+23.04, 22.04, 20.04 & 18.04
 
 ## Installation Menu
 
@@ -50,7 +56,7 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 
 1. Paste and run the wget autorun link in your home directory.
 2. Exit `1-setup.sh` at the first prompt. (At this point the scripts are downloaded only.)
-3. Customise the huge number of installation variables available in `1-setup.sh` as required. (Certain combinations of edits will produce a fully unattended install.)
+3. Customise the huge number of installation variables available in `1-setup.sh` as required. All options for customisation are found in the top sections of this script only. (Certain combinations of edits will even produce a fully unattended install!)
 4. **Caution: If editing `1-setup.sh`, be aware that running the autorun link again re-downloads and overwrites all changes. You must run setup locally after editing.** (Also be sure to comment out the download links in the setup script for any other edited scripts. There should be little need to edit outside of the setup script's options.)
 5. The **upgrade-guac.sh, add-tls-guac-daemon.sh, refresh-tls-self-signed.sh & backup-guac.sh** scripts are automatically adjusted at installation to match your chosen installation settings. These can be run after install without any modification.
 6. If the self-signed TLS proxy option is selected, browser client TLS certificates will be automatically created and saved to `$HOME/guac-setup`.

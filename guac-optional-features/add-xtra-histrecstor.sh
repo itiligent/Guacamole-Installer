@@ -18,10 +18,10 @@ NC='\033[0m' #No Colour
 clear
 
 # Check if user is root or sudo
-if ! [ $(id -u) = 0 ]; then
-	echo
-	echo -e "${LGREEN}Please run this script as sudo or root${NC}" 1>&2
-	exit 1
+if ! [[ $(id -u) = 0 ]]; then
+    echo
+    echo -e "${LGREEN}Please run this script as sudo or root${NC}" 1>&2
+    exit 1
 fi
 
 TOMCAT_VERSION=$(ls /etc/ | grep tomcat)
@@ -30,13 +30,13 @@ GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guac
 HISTREC_PATH_DEFAULT=/var/lib/guacamole/recordings # Apache default
 
 while true; do
-	echo
-	read -p "Enter recorded storage path [Enter for default ${HISTREC_PATH_DEFAULT}]: " HISTREC_PATH
-	[ "${HISTREC_PATH}" = "" ] || [ "${HISTREC_PATH}" != "" ] && break
+    echo
+    read -p "Enter recorded storage path [Enter for default ${HISTREC_PATH_DEFAULT}]: " HISTREC_PATH
+    [[ "${HISTREC_PATH}" = "" ]] || [[ "${HISTREC_PATH}" != "" ]] && break
 done
 # If no custom path is given, lets assume the default path on hitting enter
-if [ -z "${HISTREC_PATH}" ]; then
-	HISTREC_PATH="${HISTREC_PATH_DEFAULT}"
+if [[ -z "${HISTREC_PATH}" ]]; then
+    HISTREC_PATH="${HISTREC_PATH_DEFAULT}"
 fi
 echo
 

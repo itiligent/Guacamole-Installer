@@ -43,12 +43,12 @@ server {
     }
 }
 EOF
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Force nginx to require tls1.2 and above
@@ -64,24 +64,24 @@ unlink /etc/nginx/sites-enabled/default
 # Do mandatory Nginx tweaks for logging actual client IPs through a proxy IP of 127.0.0.1 - DO NOT CHANGE COMMAND FORMATING!
 echo -e "${GREY}Configuring Apache Tomcat valve for pass through of client IPs to Guacamole logs...${GREY}"
 sudo sed -i '/pattern="%h %l %u %t &quot;%r&quot; %s %b"/a        \        <!-- Allow host IP to pass through to guacamole.-->\n        <Valve className="org.apache.catalina.valves.RemoteIpValve"\n               internalProxies="127\.0\.0\.1|0:0:0:0:0:0:0:1"\n               remoteIpHeader="x-forwarded-for"\n               remoteIpProxiesHeader="x-forwarded-by"\n               protocolHeader="x-forwarded-proto" />' /etc/$TOMCAT_VERSION/server.xml
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Allow large file transfers through Nginx
 sudo sed -i '/client_max_body_size/d' /etc/nginx/nginx.conf                                     # remove this line if it already exists to prevent duplicates
 sudo sed -i "/Basic Settings/a \        client_max_body_size 100000000M;" /etc/nginx/nginx.conf # Add the larger file transfer size
 echo -e "${GREY}Boosting Nginx's 'maximum body size' parameter to allow large file transfers...${GREY}"
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Update general ufw rules so force traffic via reverse proxy. Only Nginx and SSH will be available over the network.
@@ -92,12 +92,12 @@ sudo ufw allow OpenSSH >/dev/null 2>&1
 sudo ufw allow 80/tcp >/dev/null 2>&1
 sudo ufw delete allow 8080/tcp >/dev/null 2>&1
 echo "y" | sudo ufw enable >/dev/null 2>&1
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Reload everything
@@ -105,11 +105,11 @@ echo -e "${GREY}Restaring Guacamole & Ngnix..."
 sudo systemctl restart $TOMCAT_VERSION
 sudo systemctl restart guacd
 sudo systemctl restart nginx
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
+    echo -e "${LGREEN}OK${GREY}"
 fi
 
 # Done

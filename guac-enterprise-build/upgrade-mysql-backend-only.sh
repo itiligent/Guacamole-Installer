@@ -25,18 +25,18 @@ LYELLOW='\033[0;93m'
 NC='\033[0m' #No Colour
 
 # Check if user is root or sudo
-if ! [ $(id -u) = 0 ]; then
-	echo
-	echo -e "${LRED}Please run this script as sudo or root${NC}" 1>&2
-	exit 1
+if ! [[ $(id -u) = 0 ]]; then
+    echo
+    echo -e "${LRED}Please run this script as sudo or root${NC}" 1>&2
+    exit 1
 fi
 
 # Check to see if any previous version of build/install files exist, if so stop and check to be safe.
-if [ "$(find . -maxdepth 1 \( -name 'guacamole-*' -o -name 'mysql-connector-j-*' \))" != "" ]; then
-	echo
-	echo -e "${LRED}Possible previous install files detected. Please review and remove old guacamole install files before proceeding.${GREY}" 1>&2
-	echo
-	exit 1
+if [[ "$(find . -maxdepth 1 \( -name 'guacamole-*' -o -name 'mysql-connector-j-*' \))" != "" ]]; then
+    echo
+    echo -e "${LRED}Possible previous install files detected. Please review and remove old guacamole install files before proceeding.${GREY}" 1>&2
+    echo
+    exit 1
 fi
 
 #######################################################################################################################
@@ -82,12 +82,12 @@ echo
 
 # Download and extract the Guacamole SQL authentication extension containing the database schema
 wget -q --show-progress -O guacamole-auth-jdbc-${NEW_GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-jdbc-${NEW_GUAC_VERSION}.tar.gz
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed to download guacamole-auth-jdbc-${NEW_GUAC_VERSION}.tar.gz" 1>&2
-	echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-jdbc-${NEW_GUAC_VERSION}.tar.gz"
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed to download guacamole-auth-jdbc-${NEW_GUAC_VERSION}.tar.gz" 1>&2
+    echo -e "${GUAC_SOURCE_LINK}/binary/guacamole-auth-jdbc-${NEW_GUAC_VERSION}.tar.gz"
+    exit 1
 else
-	tar -xzf guacamole-auth-jdbc-${NEW_GUAC_VERSION}.tar.gz
+    tar -xzf guacamole-auth-jdbc-${NEW_GUAC_VERSION}.tar.gz
 fi
 
 echo
@@ -97,40 +97,40 @@ UPGRADEFILES=($(ls -1 guacamole-auth-jdbc-${NEW_GUAC_VERSION}/mysql/schema/upgra
 
 # Compare SQL Upgrage Files against old version, apply upgrades as needed
 for FILE in ${UPGRADEFILES[@]}; do
-	FILEVERSION=$(echo ${FILE} | grep -oP 'upgrade-pre-\K[0-9\.]+(?=\.)')
-	if [[ $(echo -e "${FILEVERSION}\n${OLD_GUAC_VERSION}" | sort -V | head -n1) == ${OLD_GUAC_VERSION} && ${FILEVERSION} != ${OLD_GUAC_VERSION} ]]; then
-		echo "Patching ${GUAC_DB} with ${FILE}"
-		mariadb -u root -D ${GUAC_DB} -p${MYSQL_ROOT_PWD} <guacamole-auth-jdbc-${NEW_GUAC_VERSION}/mysql/schema/upgrade/${FILE} &>>${INSTALL_LOG}
-	fi
+    FILEVERSION=$(echo ${FILE} | grep -oP 'upgrade-pre-\K[0-9\.]+(?=\.)')
+    if [[ $(echo -e "${FILEVERSION}\n${OLD_GUAC_VERSION}" | sort -V | head -n1) == ${OLD_GUAC_VERSION} && ${FILEVERSION} != ${OLD_GUAC_VERSION} ]]; then
+        echo "Patching ${GUAC_DB} with ${FILE}"
+        mariadb -u root -D ${GUAC_DB} -p${MYSQL_ROOT_PWD} <guacamole-auth-jdbc-${NEW_GUAC_VERSION}/mysql/schema/upgrade/${FILE} &>>${INSTALL_LOG}
+    fi
 done
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}SQL upgrade failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}SQL upgrade failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Restart MySQL service
 echo -e "${GREY}Restarting MySQL service..."
 systemctl restart mysql
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Cleanup
 echo -e "${GREY}Clean up install files...${GREY}"
 rm -rf guacamole-*
-if [ $? -ne 0 ]; then
-	echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-	exit 1
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
 else
-	echo -e "${LGREEN}OK${GREY}"
-	echo
+    echo -e "${LGREEN}OK${GREY}"
+    echo
 fi
 
 # Done
