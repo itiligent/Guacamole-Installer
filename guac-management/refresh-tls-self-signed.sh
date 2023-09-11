@@ -35,11 +35,12 @@ echo
 echo -e "${LGREEN}Cresting self signed TLS certificates for Nginx...${GREY}"
 echo
 
+# Create a place to save the certs so we don't overwrite any earlier versions
 USER_HOME_DIR=$(eval echo ~${SUDO_USER})
-CERT_DIR=tls-certs-$(date +%y.%m.%d-%H_%M)
-WORKING_DIR=$USER_HOME_DIR/guac-setup/$CERT_DIR
-mkdir -p $WORKING_DIR
-cd $WORKING_DIR
+CERT_DIR_NAME=tls-certs-$(date +%y.%m.%d-%H_%M)
+CERT_DIR=$USER_HOME_DIR/guac-setup/$CERT_DIR_NAME
+mkdir -p $CERT_DIR
+cd $CERT_DIR
 
 # Set default certificate file destinations. Change these for other TLS applications.
 DIR_SSL_KEY="/etc/nginx/ssl/private"

@@ -50,6 +50,12 @@ PROXY_SITE=
 CERT_DAYS=
 DEFAULT_IP=
 
+# Create a place to save the certs so we don't overwrite any earlier versions
+CERT_DIR_NAME=tls-certs-$(date +%y.%m.%d-%H_%M)
+CERT_DIR=$DOWNLOAD_DIR/$CERT_DIR_NAME
+mkdir -p $CERT_DIR
+cd $CERT_DIR
+
 # Setup script cmd line arguments for proxy site and certificate days
 TLSNAME=$1
 TLSDAYS=$2
