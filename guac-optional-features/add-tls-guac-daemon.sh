@@ -21,14 +21,13 @@ NC='\033[0m' #No Colour
 # Check if user is root or sudo
 if ! [[ $(id -u) = 0 ]]; then
     echo
-    echo -e "${LGREEN}Please run this script as sudo or root${NC}" 1>&2
+    echo -e "${LRED}Please run this script as sudo or root${NC}" 1>&2
     exit 1
 fi
 
 TOMCAT_VERSION=$(ls /etc/ | grep tomcat)
 RSA_KEY_LENGTH=2048
-
-# Auto updated values from main installer (manually update if blank)
+# Below variables are automatically updated by the 1-setup.sh script with the respective values given at install (manually update if blank)
 CERT_COUNTRY=
 CERT_STATE=
 CERT_LOCATION=

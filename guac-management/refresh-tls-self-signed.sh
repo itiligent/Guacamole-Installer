@@ -6,10 +6,10 @@
 # September 2023
 #######################################################################################################################
 
-# If run with with no command arguments, the ${PROXY_SITE} ${CERT_DAYS} & ${Default_IP) values from original install are applied.
-#      e.g. sudo ./refresh-tls-self-signed-nginx.sh
+# If run with with no command arguments, the ${PROXY_SITE}, ${CERT_DAYS} & ${Default_IP) values used during the 
+# the original install are applied. To keep these run: sudo ./refresh-tls-self-signed-nginx.sh
 #
-# SCript can also be run with custom command line arguments for use with any TLS application:
+# This script can also be run with custom command line arguments for use with any TLS application:
 #      Command arguments are formatted as: [command] [FQDN] [cert-lifetime] [IP]
 #      e.g. sudo ./refresh-tls-self-signed-nginx.sh webserver.domain.local 365 192.168.1.1
 
@@ -50,7 +50,7 @@ TLSNAME=$1
 TLSDAYS=$2
 TLSIP=$3
 
-# Auto updated values from main installer (manually update if blank)
+# Below variables are automatically updated by the 1-setup.sh script with the respective values given at install (manually update if blank)
 CERT_COUNTRY=
 CERT_STATE=
 CERT_LOCATION=
@@ -60,7 +60,7 @@ PROXY_SITE=
 CERT_DAYS=
 DEFAULT_IP=
 
-# Assume the values used by the guacamole installer if the script is run without any command line options
+# Assume the values set the guacamole installer if the script is run without any command line options
 if [[ -z "$1" ]] | [[ -z "$2" ]] | [[ -z "$3" ]]; then
     TLSNAME=$PROXY_SITE
     TLSDAYS=$CERT_DAYS
@@ -69,11 +69,11 @@ fi
 
 # Make directories to place TLS Certificate if they don't exist
 if [[ ! -d $DIR_SSL_KEY ]]; then
-    sudo mkdir -p $DIR_SSL_KEY
+    mkdir -p $DIR_SSL_KEY
 fi
 
 if [[ ! -d $DIR_SSL_CERT ]]; then
-    sudo mkdir -p $DIR_SSL_CERT
+    mkdir -p $DIR_SSL_CERT
 fi
 
 echo -e "${GREY}New self signed TLS certificate attributes are shown below...${DGREY}"

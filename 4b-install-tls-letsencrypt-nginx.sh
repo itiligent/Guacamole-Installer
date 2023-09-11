@@ -7,6 +7,9 @@
 # April 2023
 #######################################################################################################################
 
+# If run as standalone and not from the main installer script, check the below variables are correct.
+# To run standalone: sudo ./4b-install-tls-letsencrypt-nginx.sh
+
 # Prepare text output colours
 GREY='\033[0;37m'
 DGREY='\033[0;90m'
@@ -15,6 +18,15 @@ LRED='\033[0;91m'
 LGREEN='\033[0;92m'
 LYELLOW='\033[0;93m'
 NC='\033[0m' #No Colour
+
+TOMCAT_VERSION=$(ls /etc/ | grep tomcat)
+# Below variables are automatically updated by the 1-setup.sh script with the respective values given at install (manually update if blank)
+DOWNLOAD_DIR=
+PROXY_SITE=
+GUAC_URL=
+LE_DNS_NAME=
+LE_EMAIL=
+INSTALL_LOG=
 
 echo
 echo
@@ -67,11 +79,11 @@ fi
 
 # Update general ufw rules so force traffic via reverse proxy. Only Nginx and SSH will be available over the network.
 echo -e "${GREY}Updating firewall rules to allow only SSH and tcp 80/443..."
-sudo ufw default allow outgoing >/dev/null 2>&1
-sudo ufw default deny incoming >/dev/null 2>&1
-sudo ufw allow OpenSSH >/dev/null 2>&1
-sudo ufw allow 80/tcp >/dev/null 2>&1
-sudo ufw allow 443/tcp >/dev/null 2>&1
+ufw default allow outgoing >/dev/null 2>&1
+ufw default deny incoming >/dev/null 2>&1
+ufw allow OpenSSH >/dev/null 2>&1
+ufw allow 80/tcp >/dev/null 2>&1
+ufw allow 443/tcp >/dev/null 2>&1
 echo "y" | sudo ufw enable >/dev/null 2>&1
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
@@ -81,10 +93,10 @@ else
     echo
 fi
 
-# Bounce Nginx to reload the new Nginx config so certbot config can continue
+# Reload the new Nginx config so as certbot can further ajust
 systemctl restart nginx
 
-# Run certbot to create and associate certificates with currenly public IP (must have tcp 80 and 443 open to work)
+# Run certbot to create and associate certificates with current public IP (must have tcp 80 and 443 open to work!)
 certbot --nginx -n -d $LE_DNS_NAME --email $LE_EMAIL --agree-tos --redirect --hsts
 echo -e
 echo -e "${GREY}Let's Encrypt successfully installed, but check for any errors above (DNS & firewall are the usual culprits).${GREY}"
@@ -120,9 +132,9 @@ fi
 
 # Reload everything once again
 echo -e "${GREY}Restaring Guacamole & Ngnix..."
-sudo systemctl restart $TOMCAT_VERSION
-sudo systemctl restart guacd
-sudo systemctl restart nginx
+systemctl restart $TOMCAT_VERSION
+systemctl restart guacd
+systemctl restart nginx
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1

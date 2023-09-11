@@ -44,7 +44,7 @@ rm -f /tmp/fail2ban.update
 # Prompt to install fail2ban base package with no policy as yet, default of yes
 if [[ -z ${FAIL2BAN_BASE} ]]; then
     echo
-    echo -e -n "${LGREEN}Install Fail2ban? (base package with no policy as yet) [default y]: ${GREY}"
+    echo -e -n "${LGREEN}Install Fail2ban base package? [default y]: ${GREY}"
     read PROMPT
     if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
         FAIL2BAN_BASE=false
@@ -94,8 +94,8 @@ fi
 if [[ "${FAIL2BAN_BASE}" = true ]]; then
 
     #Update and install fail2ban (and john for management of config file updates, and not overwrite any existing settings)
-    sudo apt-get update -qq >/dev/null 2>&1
-    sudo apt-get install fail2ban john -qq -y >/dev/null 2>&1
+    apt-get update -qq >/dev/null 2>&1
+    apt-get install fail2ban john -qq -y >/dev/null 2>&1
 
     # Create the basic jail.local template and local subnet whitelist
     cat >/tmp/fail2ban.conf <<EOF
@@ -192,7 +192,7 @@ if [[ "${FAIL2BAN_BASE}" = true ]]; then
     rm -f /tmp/fail2ban.update
 
     # bounce the service to reload the new config
-    sudo systemctl restart fail2ban
+    systemctl restart fail2ban
 
     # Done
     echo
@@ -239,7 +239,7 @@ EOF
     echo -e "${LGREEN}Guacamole security policy applied${GREY}\n- ${SED_NETADDR}are whitelisted from all IP bans.\n- To alter this whitelist, edit /etc/fail2ban/jail.local & sudo systemctl restart fail2ban \n \n This script may take a while to complete on first run..."
 
     # Bounce the service to reload the new config
-    sudo systemctl restart fail2ban
+    systemctl restart fail2ban
     echo
 fi
 

@@ -7,6 +7,9 @@
 # August 2023
 #######################################################################################################################
 
+# If run as standalone and not from the main installer script, check the below variables are correct.
+# To run standalone: sudo -E ./3-install-nginx.sh
+
 # Prepare text output colours
 GREY='\033[0;37m'
 DGREY='\033[0;90m'
@@ -16,13 +19,26 @@ LGREEN='\033[0;92m'
 LYELLOW='\033[0;93m'
 NC='\033[0m' #No Colour
 
+if ! [[ $(id -u) = 0 ]]; then
+    echo
+    echo -e "${LRED}Please run this script as sudo or root${NC}" 1>&2
+    exit 1
+fi
+
 echo
 echo
 echo -e "${LGREEN}Installing Nginx...${DGREY}"
 echo
 
+TOMCAT_VERSION=$(ls /etc/ | grep tomcat)
+# Below variables are automatically updated by the 1-setup.sh script with the respective values given at install (manually update if blank)
+PROXY_SITE=
+INSTALL_LOG=
+GUAC_URL=
+
 # Install Nginx
-sudo apt-get install nginx -qq -y &>>${INSTALL_LOG}
+apt-get update -qq &>>${INSTALL_LOG}
+apt-get install nginx -qq -y &>>${INSTALL_LOG}
 
 echo -e "${GREY}Configuring Nginx as a reverse proxy for Guacamole's Apache Tomcat front end...${DGREY}"
 # Configure /etc/nginx/sites-available/(local dns site name)
@@ -52,8 +68,8 @@ else
 fi
 
 # Force nginx to require tls1.2 and above
-sudo sed -i -e '/ssl_protocols/s/^/#/' /etc/nginx/nginx.conf
-sudo sed -i "/SSL Settings/a \        ssl_protocols TLSv1.2 TLSv1.3; # Dropping SSLv3, ref: POODLE" /etc/nginx/nginx.conf
+sed -i -e '/ssl_protocols/s/^/#/' /etc/nginx/nginx.conf
+sed -i "/SSL Settings/a \        ssl_protocols TLSv1.2 TLSv1.3; # Dropping SSLv3, ref: POODLE" /etc/nginx/nginx.conf
 
 # Symlink from sites-available to sites-enabled
 ln -s /etc/nginx/sites-available/$PROXY_SITE /etc/nginx/sites-enabled/
@@ -63,7 +79,7 @@ unlink /etc/nginx/sites-enabled/default
 
 # Do mandatory Nginx tweaks for logging actual client IPs through a proxy IP of 127.0.0.1 - DO NOT CHANGE COMMAND FORMATING!
 echo -e "${GREY}Configuring Apache Tomcat valve for pass through of client IPs to Guacamole logs...${GREY}"
-sudo sed -i '/pattern="%h %l %u %t &quot;%r&quot; %s %b"/a        \        <!-- Allow host IP to pass through to guacamole.-->\n        <Valve className="org.apache.catalina.valves.RemoteIpValve"\n               internalProxies="127\.0\.0\.1|0:0:0:0:0:0:0:1"\n               remoteIpHeader="x-forwarded-for"\n               remoteIpProxiesHeader="x-forwarded-by"\n               protocolHeader="x-forwarded-proto" />' /etc/$TOMCAT_VERSION/server.xml
+sed -i '/pattern="%h %l %u %t &quot;%r&quot; %s %b"/a        \        <!-- Allow host IP to pass through to guacamole.-->\n        <Valve className="org.apache.catalina.valves.RemoteIpValve"\n               internalProxies="127\.0\.0\.1|0:0:0:0:0:0:0:1"\n               remoteIpHeader="x-forwarded-for"\n               remoteIpProxiesHeader="x-forwarded-by"\n               protocolHeader="x-forwarded-proto" />' /etc/$TOMCAT_VERSION/server.xml
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
@@ -73,8 +89,8 @@ else
 fi
 
 # Allow large file transfers through Nginx
-sudo sed -i '/client_max_body_size/d' /etc/nginx/nginx.conf                                     # remove this line if it already exists to prevent duplicates
-sudo sed -i "/Basic Settings/a \        client_max_body_size 100000000M;" /etc/nginx/nginx.conf # Add the larger file transfer size
+sed -i '/client_max_body_size/d' /etc/nginx/nginx.conf  # remove this line if it already exists to prevent duplicates
+sed -i "/Basic Settings/a \        client_max_body_size 100000000M;" /etc/nginx/nginx.conf # Add the larger file transfer size
 echo -e "${GREY}Boosting Nginx's 'maximum body size' parameter to allow large file transfers...${GREY}"
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
@@ -86,11 +102,11 @@ fi
 
 # Update general ufw rules so force traffic via reverse proxy. Only Nginx and SSH will be available over the network.
 echo -e "${GREY}Updating firewall rules to allow only SSH and tcp 80/443..."
-sudo ufw default allow outgoing >/dev/null 2>&1
-sudo ufw default deny incoming >/dev/null 2>&1
-sudo ufw allow OpenSSH >/dev/null 2>&1
-sudo ufw allow 80/tcp >/dev/null 2>&1
-sudo ufw delete allow 8080/tcp >/dev/null 2>&1
+ufw default allow outgoing >/dev/null 2>&1
+ufw default deny incoming >/dev/null 2>&1
+ufw allow OpenSSH >/dev/null 2>&1
+ufw allow 80/tcp >/dev/null 2>&1
+ufw delete allow 8080/tcp >/dev/null 2>&1
 echo "y" | sudo ufw enable >/dev/null 2>&1
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
@@ -102,9 +118,9 @@ fi
 
 # Reload everything
 echo -e "${GREY}Restaring Guacamole & Ngnix..."
-sudo systemctl restart $TOMCAT_VERSION
-sudo systemctl restart guacd
-sudo systemctl restart nginx
+systemctl restart $TOMCAT_VERSION
+systemctl restart guacd
+systemctl restart nginx
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1

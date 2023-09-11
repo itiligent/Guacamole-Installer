@@ -6,6 +6,8 @@
 # April 2023
 #######################################################################################################################
 
+# If run as standalone and not from the main installer script, check the below variables are correct.
+
 # Prerequisites:
 # An office 365 account with a mailbox (NON ADMIN!!)
 # An app password created for the above office 365 user at https://mysignins.microsoft.com/security-info
@@ -20,18 +22,19 @@ LGREEN='\033[0;92m'
 LYELLOW='\033[0;93m'
 NC='\033[0m' #No Colour
 
+# Check if user is root or sudo
+if ! [[ $(id -u) = 0 ]]; then
+    echo
+    echo -e "${LRED}Please run this script as sudo or root${NC}" 1>&2
+    exit 1
+fi
+
 clear
 
 SENDER=$SUDO_USER
 SERVER=$(uname -n)
-DOMAIN_SEARCH_SUFFIX=$(grep search /etc/resolv.conf | grep -v "#" | sed 's/'search[[:space:]]'//')
-
-# Check if user is root or sudo
-if ! [[ $(id -u) = 0 ]]; then
-    echo
-    echo -e "${LGREEN}Please run this script as sudo or root${NC}" 1>&2
-    exit 1
-fi
+# Below variables are automatically updated by the 1-setup.sh script with the respective values given at install (manually update if blank)
+LOCAL_DOMAIN=
 
 echo
 echo -e "${LYELLOW}SMTP relay for Office365 setup...${LGREEN}"
@@ -39,7 +42,7 @@ echo -e "${LYELLOW}SMTP relay for Office365 setup...${LGREEN}"
 # Install Posfix
 echo
 echo -e "${GREY}Installing Postfix with non-interactive defaults..."
-sudo apt update -qq >/dev/null 2>&1
+apt-get update -qq >/dev/null 2>&1
 DEBIAN_FRONTEND="noninteractive" apt-get install postfix mailutils -qq -y >/dev/null 2>&1
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Postfix install failed. ${GREY}" 1>&2
@@ -58,8 +61,8 @@ echo
 echo
 
 # Remove some default Postifx config items that conflict with new entries
-sudo sed -i '/relayhost/d' /etc/postfix/main.cf
-sudo sed -i '/smtp_tls_security_level=may/d' /etc/postfix/main.cf
+sed -i '/relayhost/d' /etc/postfix/main.cf
+sed -i '/smtp_tls_security_level=may/d' /etc/postfix/main.cf
 
 # For simple relay outbound only, limit Postfix to just loopback and IPv4
 sed -i 's/inet_interfaces = all/inet_interfaces = loopback-only/g' /etc/postfix/main.cf
@@ -88,28 +91,28 @@ else
 fi
 
 # Setup the password file and postmap
-sudo touch /etc/postfix/sasl_passwd
+touch /etc/postfix/sasl_passwd
 cat <<EOF | sudo tee -a /etc/postfix/sasl_passwd >/dev/null 2>&1
 [smtp.office365.com]:587 ${SMTP_EMAIL}:${APP_PWD}
 EOF
-sudo chown root:root /etc/postfix/sasl_passwd
-sudo chmod 0600 /etc/postfix/sasl_passwd
-sudo postmap /etc/postfix/sasl_passwd
+chown root:root /etc/postfix/sasl_passwd
+chmod 0600 /etc/postfix/sasl_passwd
+postmap /etc/postfix/sasl_passwd
 
 # Setup the generic map file
-sudo touch /etc/postfix/generic
+touch /etc/postfix/generic
 cat <<EOF | sudo tee -a /etc/postfix/generic >/dev/null 2>&1
 root@${SERVER} ${SMTP_EMAIL}
 ${SENDER}@${SERVER} ${SMTP_EMAIL}
-@${DOMAIN_SEARCH_SUFFIX} ${SMTP_EMAIL}
+@${LOCAL_DOMAIN} ${SMTP_EMAIL}
 EOF
-sudo chown root:root /etc/postfix/generic
-sudo chmod 0600 /etc/postfix/generic
-sudo postmap /etc/postfix/generic
+chown root:root /etc/postfix/generic
+chmod 0600 /etc/postfix/generic
+postmap /etc/postfix/generic
 
 # Restart and test
 echo -e "${GREY}Restarting Postfix..."
-sudo systemctl restart postfix
+systemctl restart postfix
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Postfix restart failed. ${GREY}" 1>&2
     exit 1

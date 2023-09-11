@@ -6,6 +6,8 @@
 # April 2023
 #######################################################################################################################
 
+# If run as standalone and not from the main installer script, check the below variables are correct.
+
 # Prepare text output colours
 GREY='\033[0;37m'
 DGREY='\033[0;90m'
@@ -17,10 +19,9 @@ NC='\033[0m' #No Colour
 
 clear
 
-# Check if user is root or sudo
 if ! [[ $(id -u) = 0 ]]; then
     echo
-    echo -e "${LGREEN}Please run this script as sudo or root${NC}" 1>&2
+    echo -e "${LRED}Please run this script as sudo or root${NC}" 1>&2
     exit 1
 fi
 

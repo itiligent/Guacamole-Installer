@@ -6,6 +6,8 @@
 # April 2023
 #######################################################################################################################
 
+# If run as standalone and not from the main installer script, check the below variables are correct.
+
 # Prepare text output colours
 GREY='\033[0;37m'
 DGREY='\033[0;90m'
@@ -38,7 +40,7 @@ echo "duo-api-hostname: " >>/etc/guacamole/guacamole.properties
 echo "duo-application-key: " >>/etc/guacamole/guacamole.properties
 echo
 systemctl restart ${TOMCAT_VERSION}
-sudo systemctl restart guacd
+systemctl restart guacd
 
 echo -e "${LYELLOW}You must now set up your online Duo account with a new 'Web SDK' application."
 echo

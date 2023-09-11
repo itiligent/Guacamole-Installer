@@ -1,5 +1,5 @@
 
-# Integrating Guacamole with Active Directory
+# Integrating Guacamole With Active Directory
 
 ## :arrows_clockwise: **Step 1: Ensure two-way LDAP traffic is available to the Guacamole application server**
 

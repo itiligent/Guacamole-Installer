@@ -51,7 +51,7 @@ DOWNLOAD_DIR=$USER_HOME_DIR/guac-setup
 
 # Setup directory locations
 mkdir -p $DOWNLOAD_DIR
-sudo chown -R $SUDO_USER:root $DOWNLOAD_DIR
+chown -R $SUDO_USER:root $DOWNLOAD_DIR
 
 # Version of Guacamole auth jdbc database schema to use
 GUAC_VERSION="1.5.3"

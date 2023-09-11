@@ -7,6 +7,14 @@
 # April 2023
 #######################################################################################################################
 
+# This script can be run multiple times to either install or update TLS settings and certificates.
+
+# Change the name of the site or add/renew TLS certs by specifying command line arguments [dns.name] [cert-lifetime] [IP]
+# e.g. sudo  -E ./4a-install-tls-self-signed-nginx.sh proxy.domain.local 365 192.168.1.50
+
+# Alternatively, run the script without any command arguments and the default variables below will apply
+# e.g. sudo - E ./4a-install-tls-self-signed-nginx.sh
+
 # Prepare text output colours
 GREY='\033[0;37m'
 DGREY='\033[0;90m'
@@ -16,34 +24,62 @@ LGREEN='\033[0;92m'
 LYELLOW='\033[0;93m'
 NC='\033[0m' #No Colour
 
-echo
-echo
-echo -e "${LGREEN}Setting up self signed TLS certificates for Nginx...${GREY}"
-echo
-
-# Setup script cmd line arguments for proxy site and certificate days
-TLSNAME=$1
-TLSDAYS=$2
+# Check if user is root or sudo
+if ! [[ $(id -u) = 0 ]]; then
+    echo
+    echo -e "${LRED}Please run this script as sudo or root${NC}" 1>&2
+    exit 1
+fi
 
 # Set default certificate file destinations.
 DIR_SSL_CERT="/etc/nginx/ssl/cert"
 DIR_SSL_KEY="/etc/nginx/ssl/private"
 
+TOMCAT_VERSION=$(ls /etc/ | grep tomcat)
+
+# Below variables are automatically updated by the 1-setup.sh script with the respective values given at install (manually update if blank)
+DOWNLOAD_DIR=
+CERT_COUNTRY=
+CERT_STATE=
+CERT_LOCATION=
+CERT_ORG=
+CERT_OU=
+GUAC_URL=
+INSTALL_LOG=
+PROXY_SITE=
+CERT_DAYS=
+DEFAULT_IP=
+
+# Setup script cmd line arguments for proxy site and certificate days
+TLSNAME=$1
+TLSDAYS=$2
+TLSIP=$3
+
+# Assume the values set the guacamole installer if the script is run without any command line options
+# Assume the values set the guacamole installer if the script is run without any command line options
+if [[ -z "$1" ]] | [[ -z "$2" ]] | [[ -z "$3" ]]; then
+    TLSNAME=$PROXY_SITE
+    TLSDAYS=$CERT_DAYS
+    TLSIP=$DEFAULT_IP
+fi
+
+echo
+echo
+echo -e "${LGREEN}Setting up self signed TLS certificates for Nginx...${GREY}"
+echo
+
 # Make directories to place TLS Certificate if they don't exist
 if [[ ! -d $DIR_SSL_KEY ]]; then
-    sudo mkdir -p $DIR_SSL_KEY
+    mkdir -p $DIR_SSL_KEY
 fi
 
 if [[ ! -d $DIR_SSL_CERT ]]; then
-    sudo mkdir -p $DIR_SSL_CERT
+    mkdir -p $DIR_SSL_CERT
 fi
-
-# Discover IPv4 interface
-DEFAULT_IP=$(ip addr show $(ip route | awk '/default/ { print $5 }') | grep "inet" | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1)
 
 echo -e "${GREY}New self signed TLS certificate attributes are shown below...${DGREY}"
 # Display the new TLS cert parameters.
-cat <<EOF | tee $TMP_DIR/cert_attributes.txt
+cat <<EOF | tee cert_attributes.txt
 [req]
 distinguished_name  = req_distinguished_name
 x509_extensions     = v3_req
@@ -65,12 +101,12 @@ subjectAltName      = @alt_names
 
 [alt_names]
 DNS.1               = $TLSNAME
-IP.1                = $DEFAULT_IP
+IP.1                = $TLSIP
 EOF
 
 echo
 echo "{$GREY}Creating a new Nginx TLS Certificate..."
-openssl req -x509 -nodes -newkey rsa:2048 -keyout $TLSNAME.key -out $TLSNAME.crt -days $TLSDAYS -config $TMP_DIR/cert_attributes.txt
+openssl req -x509 -nodes -newkey rsa:2048 -keyout $TLSNAME.key -out $TLSNAME.crt -days $TLSDAYS -config cert_attributes.txt
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
@@ -80,12 +116,12 @@ else
 fi
 
 # Place TLS Certificate into the defined application path
-sudo cp $TLSNAME.key $DIR_SSL_KEY/$TLSNAME.key
-sudo cp $TLSNAME.crt $DIR_SSL_CERT/$TLSNAME.crt
+cp $TLSNAME.key $DIR_SSL_KEY/$TLSNAME.key
+cp $TLSNAME.crt $DIR_SSL_CERT/$TLSNAME.crt
 
-# Create a PFX formatted key for easier import to Windows hosts and change permissions to enable copying elsewhere
+# Create a PFX formatted key for easier import to Windows hosts
 echo -e "${GREY}Converting client certificates for Windows & Linux...${GREY}"
-sudo openssl pkcs12 -export -out $TLSNAME.pfx -inkey $TLSNAME.key -in $TLSNAME.crt -password pass:1234
+openssl pkcs12 -export -out $TLSNAME.pfx -inkey $TLSNAME.key -in $TLSNAME.crt -password pass:1234
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
@@ -95,19 +131,20 @@ else
 fi
 
 # Change of permissions so certs can be copied via WinSCP.
-sudo chown $SUDO_USER:root $TLSNAME.pfx
-sudo chown $SUDO_USER:root $TLSNAME.crt
-sudo chown $SUDO_USER:root $TLSNAME.key
+chown $SUDO_USER:root $TLSNAME.pfx
+chown $SUDO_USER:root $TLSNAME.crt
+chown $SUDO_USER:root $TLSNAME.key
 
-# Backup the current Nginx config before update
-echo -e "${GREY}Backing up previous Nginx proxy to $DOWNLOAD_DIR/$TLSNAME-nginx.bak"
-cp /etc/nginx/sites-enabled/${TLSNAME} $DOWNLOAD_DIR/${TLSNAME}-nginx.bak
+# Backup the previous configuration
+if [ -f "/etc/nginx/sites-enabled/${TLSNAME}" ]; then
+    echo -e "${GREY}Backing up previous Nginx proxy config to $DOWNLOAD_DIR/${PROXY_SITE}-nginx.bak"
+    cp -f /etc/nginx/sites-enabled/${TLSNAME} $DOWNLOAD_DIR/${TLSNAME}-nginx.bak
 if [[ $? -ne 0 ]]; then
-    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-    exit 1
+    echo -e "${LRED}Warning: Failed to copy the Nginx site config.${GREY}" 1>&2
 else
     echo -e "${LGREEN}OK${GREY}"
     echo
+fi
 fi
 
 # Update Nginx config to accept the new certificates
@@ -158,13 +195,33 @@ else
     echo
 fi
 
+# Find all enabled sites containing the $GUAC_URL and remove them to avoid conflicts
+for x in /etc/nginx/sites-enabled/*; do
+    # Check inside each site candidate to see if the $GUAC_URL exists.
+    if [[ -f "${x}" ]]; then
+        if grep -qE "${GUAC_URL}" "${x}"; then
+            found_sites+=("${x}")
+        fi
+    fi
+done
+
+# Unlink all previous sites pointed to $GUAC_URL
+if [ "${#found_sites[@]}" -gt 0 ]; then
+    for guacUrl in "${found_sites[@]}"; do
+        unlink "${guacUrl}"
+    done
+fi
+
+# Link to enable the new site configuration
+ln -s /etc/nginx/sites-available/$TLSNAME /etc/nginx/sites-enabled/ >/dev/null 2>&1
+
 # Update general ufw rules so force traffic via reverse proxy. Only Nginx and SSH will be available over the network.
 echo -e "${GREY}Updating firewall rules to allow only SSH and tcp 80/443..."
-sudo ufw default allow outgoing >/dev/null 2>&1
-sudo ufw default deny incoming >/dev/null 2>&1
-sudo ufw allow OpenSSH >/dev/null 2>&1
-sudo ufw allow 80/tcp >/dev/null 2>&1
-sudo ufw allow 443/tcp >/dev/null 2>&1
+ufw default allow outgoing >/dev/null 2>&1
+ufw default deny incoming >/dev/null 2>&1
+ufw allow OpenSSH >/dev/null 2>&1
+ufw allow 80/tcp >/dev/null 2>&1
+ufw allow 443/tcp >/dev/null 2>&1
 echo "y" | sudo ufw enable >/dev/null 2>&1
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
@@ -174,11 +231,12 @@ else
     echo
 fi
 
-# Reload everything
+# Reload everything and tidy up
 echo -e "${GREY}Restaring Guacamole & Ngnix..."
-sudo systemctl restart $TOMCAT_VERSION
-sudo systemctl restart guacd
-sudo systemctl restart nginx
+systemctl restart $TOMCAT_VERSION
+systemctl restart guacd
+systemctl restart nginx
+rm -f cert_attributes.txt
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
@@ -195,7 +253,7 @@ printf "${GREY}+----------------------------------------------------------------
 ${LGREEN}+ WINDOWS CLIENT SELF SIGNED TLS BROWSER CONFIG - SAVE THIS BEFORE CONTINUING!${GREY}
 +
 + 1. In ${DOWNLOAD_DIR} is a Windows version of the new certificate ${LYELLOW}$TLSNAME.pfx${GREY}
-+ 2. Import this PFX file into your Windows client with the below Powershell commands (as Administrator):
++ 2. Import this PFX file into your Windows client with the below PowerShell commands (as Administrator):
 \n"
 echo -e "${SHOWASTEXT1} = ConvertTo-SecureString -String "1234" -Force -AsPlainText"
 echo -e "Import-pfxCertificate -FilePath $TLSNAME.pfx -Password "${SHOWASTEXT1}" -CertStoreLocation "${SHOWASTEXT2}""

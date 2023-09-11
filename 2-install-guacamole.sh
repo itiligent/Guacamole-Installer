@@ -33,7 +33,6 @@ fi
 # Update everything but don't do the annoying prompts during apt installs
 echo -e "${GREY}Updating base Linux OS..."
 export DEBIAN_FRONTEND=noninteractive
-apt-get update -qq &>>${INSTALL_LOG}
 apt-get upgrade -qq -y &>>${INSTALL_LOG}
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
@@ -43,7 +42,7 @@ else
     echo
 fi
 
-# Install Guacamole build dependencies.
+# Install official MariaDB repo and MariaDB version if a specific version number was provided.
 if [[ -n "${MYSQL_VERSION}" ]]; then
     echo -e "${GREY}Adding the official MariaDB repository and installing version ${MYSQL_VERSION}..."
     # Add the Official MariaDB repo.
@@ -59,6 +58,7 @@ if [[ -n "${MYSQL_VERSION}" ]]; then
     fi
 fi
 
+# Install Guacamole build dependencies.
 echo -e "${GREY}Installing dependencies required for building Guacamole, this might take a few minutes..."
 apt-get -qq -y install ${MYSQLPKG} ${TOMCAT_VERSION} ${JPEGTURBO} ${LIBPNG} ufw pwgen wget expect \
     build-essential libcairo2-dev libtool-bin uuid-dev libavcodec-dev libavformat-dev libavutil-dev \
@@ -137,7 +137,6 @@ if [[ "${INSTALL_TOTP}" = true ]]; then
         exit 1
     else
         tar -xzf guacamole-auth-totp-${GUAC_VERSION}.tar.gz
-        rm -f add-auth-totp.sh
         echo -e "${LGREEN}Downloaded guacamole-auth-totp-${GUAC_VERSION}.tar.gz${GREY}"
     fi
 fi
@@ -151,7 +150,6 @@ if [[ "${INSTALL_DUO}" = true ]]; then
         exit 1
     else
         tar -xzf guacamole-auth-duo-${GUAC_VERSION}.tar.gz
-        rm -f add-auth-duo.sh
         echo -e "${LGREEN}Downloaded guacamole-auth-duo-${GUAC_VERSION}.tar.gz${GREY}"
     fi
 fi
@@ -165,7 +163,6 @@ if [[ "${INSTALL_LDAP}" = true ]]; then
         exit 1
     else
         tar -xzf guacamole-auth-ldap-${GUAC_VERSION}.tar.gz
-        rm -f add-auth-ldap.sh
         echo -e "${LGREEN}Downloaded guacamole-auth-ldap-${GUAC_VERSION}.tar.gz${GREY}"
     fi
 fi
@@ -179,7 +176,6 @@ if [[ "${INSTALL_QCONNECT}" = true ]]; then
         exit 1
     else
         tar -xzf guacamole-auth-quickconnect-${GUAC_VERSION}.tar.gz
-        rm -f add-xtra-quickconnect.sh
         echo -e "${LGREEN}Downloaded guacamole-auth-quickconnect-${GUAC_VERSION}.tar.gz${GREY}"
     fi
 fi
@@ -194,7 +190,6 @@ if [[ "${INSTALL_HISTREC}" = true ]]; then
         exit 1
     else
         tar -xzf guacamole-history-recording-storage-${GUAC_VERSION}.tar.gz
-        rm -f add-xtra-histrecstor.sh
         echo -e "${LGREEN}Downloaded guacamole-history-recording-storage-${GUAC_VERSION}.tar.gz${GREY}"
     fi
 fi
@@ -433,6 +428,7 @@ fi
 # Set Tomcat to start at boot
 systemctl enable ${TOMCAT_VERSION}
 
+# Begin the MySQL database config if this is a local MYSQL install only.
 if [[ "${INSTALL_MYSQL}" = true ]]; then
     # Set MySQL password
     export MYSQL_PWD=${MYSQL_ROOT_PWD}
@@ -493,10 +489,9 @@ ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PWD';"
         echo
     fi
 
-    # This should stay as localhost in most local MySQL install situations. This setting determine from WHERE the new ${GUAC_USER}
-    # will be able to login to the database (either specific remote IPs or localhost only.)
-    #  However this setting can be quick and hacky way to build a backend guacamole database server for use behind another guac application server
-    # (albeit with the full application suite installed). To do this, set GUAC_USERHost="%" for login access from all IPs, or e.g. 192.168.1.% for an IP range.
+    # This should stay as localhost in most local MySQL install situations. This setting determines from WHERE the new ${GUAC_USER}
+    # will be able to login to the database (either from specific remote IPs or from localhost only.)
+    #  However this setting can be a quick and hacky way to build a backend guacamole database server for use behind another guac application server, albeit with the full application suite installed). To do this, set GUAC_USERHost="%" for login access from all IPs, (or e.g. 192.168.1.% for an IP range.)
     # You will also need to set the MySQL binding away from the default 127.0.0.1 to 0.0.0.0 or a specific external facing network interface to allow remote login.
     if [[ "${MYSQL_HOST}" != "localhost" ]]; then
         GUAC_USERHost="%"
@@ -581,7 +576,7 @@ if [[ "${INSTALL_MYSQL}" = true ]]; then
     fi
 fi
 
-# Create guacd.conf and locahost IP binding.
+# Create guacd.conf and localhost IP binding.
 echo -e "${GREY}Binding guacd to 127.0.0.1 port 4822..."
 cat >/etc/guacamole/guacd.conf <<-"EOF"
 [server]
@@ -609,8 +604,9 @@ else
     echo
 fi
 
-if [[ "${GUAC_URL_REDIR}" = true ]]; then
-    echo -e "${GREY}Shortening the Guacamole root url and setting up redirect...${DGREY}"
+# Redirect the Tomcat URL to its root to avoid typing the extra /guacamole path (if not using a reverse proxy)
+if [[ "${GUAC_URL_REDIR}" = true ]] && [[ "${INSTALL_NGINX}" = false ]]; then
+    echo -e "${GREY}Redirecting the Tomcat http root url to /guacamole...${DGREY}"
     systemctl stop ${TOMCAT_VERSION}
     mv /var/lib/${TOMCAT_VERSION}/webapps/ROOT/index.html /var/lib/${TOMCAT_VERSION}/webapps/ROOT/index.html.old
     touch /var/lib/${TOMCAT_VERSION}/webapps/ROOT/index.jsp
@@ -625,14 +621,14 @@ if [[ "${GUAC_URL_REDIR}" = true ]]; then
     fi
 fi
 
+# Update Linux firewall
 echo -e "${GREY}Updating firewall rules to allow only SSH and tcp 8080..."
-sudo ufw default allow outgoing >/dev/null 2>&1
-sudo ufw default deny incoming >/dev/null 2>&1
-sudo ufw allow OpenSSH >/dev/null 2>&1
-sudo ufw allow 8080/tcp >/dev/null 2>&1
+ufw default allow outgoing >/dev/null 2>&1
+ufw default deny incoming >/dev/null 2>&1
+ufw allow OpenSSH >/dev/null 2>&1
+ufw allow 8080/tcp >/dev/null 2>&1
 echo "y" | sudo ufw enable >/dev/null 2>&1
-# Reduce firewall logging noise
-sudo ufw logging off >/dev/null 2>&1
+ufw logging off >/dev/null 2>&1 # Reduce firewall logging noise
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
@@ -642,16 +638,10 @@ else
 fi
 
 # Cleanup
-echo -e "${GREY}Cleanup install files...${GREY}"
+echo -e "${GREY}Cleaning up Guacamole source files...${GREY}"
 rm -rf guacamole-*
 rm -rf mysql-connector-j-*
 rm -rf mariadb_repo_setup
-if [[ "${INSTALL_NGINX}" = false ]]; then
-    rm -f 3-install-nginx.sh
-    rm -f 4a-install-tls-self-signed-nginx.sh
-    rm -f 4b-install-tls-letsencrypt-nginx.sh
-    rm -f refresh-tls-self-signed.sh
-fi
 unset MYSQL_PWD
 apt-get -y remove expect &>>${INSTALL_LOG}
 if [[ $? -ne 0 ]]; then

@@ -46,7 +46,7 @@ DOWNLOAD_DIR=$USER_HOME_DIR/guac-setup
 
 # Setup directory locations
 mkdir -p $DOWNLOAD_DIR
-sudo chown -R $SUDO_USER:root $DOWNLOAD_DIR
+chown -R $SUDO_USER:root $DOWNLOAD_DIR
 
 # Version of Guacamole to upgrade to. See https://guacamole.apache.org/releases/ for latest version info.
 NEW_GUAC_VERSION="1.5.3"
@@ -66,7 +66,7 @@ GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guac
 # Install log Location
 INSTALL_LOG="${DOWNLOAD_DIR}/guacamole_${NEW_GUAC_VERSION}_upgrade.log"
 
-# Auto updated values from main installer (manually update if blank)
+# Below variables are automatically updated by the 1-setup.sh script with the respective values given at install (manually update if blank)
 INSTALL_MYSQL=
 MYSQL_HOST=
 MYSQL_PORT=
@@ -85,7 +85,7 @@ echo
 # Start upgrade actions  ##############################################################################################
 #######################################################################################################################
 
-sudo apt-get upgrade -qq -y
+apt-get upgrade -qq -y
 
 # Stop tomcat and guacd
 systemctl stop ${TOMCAT_VERSION}

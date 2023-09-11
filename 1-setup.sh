@@ -17,7 +17,7 @@
 # Scripts with "add" in their name can be run post install to add optional features not included in the main install
 
 # If something isn't working:
-#     tail -f /var/log/syslog /var/log/tomcat*/*.out guac-setup/guacamole_${GUAC_VERSION}_setup.log
+#     tail -f /var/log/syslog /var/log/tomcat*/*.out guac-setup/guacamole_setup.log
 # Or for Guacamole debug mode & verbose logs in the console:
 #     sudo systemctl stop guacd && sudo /usr/local/sbin/guacd -L debug -f
 
@@ -70,7 +70,8 @@ fi
 USER_HOME_DIR=$(eval echo ~${SUDO_USER})
 DOWNLOAD_DIR=$USER_HOME_DIR/guac-setup
 DB_BACKUP_DIR=$USER_HOME_DIR/mysqlbackups
-TMP_DIR=$DOWNLOAD_DIR/tmp
+mkdir -p $DOWNLOAD_DIR
+mkdir -p $DB_BACKUP_DIR
 
 # GitHub download branch
 GITHUB="https://raw.githubusercontent.com/itiligent/Guacamole-Install/main"
@@ -87,75 +88,15 @@ GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guac
 # See https://mariadb.org/mariadb/all-releases/ for available versions.
 # Provide a specific MySQL version e.g. 11.1.2 or leave blank to use distro default MySQL packages.
 MYSQL_VERSION=""
-if [[ -z "${MYSQL_VERSION}" ]]; then
-    # Use Linux distro default version.
-    MYSQLSRV="default-mysql-server default-mysql-client mysql-common" # Server
-    MYSQLCLIENT="default-mysql-client" # Client
-    DB_CMD="mysql" # mysql command is depricated
-else
-    # Use official mariadb.org repo
-    MYSQLSRV="mariadb-server mariadb-client mariadb-common" # Server
-    MYSQLCLIENT="mariadb-client" # Client
-    DB_CMD="mariadb" # mysql command is depricated on newer versions
-fi
-
-# Install log Location
-INSTALL_LOG="${DOWNLOAD_DIR}/guacamole_${GUAC_VERSION}_setup.log"
 
 # Guacamole default install URL
 GUAC_URL=http://localhost:8080/guacamole/
 
-# Standardised language used for distro versions and dependencies allows a more maintainable approach should distros diverge.
-# Here the variables for OS variant and library dependency names are initialised.
-source /etc/os-release
-OS_FLAVOUR=$ID
-OS_VERSION=$VERSION_ID
-OS_CODENAME=$VERSION_CODENAME
-JPEGTURBO=""
-LIBPNG=""
-
-# A default route IP and dns search suffix is needed for initial prompts & default starting values.
-# Get the default route interface IP
+# Get the default route interface IP. Manually update for multi homed systems.
 DEFAULT_IP=$(ip addr show $(ip route | awk '/default/ { print $5 }') | grep "inet" | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1)
-get_domain_suffix() {
-    echo "$1" | awk '{print $2}'
-}
-# Search for "search" and "domain" entries in /etc/resolv.conf
-search_line=$(grep -E '^search[[:space:]]+' /etc/resolv.conf)
-domain_line=$(grep -E '^domain[[:space:]]+' /etc/resolv.conf)
-# Check if both "search" and "domain" lines exist
-if [[ -n "$search_line" ]] && [[ -n "$domain_line" ]]; then
-    # Both "search" and "domain" lines exist, extract the domain suffix from both
-    search_suffix=$(get_domain_suffix "$search_line")
-    domain_suffix=$(get_domain_suffix "$domain_line")
-    # Print the domain suffix that appears first
-    if [[ ${#search_suffix} -lt ${#domain_suffix} ]]; then
-        DOMAIN_SUFFIX=$search_suffix
-    else
-        DOMAIN_SUFFIX=$domain_suffix
-    fi
-elif [[ -n "$search_line" ]]; then
-    # If only "search" line exists
-    DOMAIN_SUFFIX=$(get_domain_suffix "$search_line")
-elif [[ -n "$domain_line" ]]; then
-    # If only "domain" line exists
-    DOMAIN_SUFFIX=$(get_domain_suffix "$domain_line")
-else
-    # If no "search" or "domain" lines found
-    DOMAIN_SUFFIX="local"
-fi
 
-# Setup directory locations
-mkdir -p $DOWNLOAD_DIR
-mkdir -p $DB_BACKUP_DIR
-mkdir -p $TMP_DIR
-
-# Script branding header
-echo
-echo -e "${GREYB}Guacamole VDI & Jump Server Appliance Setup."
-echo -e "              ${LGREEN}Powered by Itiligent"
-echo
-echo
+# Install log Location
+INSTALL_LOG="${DOWNLOAD_DIR}/guacamole_setup.log"
 
 #######################################################################################################################
 # Silent setup options - true/false or specific values below prevents prompt at install. EDIT TO SUIT #################
@@ -200,9 +141,16 @@ RDP_PRINTER_LABEL="RDP Printer" # Custom Windows RDP printer label
 # Download GitHub setup scripts. To prevent overwrite, COMMENT OUT LINES OF ANY SCRIPTS YOU HAVE EDITED. ##############
 #######################################################################################################################
 
+# Script branding header
+echo
+echo -e "${GREYB}Guacamole VDI & Jump Server Appliance Setup."
+echo -e "              ${LGREEN}Powered by Itiligent"
+echo
+echo
+
 # Download the set of config scripts from GitHub
 cd $DOWNLOAD_DIR
-echo -e "${GREY}Downloading setup files...${DGREY}"
+echo -e "${GREY}Downloading the Guacamole build suite...${DGREY}"
 wget -q --show-progress ${GITHUB}/2-install-guacamole.sh -O 2-install-guacamole.sh
 wget -q --show-progress ${GITHUB}/3-install-nginx.sh -O 3-install-nginx.sh
 wget -q --show-progress ${GITHUB}/4a-install-tls-self-signed-nginx.sh -O 4a-install-tls-self-signed-nginx.sh
@@ -218,33 +166,27 @@ wget -q --show-progress ${GITHUB}/guac-optional-features/add-tls-guac-daemon.sh 
 wget -q --show-progress ${GITHUB}/guac-optional-features/add-fail2ban.sh -O add-fail2ban.sh
 wget -q --show-progress ${GITHUB}/guac-management/backup-guac.sh -O backup-guac.sh
 wget -q --show-progress ${GITHUB}/guac-management/upgrade-guac.sh -O upgrade-guac.sh
-wget -q --show-progress ${GITHUB}/guac-management/refresh-tls-self-signed.sh -O refresh-tls-self-signed.sh
+wget -q --show-progress ${GITHUB}/guac-management/refresh-tls-self-signed.sh -O refresh-tls-self-signed.sh 
 # Download the (customisable) dark theme & branding template
 wget -q --show-progress ${GITHUB}/branding.jar -O branding.jar
 chmod +x *.sh
-sleep 3
-clear
-
-# Script branding header
-echo
-echo -e "${GREYB}Guacamole VDI & Jump Server Appliance Setup."
-echo -e "              ${LGREEN}Powered by Itiligent"
-echo
-echo
 
 # Pause here to optionally customise downloaded scripts before any actual install actions have began
 echo -e "${LYELLOW}Ctrl+Z now to exit now if you wish to customise 1-setup.sh options or to setup an unattended install."
 echo
-echo
-
-# Lets trigger a sudo prompt here for root credentials needed for the install - this keeps the install menu flow neat
-# Set permissions for sudo and non sudo access to tmp setup files
-sudo chmod -R 770 $TMP_DIR
-sudo chown -R $SUDO_USER:root $TMP_DIR
 
 #######################################################################################################################
-# Determine the correct version of Tomcat use #########################################################################
+# Logic for determining desired packages between distros & database options. Modify as Linux distros diverge ##########
 #######################################################################################################################
+
+# First lets trigger a sudo prompt to cache the admin credentials needed for the next installer steps
+sudo apt-get update -qq &>>${INSTALL_LOG}
+
+# Standardise the language used for distro versions
+source /etc/os-release
+OS_NAME=$ID
+OS_VERSION=$VERSION_ID
+OS_CODENAME=$VERSION_CODENAME
 
 # Check for the latest version of Tomcat currently supported by the distro
 if [[ $(apt-cache show tomcat10 2>/dev/null | egrep "Version: 10" | wc -l) -gt 0 ]]; then
@@ -259,23 +201,78 @@ else
 fi
 
 # Workaround for current Debian 12 & Tomcat 10 incompatibilities
-if [[ ${OS_FLAVOUR,,} = "debian" ]] && [[ ${OS_CODENAME,,} = *"bookworm"* ]]; then #(checks for upper and lower case)
+if [[ ${OS_NAME,,} = "debian" ]] && [[ ${OS_CODENAME,,} = *"bookworm"* ]]; then #(checks for upper and lower case)
     # Add the oldstable repo and downgrade tomcat version install
     echo "deb http://deb.debian.org/debian/ bullseye main" | sudo tee /etc/apt/sources.list.d/bullseye.list >/dev/null
     TOMCAT_VERSION="tomcat9"
 fi
 
 # Workaround for Ubuntu 23.x & Tomcat 10 incompatibilities
-if [[ ${OS_FLAVOUR,,} = "ubuntu" ]] && [[ ${OS_CODENAME,,} = *"lunar"* ]]; then  #(checks for upper and lower case)
+if [[ ${OS_NAME,,} = "ubuntu" ]] && [[ ${OS_CODENAME,,} = *"lunar"* ]]; then  #(checks for upper and lower case)
     TOMCAT_VERSION="tomcat9"
 fi
 
-# Uncomment to force a specific Tomcat version here.
+# Uncomment here to force a specific Tomcat version.
 # TOMCAT_VERSION="tomcat9"
 
+# Standardise language for the the install of MySQL packages
+if [[ -z "${MYSQL_VERSION}" ]]; then
+    # Use Linux distro default version.
+    MYSQLSRV="default-mysql-server default-mysql-client mysql-common" # Server
+    MYSQLCLIENT="default-mysql-client" # Client
+    DB_CMD="mysql" # mysql command is depricated
+else
+    # Use official mariadb.org repo
+    MYSQLSRV="mariadb-server mariadb-client mariadb-common" # Server
+    MYSQLCLIENT="mariadb-client" # Client
+    DB_CMD="mariadb" # mysql command is depricated on newer versions
+fi
+# Standardise differing dependency package names and add any extra distro repositories for these if needed
+# Current package names for various distros are referenced at https://guacamole.apache.org/doc/gug/installing-guacamole.html
+JPEGTURBO=""
+LIBPNG=""
+if [[ $OS_NAME == "ubuntu" ]] || [[ $OS_NAME == *"ubuntu"* ]]; then # potentially expand out distro choices here
+    JPEGTURBO="libjpeg-turbo8-dev"
+    LIBPNG="libpng-dev"
+    # Just in case this repo is not added by default in the distro
+    sudo add-apt-repository -y universe &>>${INSTALL_LOG}
+elif [[ $OS_NAME == "debian" ]] || [[ $OS_NAME == "raspbian" ]]; then # expand distro choices here if required
+    JPEGTURBO="libjpeg62-turbo-dev"
+    LIBPNG="libpng-dev"
+fi
+
 #######################################################################################################################
-# DO NOT EDIT PAST THIS POINT #########################################################################################
+# DO NOT EDIT PAST THIS POINT! ########################################################################################
 #######################################################################################################################
+
+# A default dns suffix is needed for initial prompts & default starting values.
+get_domain_suffix() {
+    echo "$1" | awk '{print $2}'
+}
+# Search for "search" and "domain" entries in /etc/resolv.conf
+search_line=$(grep -E '^search[[:space:]]+' /etc/resolv.conf)
+domain_line=$(grep -E '^domain[[:space:]]+' /etc/resolv.conf)
+# Check if both "search" and "domain" lines exist
+if [[ -n "$search_line" ]] && [[ -n "$domain_line" ]]; then
+    # Both "search" and "domain" lines exist, extract the domain suffix from both
+    search_suffix=$(get_domain_suffix "$search_line")
+    domain_suffix=$(get_domain_suffix "$domain_line")
+    # Print the domain suffix that appears first
+    if [[ ${#search_suffix} -lt ${#domain_suffix} ]]; then
+        DOMAIN_SUFFIX=$search_suffix
+    else
+        DOMAIN_SUFFIX=$domain_suffix
+    fi
+elif [[ -n "$search_line" ]]; then
+    # If only "search" line exists
+    DOMAIN_SUFFIX=$(get_domain_suffix "$search_line")
+elif [[ -n "$domain_line" ]]; then
+    # If only "domain" line exists
+    DOMAIN_SUFFIX=$(get_domain_suffix "$domain_line")
+else
+    # If no "search" or "domain" lines found
+    DOMAIN_SUFFIX="local"
+fi
 
 #######################################################################################################################
 # Begin install menu prompts ##########################################################################################
@@ -353,19 +350,10 @@ if [[ -z ${RDP_SHARE_HOST} ]]; then
     RDP_SHARE_HOST=$SERVER_NAME
 fi
 
-clear
-
-# Script branding header
-echo
-echo -e "${GREYB}Guacamole VDI & Jump Server Appliance Setup."
-echo -e "              ${LGREEN}Powered by Itiligent"
-echo
-echo
-
 # Prompt the user to install MySQL
 echo -e "${LGREEN}MySQL setup options:${GREY}"
 if [[ -z ${INSTALL_MYSQL} ]]; then
-    echo -e -n "SQL: Install MySQL locally? (to use a remote MySQL Server select 'n') [Y/n] [default y]: ${GREY}"
+    echo -e -n "SQL: Install MySQL locally? (For a REMOTE MySQL server select 'n') [Y/n] [default y]: ${GREY}"
     read PROMPT
     if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
         INSTALL_MYSQL=false
@@ -384,18 +372,6 @@ if [[ -z ${SECURE_MYSQL} ]] && [[ "${INSTALL_MYSQL}" = true ]]; then
         SECURE_MYSQL=true
     fi
 fi
-
-# Prompt the user to apply the Mysql secure installation to remote db
-# This may be problematic on remote databases (for one-script upgrades) as this addition removes remote root login access - a good thing.
-#if [[ -z ${SECURE_MYSQL} ]] && [[ "${INSTALL_MYSQL}" = false ]]; then
-#    echo -e -n "${GREY}SQL: Apply MySQL secure installation settings to REMOTE db? [y/N] [default n]: ${GREY}"
-#    read PROMPT
-#    if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
-#        SECURE_MYSQL=true
-#    else
-#        SECURE_MYSQL=false
-#    fi
-#fi
 
 # Get additional MYSQL values
 if [[ "${INSTALL_MYSQL}" = false ]]; then
@@ -425,7 +401,6 @@ if [[ -z "${GUAC_USER}" ]]; then
     GUAC_USER="guacamole_user"
 fi
 
-echo -e ${LMAGENTA}
 # Get MySQL root password, confirm correct password entry and prevent blank passwords. No root pw needed for remote instances.
 if [[ -z "${MYSQL_ROOT_PWD}" ]] && [[ "${INSTALL_MYSQL}" = true ]]; then
     while true; do
@@ -438,7 +413,6 @@ if [[ -z "${MYSQL_ROOT_PWD}" ]] && [[ "${INSTALL_MYSQL}" = true ]]; then
     done
 fi
 
-echo -e ${LCYAN}
 # Get Guacamole User password, confirm correct password entry and prevent blank passwords
 if [[ -z "${GUAC_PWD}" ]]; then
     while true; do
@@ -451,7 +425,6 @@ if [[ -z "${GUAC_PWD}" ]]; then
     done
 fi
 
-echo -e ${GREY}
 # Prompt for preferred backup notification email address
 if [[ -z ${BACKUP_EMAIL} ]]; then
     while true; do
@@ -533,6 +506,7 @@ if [[ -z "${INSTALL_HISTREC}" ]]; then
         INSTALL_HISTREC=false
     fi
 fi
+
 HISTREC_PATH_DEFAULT=/var/lib/guacamole/recordings # Apache default
 if [[ -z ${HISTREC_PATH} ]] && [[ "${INSTALL_HISTREC}" = true ]]; then
     while true; do
@@ -540,6 +514,7 @@ if [[ -z ${HISTREC_PATH} ]] && [[ "${INSTALL_HISTREC}" = true ]]; then
         [[ "${HISTREC_PATH}" = "" ]] || [[ "${HISTREC_PATH}" != "" ]] && break
     done
 fi
+
 # If no custom path is given, lets assume the default path on hitting enter
 if [[ -z "${HISTREC_PATH}" ]]; then
     HISTREC_PATH="${HISTREC_PATH_DEFAULT}"
@@ -561,7 +536,7 @@ fi
 
 # Prompt to remove the trailing /guacamole dir from the default front end url
 if [[ "${INSTALL_NGINX}" = false ]]; then
-    echo -e -n "FRONT END: Shorten Guacamole root url to *:8080 (& redirect to /guacamole ) [Y/n]? [default y]: "
+    echo -e -n "FRONT END: Redirect the Tomcat http root url to /guacamole [Y/n]? [default y]: "
     read PROMPT
     if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
         GUAC_URL_REDIR=false
@@ -573,7 +548,7 @@ fi
 # We must assign a DNS name for the new proxy site
 if [[ -z ${PROXY_SITE} ]] && [[ "${INSTALL_NGINX}" = true ]]; then
     while true; do
-        read -p "FRONT END: Enter proxy local DNS name? [Enter to use ${DEFAULT_FQDN}]: " PROXY_SITE
+        read -p "FRONT END: Enter proxy LOCAL DNS name? [Enter to use ${DEFAULT_FQDN}]: " PROXY_SITE
         [[ "${PROXY_SITE}" = "" ]] || [[ "${PROXY_SITE}" != "" ]] && break
         # Rather than allow the default value below, un-comment to alternately force user to enter an explicit name instead
         # [[ "${PROXY_SITE}" != "" ]] && break
@@ -598,7 +573,7 @@ if [[ -z ${SELF_SIGN} ]] && [[ "${INSTALL_NGINX}" = true ]]; then
     fi
 fi
 
-# Optional prompt to assign the self sign TLS certificate a custom expiry date, un-comment to force a manual entry
+# Optional prompt to manually enter a self sign TLS certificate expiry date, un-comment to force manual entry
 #if [[ "${SELF_SIGN}" = true ]]; then
 #	read - p "PROXY: Enter number of days till TLS certificate expires [default 3650]: " CERT_DAYS
 #fi
@@ -622,7 +597,7 @@ fi
 # Prompt for Let's Encrypt public dns name
 if [[ -z ${LE_DNS_NAME} ]] && [[ "${LETS_ENCRYPT}" = true ]]; then
     while true; do
-        read -p "FRONT END: Enter the FQDN for your public proxy site : " LE_DNS_NAME
+        read -p "FRONT END: Enter the PUBLIC FQDN for your proxy site : " LE_DNS_NAME
         [[ "${LE_DNS_NAME}" != "" ]] && break
         echo -e "${LRED}You must enter a public DNS name. Please try again.${GREY}" 1>&2
     done
@@ -641,9 +616,6 @@ fi
 # Start global setup actions  #########################################################################################
 #######################################################################################################################
 
-# Ubuntu and Debian each require different dependency packages.
-# To adapt this script to other distros, research the correct library package names and reference these with their variable
-# names shown here: https://guacamole.apache.org/doc/gug/installing-guacamole.html
 clear
 echo
 echo -e "${GREYB}Guacamole VDI & Jump Server Appliance Setup."
@@ -653,25 +625,10 @@ echo
 
 echo -e "${LGREEN}Beginning Guacamole setup...${GREY}"
 echo
-echo -e "${GREY}Checking Linux distro specific dependencies..."
-if [[ $OS_FLAVOUR == "ubuntu" ]] || [[ $OS_FLAVOUR == *"ubuntu"* ]]; then # potentially expand out distro choices here
-    JPEGTURBO="libjpeg-turbo8-dev"
-    LIBPNG="libpng-dev"
-    # Just in case this repo is not added by default in the distro
-    sudo add-apt-repository -y universe &>>${INSTALL_LOG}
-elif [[ $OS_FLAVOUR == "debian" ]] || [[ $OS_FLAVOUR == "raspbian" ]]; then # expand distro choices here if required
-    JPEGTURBO="libjpeg62-turbo-dev"
-    LIBPNG="libpng-dev"
-fi
-if [[ $? -ne 0 ]]; then
-    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
-    exit 1
-else
-    echo -e "${LGREEN}OK${GREY}"
-    echo
-fi
 
+echo -e "${GREY}Synchronising the install script suite with selected settings for later standalone use..."
 # Sync the various manual config scripts with the relevant variables selected at install
+# This way scripts can be run at a later time without modification to match the original install
 sed -i "s|MYSQL_HOST=|MYSQL_HOST='${MYSQL_HOST}'|g" $DOWNLOAD_DIR/backup-guac.sh
 sed -i "s|MYSQL_PORT=|MYSQL_PORT='${MYSQL_PORT}'|g" $DOWNLOAD_DIR/backup-guac.sh
 sed -i "s|GUAC_USER=|GUAC_USER='${GUAC_USER}'|g" $DOWNLOAD_DIR/backup-guac.sh
@@ -696,6 +653,22 @@ sed -i "s|MYSQL_ROOT_PWD=|MYSQL_ROOT_PWD='${MYSQL_ROOT_PWD}'|g" $DOWNLOAD_DIR/up
 sed -i "s|GUAC_USER=|GUAC_USER='${GUAC_USER}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
 sed -i "s|GUAC_PWD=|GUAC_PWD='${GUAC_PWD}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
 
+sed -i "s|PROXY_SITE=|PROXY_SITE='${PROXY_SITE}'|g" $DOWNLOAD_DIR/3-install-nginx.sh
+sed -i "s|INSTALL_LOG=|INSTALL_LOG='${INSTALL_LOG}'|g" $DOWNLOAD_DIR/3-install-nginx.sh
+sed -i "s|GUAC_URL=|GUAC_URL='${GUAC_URL}'|g" $DOWNLOAD_DIR/3-install-nginx.sh
+
+sed -i "s|DOWNLOAD_DIR=|DOWNLOAD_DIR='${DOWNLOAD_DIR}'|g" $DOWNLOAD_DIR/4a-install-tls-self-signed-nginx.sh
+sed -i "s|PROXY_SITE=|PROXY_SITE='${PROXY_SITE}'|g" $DOWNLOAD_DIR/4a-install-tls-self-signed-nginx.sh
+sed -i "s|CERT_COUNTRY=|CERT_COUNTRY='${CERT_COUNTRY}'|g" $DOWNLOAD_DIR/4a-install-tls-self-signed-nginx.sh
+sed -i "s|CERT_STATE=|CERT_STATE='${CERT_STATE}'|g" $DOWNLOAD_DIR/4a-install-tls-self-signed-nginx.sh
+sed -i "s|CERT_LOCATION=|CERT_LOCATION='${CERT_LOCATION=}'|g" $DOWNLOAD_DIR/4a-install-tls-self-signed-nginx.sh
+sed -i "s|CERT_ORG=|CERT_ORG='${CERT_ORG}'|g" $DOWNLOAD_DIR/4a-install-tls-self-signed-nginx.sh
+sed -i "s|CERT_OU=|CERT_OU='${CERT_OU}'|g" $DOWNLOAD_DIR/4a-install-tls-self-signed-nginx.sh
+sed -i "s|CERT_DAYS=|CERT_DAYS='${CERT_DAYS}'|g" $DOWNLOAD_DIR/4a-install-tls-self-signed-nginx.sh
+sed -i "s|GUAC_URL=|GUAC_URL='${GUAC_URL}'|g" $DOWNLOAD_DIR/4a-install-tls-self-signed-nginx.sh
+sed -i "s|INSTALL_LOG=|INSTALL_LOG='${INSTALL_LOG}'|g" $DOWNLOAD_DIR/4a-install-tls-self-signed-nginx.sh
+sed -i "s|DEFAULT_IP=|DEFAULT_IP='${DEFAULT_IP}'|g" $DOWNLOAD_DIR/4a-install-tls-self-signed-nginx.sh
+
 sed -i "s|CERT_COUNTRY=|CERT_COUNTRY='${CERT_COUNTRY}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
 sed -i "s|CERT_STATE=|CERT_STATE='${CERT_STATE}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
 sed -i "s|CERT_LOCATION=|CERT_LOCATION='${CERT_LOCATION}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
@@ -705,9 +678,24 @@ sed -i "s|PROXY_SITE=|PROXY_SITE='${PROXY_SITE}'|g" $DOWNLOAD_DIR/refresh-tls-se
 sed -i "s|DEFAULT_IP=|DEFAULT_IP='${DEFAULT_IP}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
 sed -i "s|CERT_DAYS=|CERT_DAYS='${CERT_DAYS}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
 
-# Export the relevant variable selections to child install scripts
+sed -i "s|DOWNLOAD_DIR=|DOWNLOAD_DIR='${DOWNLOAD_DIR}'|g" $DOWNLOAD_DIR/4b-install-tls-letsencrypt-nginx.sh
+sed -i "s|PROXY_SITE=|PROXY_SITE='${PROXY_SITE}'|g" $DOWNLOAD_DIR/4b-install-tls-letsencrypt-nginx.sh
+sed -i "s|GUAC_URL=|GUAC_URL='${GUAC_URL}'|g" $DOWNLOAD_DIR/4b-install-tls-letsencrypt-nginx.sh
+sed -i "s|LE_DNS_NAME=|LE_DNS_NAME='${LE_DNS_NAME}'|g" $DOWNLOAD_DIR/4b-install-tls-letsencrypt-nginx.sh
+sed -i "s|LE_EMAIL=|LE_EMAIL='${LE_EMAIL}'|g" $DOWNLOAD_DIR/4b-install-tls-letsencrypt-nginx.sh
+sed -i "s|INSTALL_LOG=|INSTALL_LOG='${INSTALL_LOG}'|g" $DOWNLOAD_DIR/4b-install-tls-letsencrypt-nginx.sh
+
+sed -i "s|LOCAL_DOMAIN=|LOCAL_DOMAIN='${LOCAL_DOMAIN}'|g" $DOWNLOAD_DIR/add-smtp-relay-o365.sh
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
+else
+    echo -e "${LGREEN}OK${GREY}"
+    echo
+fi
+
+# For flexibility, export the relevant variable selections to child install scripts
 export DOWNLOAD_DIR="${DOWNLOAD_DIR}"
-export TMP_DIR=$TMP_DIR
 export GUAC_VERSION=$GUAC_VERSION
 export GUAC_SOURCE_LINK=$GUAC_SOURCE_LINK
 export MYSQLJCON=$MYSQLJCON
@@ -716,8 +704,8 @@ export MYSQLSRV=$MYSQLSRV
 export MYSQLCLIENT=$MYSQLCLIENT
 export DB_CMD=$DB_CMD
 export TOMCAT_VERSION=$TOMCAT_VERSION
-export INSTALL_LOG=$INSTALL_LOG
 export GUAC_URL=$GUAC_URL
+export INSTALL_LOG=$INSTALL_LOG
 export JPEGTURBO=$JPEGTURBO
 export LIBPNG=$LIBPNG
 export INSTALL_MYSQL=$INSTALL_MYSQL
@@ -738,17 +726,20 @@ export HISTREC_PATH="${HISTREC_PATH}"
 export GUAC_URL_REDIR=$GUAC_URL_REDIR
 export INSTALL_NGINX=$INSTALL_NGINX
 export PROXY_SITE=$PROXY_SITE
+export DEFAULT_IP=$DEFAULT_IP
 export CERT_COUNTRY=$CERT_COUNTRY
 export CERT_STATE="${CERT_STATE}"
 export CERT_LOCATION="${CERT_LOCATION}"
 export CERT_ORG="${CERT_ORG}"
 export CERT_OU="${CERT_OU}"
+export CERT_DAYS=$CERT_DAYS
 export LE_DNS_NAME=$LE_DNS_NAME
 export LE_EMAIL=$LE_EMAIL
 export BACKUP_EMAIL=$BACKUP_EMAIL
 export RDP_SHARE_HOST="${RDP_SHARE_HOST}"
 export RDP_SHARE_LABEL="${RDP_SHARE_LABEL}"
 export RDP_PRINTER_LABEL="${RDP_PRINTER_LABEL}"
+export LOCAL_DOMAIN=$LOCAL_DOMAIN
 
 # Run the Guacamole install script
 sudo -E ./2-install-guacamole.sh
@@ -761,14 +752,14 @@ else
     echo -e "${LGREEN}Guacamole install complete\nhttp://${PROXY_SITE}:8080/guacamole - login user/pass: guacadmin/guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
 fi
 
-# Add a Guacamole database backup (mon-fri 12:00am) into cron
+# Add a Guacamole database backup (mon-fri 12:00am) into the current user's cron
 mv $DOWNLOAD_DIR/backup-guac.sh $DB_BACKUP_DIR
 crontab -l >cron_1
-# Remove any existing entry
+# Remove any existing entry just in case
 sed -i '/# backup guacamole/d' cron_1
-# Create the job
+# Create the backup job
 echo "0 0 * * 1-5 ${DB_BACKUP_DIR}/backup-guac.sh # backup guacamole" >>cron_1
-# Overwrite the cron settings and cleanup
+# Overwrite the old cron settings and cleanup
 crontab cron_1
 rm cron_1
 
@@ -784,7 +775,7 @@ fi
 
 # Apply self signed TLS certificates to Nginx reverse proxy if option is selected
 if [[ "${INSTALL_NGINX}" = true ]] && [[ "${SELF_SIGN}" = true ]]; then
-    sudo -E ./4a-install-tls-self-signed-nginx.sh ${PROXY_SITE} ${CERT_DAYS} | tee -a ${INSTALL_LOG}
+    sudo -E ./4a-install-tls-self-signed-nginx.sh ${PROXY_SITE} ${CERT_DAYS} ${DEFAULT_IP} | tee -a ${INSTALL_LOG}
     echo -e "${LGREEN}Self signed certificate configured for Nginx \n${LYELLOW}https:${LGREEN}//${PROXY_SITE} - admin login: guacadmin pass: guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
 fi
 
@@ -809,12 +800,7 @@ if [[ $INSTALL_LDAP == "true" ]]; then
 fi
 
 # Tidy up. (Installer and Nginx scripts can't be run again or standalone without modification, so removing.)
-rm -rf $USER_HOME_DIR/1-setup.sh
-rm -f 2-install-guacamole.sh
-rm -f 3-install-nginx.sh
-rm -f 4a-install-tls-self-signed-nginx.sh
-rm -f 4b-install-tls-letsencrypt-nginx.sh
-sudo rm -rf $TMP_DIR
+mv $USER_HOME_DIR/1-setup.sh $DOWNLOAD_DIR
 apt-get -y autoremove &>>${INSTALL_LOG}
 
 # Done

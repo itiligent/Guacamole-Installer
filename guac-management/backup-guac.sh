@@ -19,7 +19,7 @@ clear
 
 export PATH=/bin:/usr/bin:/usr/local/bin
 TODAY=$(date +%Y-%m-%d)
-# Below variables are automatically updated by the 1-setup.sh script with the respective values given at install
+# Below variables are automatically updated by the 1-setup.sh script with the respective values given at install (manually update if blank)
 MYSQL_HOST=
 MYSQL_PORT=
 GUAC_USER=

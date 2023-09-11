@@ -2,7 +2,7 @@
 ## Custom branding & theme instructions ##
 
 1. Install the Java JDK: `sudo apt update && sudo apt -y install default-jdk`
-3. Modify `custom-theme.css` ,`guac-manifest.json`, `en.json` & `META-INF` as desired & add your logo .png files to the images directory.
+3. Modify `custom-theme.css` ,`guac-manifest.json`, `en.json` & `META-INF` as desired & add your logos to the images directory. (Logos must be .png files.) 
 4. To commit your changes, run the below commands from within the custom-theme-builder directory, then refresh your browser to re-login to Guacamole:
 ```
 # Run within the custom-theme-builder directory 
