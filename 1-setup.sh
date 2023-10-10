@@ -685,17 +685,6 @@ sed -i "s|INSTALL_LOG=|INSTALL_LOG='${INSTALL_LOG}'|g" $DOWNLOAD_DIR/4a-install-
 sed -i "s|DEFAULT_IP=|DEFAULT_IP='${DEFAULT_IP}'|g" $DOWNLOAD_DIR/4a-install-tls-self-signed-nginx.sh
 sed -i "s|RSA_KEYLENGTH=|RSA_KEYLENGTH='${RSA_KEYLENGTH}'|g" $DOWNLOAD_DIR/4a-install-tls-self-signed-nginx.sh
 
-# refresh-tls-self-signed.sh is now functionally duplicated by the 4a-install-tls-self-signed-nginx.sh. Keeping it here for later conversion into a script for HA Proxy TLS options
-#sed -i "s|CERT_COUNTRY=|CERT_COUNTRY='${CERT_COUNTRY}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
-#sed -i "s|CERT_STATE=|CERT_STATE='${CERT_STATE}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
-#sed -i "s|CERT_LOCATION=|CERT_LOCATION='${CERT_LOCATION}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
-#sed -i "s|CERT_ORG=|CERT_ORG='${CERT_ORG}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
-#sed -i "s|CERT_OU=|CERT_OU='${CERT_OU}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
-#sed -i "s|PROXY_SITE=|PROXY_SITE='${PROXY_SITE}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
-#sed -i "s|DEFAULT_IP=|DEFAULT_IP='${DEFAULT_IP}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
-#sed -i "s|CERT_DAYS=|CERT_DAYS='${CERT_DAYS}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
-#sed -i "s|RSA_KEYLENGTH=|RSA_KEYLENGTH='${RSA_KEYLENGTH}'|g" $DOWNLOAD_DIR/refresh-tls-self-signed.sh
-
 sed -i "s|DOWNLOAD_DIR=|DOWNLOAD_DIR='${DOWNLOAD_DIR}'|g" $DOWNLOAD_DIR/4b-install-tls-letsencrypt-nginx.sh
 sed -i "s|PROXY_SITE=|PROXY_SITE='${PROXY_SITE}'|g" $DOWNLOAD_DIR/4b-install-tls-letsencrypt-nginx.sh
 sed -i "s|GUAC_URL=|GUAC_URL='${GUAC_URL}'|g" $DOWNLOAD_DIR/4b-install-tls-letsencrypt-nginx.sh
