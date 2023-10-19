@@ -39,15 +39,22 @@ NC='\033[0m' #No Colour
 # Make sure the user is NOT running this script as root
 if [[ $EUID -eq 0 ]]; then
     echo
-    echo -e "${LRED}This script must NOT be run as root, exiting..." 1>&2
+    echo -e "${LRED}This script must NOT be run as root, it will prompt for sudo when needed." 1>&2
     echo -e ${NC}
     exit 1
 fi
 
-# Make sure the user is a member of the sudo group
+# Check if sudo is installed. (Debian does not always include sudo by default.)
+if ! command -v sudo &> /dev/null; then
+    echo "${LRED}Sudo is not installed. Please install sudo."
+    echo -e ${NC}
+    exit 1
+fi
+
+# Make sure the user running setup is a member of the sudo group
 if ! [[ $(id -nG "$USER" 2>/dev/null | egrep "sudo" | wc -l) -gt 0 ]]; then
     echo
-    echo -e "${LRED}The current user (${USER}) must be a member of the 'sudo' group, exiting..." 1>&2
+    echo -e "${LRED}The current user (${USER}) must be a member of the 'sudo' group. Run: sudo usermod -aG sudo ${USER}" 1>&2
     echo -e ${NC}
     exit 1
 fi
@@ -55,7 +62,7 @@ fi
 # Check to see if any previous version of build/install files exist, if so stop and check to be safe.
 if [[ "$(find . -maxdepth 1 \( -name 'guacamole-*' -o -name 'mysql-connector-j-*' \))" != "" ]]; then
     echo
-    echo -e "${LRED}Possible previous install files detected in current build path. Please review and remove old guacamole install files before proceeding.${GREY}" 1>&2
+    echo -e "${LRED}Possible previous install files detected in current build path. Please review and remove old guacamole install files before proceeding.${GREY}, exiting..." 1>&2
     echo
     exit 1
 fi
