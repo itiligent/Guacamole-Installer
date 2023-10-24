@@ -221,7 +221,6 @@ fi
 # Workaround for Ubuntu 23.x & Tomcat 10 incompatibilities
 if [[ ${OS_NAME,,} = "ubuntu" ]] && [[ ${OS_CODENAME,,} = *"lunar"* ]]; then  #(checks for upper and lower case)
     TOMCAT_VERSION="tomcat9"
-    sudo apt-mark hold $TOMCAT_VERSION
 fi
 
 # Uncomment here to force a specific Tomcat version.
