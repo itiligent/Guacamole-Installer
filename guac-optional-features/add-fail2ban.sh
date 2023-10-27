@@ -94,8 +94,8 @@ fi
 if [[ "${FAIL2BAN_BASE}" = true ]]; then
 
     #Update and install fail2ban (and john for management of config file updates, and not overwrite any existing settings)
-    apt-get update -qq >/dev/null 2>&1
-    apt-get install fail2ban john -qq -y >/dev/null 2>&1
+    apt-get update -qq 
+    apt-get install fail2ban john -qq -y
 
     # Create the basic jail.local template and local subnet whitelist
     cat >/tmp/fail2ban.conf <<EOF

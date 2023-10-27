@@ -124,7 +124,7 @@ INSTALL_QCONNECT=""             # Add Guacamole console quick connect feature (t
 INSTALL_HISTREC=""              # Add Guacamole history recording storage feature (true/false)
 HISTREC_PATH=""                 # If blank sets Apache default /var/lib/guacamole/recordings
 GUAC_URL_REDIR=""               # Add auto redirect from http://xxx:8080 root to http://xxx:8080/guacamole)
-INSTALL_NGINX=""                # Install and configure Nginx and reverse proxy Guacamole (http port 80 only, true/false)
+INSTALL_NGINX=""                # Install and configure Nginx and reverse proxy Guacamole (via http port 80 only, true/false)
 PROXY_SITE=""                   # Local DNS name for reverse proxy site and/or self signed TLS certificates
 SELF_SIGN=""                    # Add self signed TLS support to Nginx (Let's Encrypt not available with this option, true/false)
 RSA_KEYLENGTH="2048"            # Self signed RSA TLS key length. At least 2048, must not be blank.
@@ -144,7 +144,7 @@ RDP_SHARE_LABEL="RDP Share"     # Customise RDP shared drive name shown in Windo
 RDP_PRINTER_LABEL="RDP Printer" # Customise RDP printer name shown in Windows
 
 #######################################################################################################################
-# Download GitHub setup scripts. BEFORE RUNNING SETUP, COMMENT DOWNLOAD LINES OF SCRIPTS YOU HAVE EDITED ! ############
+# Download GitHub setup scripts. BEFORE RUNNING SETUP, COMMENT OUT DOWNLOAD LINES OF ANY SCRIPTS YOU HAVE EDITED ! ####
 #######################################################################################################################
 
 # Script branding header
@@ -179,10 +179,10 @@ wget -q --show-progress ${GITHUB}/branding.jar -O branding.jar
 chmod +x *.sh
 
 # Pause here to optionally customise downloaded scripts before any actual install actions have began
-echo -e "${LYELLOW}Ctrl+Z now to exit now if you wish to customise 1-setup.sh options or to setup an unattended install."
+echo -e "${LYELLOW}Ctrl+Z now to exit now if you wish to customise 1-setup.sh options or create an unattended install."
 echo
 
-# Use this first sudo command as a trigger to pause for setup script customisation above, or continue as sudo where needed.
+# Use this first sudo command as a trigger to pause for setup script customisation, or continue as sudo where needed.
 sudo apt-get update -qq &> /dev/null
 
 #######################################################################################################################

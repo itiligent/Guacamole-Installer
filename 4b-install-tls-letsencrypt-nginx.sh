@@ -34,7 +34,7 @@ echo -e "${LGREEN}Installing Let's Encrypt TLS configuration for Nginx...${GREY}
 echo
 
 # Install nginx
-apt-get update -qq >/dev/null
+apt-get update -qq &> /dev/null
 apt-get install nginx certbot python3-certbot-nginx -qq -y &>>${INSTALL_LOG}
 
 # Backup the current Nginx config

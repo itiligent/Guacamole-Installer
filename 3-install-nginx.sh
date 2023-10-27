@@ -37,7 +37,7 @@ INSTALL_LOG=
 GUAC_URL=
 
 # Install Nginx
-apt-get update -qq >/dev/null
+apt-get update -qq &> /dev/null
 apt-get install nginx -qq -y &>>${INSTALL_LOG}
 
 echo -e "${GREY}Configuring Nginx as a reverse proxy for Guacamole's Apache Tomcat front end...${DGREY}"

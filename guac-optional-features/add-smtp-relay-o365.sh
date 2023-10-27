@@ -42,7 +42,7 @@ echo -e "${LYELLOW}SMTP relay for Office365 setup...${LGREEN}"
 # Install Posfix
 echo
 echo -e "${GREY}Installing Postfix with non-interactive defaults..."
-apt-get update -qq >/dev/null 2>&1
+apt-get update -qq
 DEBIAN_FRONTEND="noninteractive" apt-get install postfix mailutils -qq -y >/dev/null 2>&1
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Postfix install failed. ${GREY}" 1>&2

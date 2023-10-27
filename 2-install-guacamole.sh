@@ -19,7 +19,7 @@ NC='\033[0m' #No Colour
 # Update everything but don't do the annoying prompts during apt installs
 echo -e "${GREY}Updating base Linux OS..."
 export DEBIAN_FRONTEND=noninteractive
-apt-get update -qq >/dev/null
+apt-get update -qq &> /dev/null
 apt-get upgrade -qq -y &>>${INSTALL_LOG}
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
@@ -62,7 +62,7 @@ fi
 
 # Install Guacamole build dependencies (pwgen needed for duo config only, expect is auto removed after install)
 echo -e "${GREY}Installing dependencies required for building Guacamole, this might take a few minutes..."
-apt-get update -qq >/dev/null
+apt-get update -qq &> /dev/null
 apt-get -qq -y install ${MYSQLPKG} ${TOMCAT_VERSION} ${JPEGTURBO} ${LIBPNG} ufw pwgen expect \
     build-essential libcairo2-dev libtool-bin uuid-dev libavcodec-dev libavformat-dev libavutil-dev \
     libswscale-dev freerdp2-dev libpango1.0-dev libssh2-1-dev libtelnet-dev libvncserver-dev libwebsockets-dev \
