@@ -19,8 +19,26 @@ NC='\033[0m' #No Colour
 # Update everything but don't do the annoying prompts during apt installs
 echo -e "${GREY}Updating base Linux OS..."
 export DEBIAN_FRONTEND=noninteractive
-apt-get update -qq &> /dev/null
-apt-get upgrade -qq -y &>>${INSTALL_LOG}
+spinner() {
+  local pid=$1
+  local delay=0.15
+  local spinstr='|/-\'
+  tput civis
+  while ps -p $pid > /dev/null; do
+    for i in $(seq 0 3); do
+      tput sc
+      printf "[%c]" "${spinstr:$i:1}"
+      tput rc
+      sleep $delay
+    done
+  done
+  tput cnorm
+  printf "       "
+  tput rc
+}
+apt-get upgrade -qq -y &>>${INSTALL_LOG} &
+command_pid=$!
+spinner $command_pid
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
@@ -62,11 +80,29 @@ fi
 
 # Install Guacamole build dependencies (pwgen needed for duo config only, expect is auto removed after install)
 echo -e "${GREY}Installing dependencies required for building Guacamole, this might take a few minutes..."
-apt-get update -qq &> /dev/null
+spinner() {
+  local pid=$1
+  local delay=0.15
+  local spinstr='|/-\'
+  tput civis
+  while ps -p $pid > /dev/null; do
+    for i in $(seq 0 3); do
+      tput sc
+      printf "[%c]" "${spinstr:$i:1}"
+      tput rc
+      sleep $delay
+    done
+  done
+  tput cnorm
+  printf "       "
+  tput rc
+}
 apt-get -qq -y install ${MYSQLPKG} ${TOMCAT_VERSION} ${JPEGTURBO} ${LIBPNG} ufw pwgen expect \
     build-essential libcairo2-dev libtool-bin uuid-dev libavcodec-dev libavformat-dev libavutil-dev \
     libswscale-dev freerdp2-dev libpango1.0-dev libssh2-1-dev libtelnet-dev libvncserver-dev libwebsockets-dev \
-    libpulse-dev libssl-dev libvorbis-dev libwebp-dev ghostscript &>>${INSTALL_LOG}
+    libpulse-dev libssl-dev libvorbis-dev libwebp-dev ghostscript &>>${INSTALL_LOG} &
+command_pid=$!
+spinner $command_pid
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
@@ -77,7 +113,26 @@ fi
 
 # Install Postfix with default settings for smtp email relay
 echo -e "${GREY}Installing Postfix MTA for backup email notifications and alerts, see separate SMTP relay configuration script..."
-DEBIAN_FRONTEND="noninteractive" apt-get install postfix mailutils -qq -y &>>${INSTALL_LOG}
+spinner() {
+  local pid=$1
+  local delay=0.15
+  local spinstr='|/-\'
+  tput civis
+  while ps -p $pid > /dev/null; do
+    for i in $(seq 0 3); do
+      tput sc
+      printf "[%c]" "${spinstr:$i:1}"
+      tput rc
+      sleep $delay
+    done
+  done
+  tput cnorm
+  printf "       "
+  tput rc
+}
+DEBIAN_FRONTEND="noninteractive" apt-get install postfix mailutils -qq -y &>>${INSTALL_LOG} &
+command_pid=$!
+spinner $command_pid
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
@@ -229,7 +284,26 @@ echo -e "${GREY}Compiling Guacamole-Server from source with with GCC $(gcc --ver
 export CFLAGS="-Wno-error"
 
 # Configure Guacamole Server source
-./configure --with-systemd-dir=/etc/systemd/system &>>${INSTALL_LOG}
+spinner() {
+  local pid=$1
+  local delay=0.15
+  local spinstr='|/-\'
+  tput civis
+  while ps -p $pid > /dev/null; do
+    for i in $(seq 0 3); do
+      tput sc
+      printf "[%c]" "${spinstr:$i:1}"
+      tput rc
+      sleep $delay
+    done
+  done
+  tput cnorm
+  printf "       "
+  tput rc
+}
+./configure --with-systemd-dir=/etc/systemd/system &>>${INSTALL_LOG} &
+command_pid=$!
+spinner $command_pid
 if [[ $? -ne 0 ]]; then
     echo "Failed to configure guacamole-server"
     echo "Trying again with --enable-allow-freerdp-snapshots"
@@ -244,7 +318,26 @@ else
 fi
 
 echo -e "${GREY}Running make and building the Guacamole-Server application..."
-make &>>${INSTALL_LOG}
+spinner() {
+  local pid=$1
+  local delay=0.15
+  local spinstr='|/-\'
+  tput civis
+  while ps -p $pid > /dev/null; do
+    for i in $(seq 0 3); do
+      tput sc
+      printf "[%c]" "${spinstr:$i:1}"
+      tput rc
+      sleep $delay
+    done
+  done
+  tput cnorm
+  printf "       "
+  tput rc
+}
+make &>>${INSTALL_LOG} &
+command_pid=$!
+spinner $command_pid
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1

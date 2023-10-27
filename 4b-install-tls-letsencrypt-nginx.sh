@@ -30,12 +30,34 @@ INSTALL_LOG=
 
 echo
 echo
-echo -e "${LGREEN}Installing Let's Encrypt TLS configuration for Nginx...${GREY}"
-echo
-
-# Install nginx
-apt-get update -qq &> /dev/null
-apt-get install nginx certbot python3-certbot-nginx -qq -y &>>${INSTALL_LOG}
+echo -e "${GREY}Installing Nginx & Lets Encrypt Certbot..."
+spinner() {
+  local pid=$1
+  local delay=0.15
+  local spinstr='|/-\'
+  tput civis
+  while ps -p $pid > /dev/null; do
+    for i in $(seq 0 3); do
+      tput sc
+      printf "[%c]" "${spinstr:$i:1}"
+      tput rc
+      sleep $delay
+    done
+  done
+  tput cnorm
+  printf "       "
+  tput rc
+}
+apt-get update -qq &> /dev/null && apt-get install nginx certbot python3-certbot-nginx -qq -y &>>${INSTALL_LOG} &
+command_pid=$!
+spinner $command_pid
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
+else
+    echo -e "${LGREEN}OK${GREY}"
+    echo
+fi
 
 # Backup the current Nginx config
 echo

@@ -27,9 +27,7 @@ fi
 
 echo
 echo
-echo -e "${LGREEN}Installing Nginx...${DGREY}"
-echo
-
+echo -e "${GREY}Installing Nginx..."
 TOMCAT_VERSION=$(ls /etc/ | grep tomcat)
 # Below variables are automatically updated by the 1-setup.sh script with the respective values given at install (manually update if blank)
 PROXY_SITE=
@@ -37,8 +35,33 @@ INSTALL_LOG=
 GUAC_URL=
 
 # Install Nginx
-apt-get update -qq &> /dev/null
-apt-get install nginx -qq -y &>>${INSTALL_LOG}
+spinner() {
+  local pid=$1
+  local delay=0.15
+  local spinstr='|/-\'
+  tput civis
+  while ps -p $pid > /dev/null; do
+    for i in $(seq 0 3); do
+      tput sc
+      printf "[%c]" "${spinstr:$i:1}"
+      tput rc
+      sleep $delay
+    done
+  done
+  tput cnorm
+  printf "       "
+  tput rc
+}
+apt-get update -qq &> /dev/null && apt-get install nginx -qq -y &>>${INSTALL_LOG} &
+command_pid=$!
+spinner $command_pid
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
+else
+    echo -e "${LGREEN}OK${GREY}"
+    echo
+fi
 
 echo -e "${GREY}Configuring Nginx as a reverse proxy for Guacamole's Apache Tomcat front end...${DGREY}"
 # Configure /etc/nginx/sites-available/(local dns site name)
