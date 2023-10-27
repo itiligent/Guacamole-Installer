@@ -182,9 +182,6 @@ chmod +x *.sh
 echo -e "${LYELLOW}Ctrl+Z now to exit now if you wish to customise 1-setup.sh options or to setup an unattended install."
 echo
 
-# Trigger the above pause with a sudo prompt or collect admin credentials for the next installer steps and continue
-sudo apt-get update -qq >/dev/null
-
 # Use this first sudo command as a trigger to pause for setup script customisation above, or continue as sudo where needed.
 sudo apt-get update -qq &> /dev/null
 
@@ -213,8 +210,8 @@ fi
 # Workaround for current Debian 12 & Tomcat 10 incompatibilities
 if [[ ${OS_NAME,,} = "debian" ]] && [[ ${OS_CODENAME,,} = *"bookworm"* ]]; then #(checks for upper and lower case)
     # Add the oldstable repo and downgrade tomcat version install
-    echo "deb http://deb.debian.org/debian/ bullseye main" | sudo tee /etc/apt/sources.list.d/bullseye.list >/dev/null
-    sudo apt-get update -qq >/dev/null
+    echo "deb http://deb.debian.org/debian/ bullseye main" | sudo tee /etc/apt/sources.list.d/bullseye.list &> /dev/null
+    sudo apt-get update -qq &> /dev/null
     TOMCAT_VERSION="tomcat9"
 fi
 
@@ -304,18 +301,18 @@ if [[ -z ${SERVER_NAME} ]]; then
     echo
     # A SERVER_NAME was derived via the prompt
     # Apply the SERVER_NAME value & remove and update any old 127.0.1.1 local host references
-    sudo hostnamectl set-hostname $SERVER_NAME &>>${INSTALL_LOG}
+    $(sudo hostnamectl set-hostname $SERVER_NAME &> /dev/null &) &> /dev/null
     sudo sed -i '/127.0.1.1/d' /etc/hosts &>>${INSTALL_LOG}
     echo '127.0.1.1       '${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${INSTALL_LOG}
-    sudo systemctl restart systemd-hostnamed &>>${INSTALL_LOG}
+    $(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
 else
     echo
     # A SERVER_NAME value was derived from a pre-set silent install option.
     # Apply the SERVER_NAME value & remove and update any old 127.0.1.1 local host references
-    sudo hostnamectl set-hostname $SERVER_NAME &>>${INSTALL_LOG}
+    $(sudo hostnamectl set-hostname $SERVER_NAME &> /dev/null &) &> /dev/null
     sudo sed -i '/127.0.1.1/d' /etc/hosts &>>${INSTALL_LOG}
     echo '127.0.1.1       '${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${INSTALL_LOG}
-    sudo systemctl restart systemd-hostnamed &>>${INSTALL_LOG}
+    $(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
 fi
 
 # Ensure SERVER_NAME, LOCAL_DOMAIN suffix and host entries are all consistent
@@ -337,7 +334,7 @@ if [[ -z ${LOCAL_DOMAIN} ]]; then
     # Refresh /etc/resolv.conf with new domain and search suffix values
     echo 'domain	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${INSTALL_LOG}
     echo 'search	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${INSTALL_LOG}
-    sudo systemctl restart systemd-hostnamed &>>${INSTALL_LOG}
+    $(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
 else
     echo
     # A LOCAL_DOMIN value was derived from a pre-set silent install option.
@@ -350,7 +347,7 @@ else
     # Refresh /etc/resolv.conf with new domain and search suffix values
     echo 'domain	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${INSTALL_LOG}
     echo 'search	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${INSTALL_LOG}
-    sudo systemctl restart systemd-hostnamed &>>${INSTALL_LOG}
+    $(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
 fi
 
 # Now that $SERVER_NAME and $LOCAL_DOMAIN values are updated and refreshed:
@@ -550,16 +547,16 @@ fi
 if [[ -z ${GUAC_URL_REDIR} ]] && [[ "${INSTALL_NGINX}" = false ]]; then
     echo -e -n "FRONT END: Redirect Guacamole http://domain.root:8080 to /guacamole [Y/n]? [default y]: "
     read PROMPT
-    if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
-        GUAC_URL_REDIR=true
-    else
+    if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
         GUAC_URL_REDIR=false
+    else
+        GUAC_URL_REDIR=true
     fi
 fi
 
 # Checking the redirect logic with unattended installs, if not explicitly set correctly, set to false
 if [[ -z ${GUAC_URL_REDIR} ]] && [[ "${INSTALL_NGINX}" = true ]]; then
-    GUAC_URL_REDIR=false 
+    GUAC_URL_REDIR=false
   elif [[ -z ${GUAC_URL_REDIR} ]]; then
     GUAC_URL_REDIR=false
 fi
@@ -647,7 +644,7 @@ echo
 echo -e "${LGREEN}Beginning Guacamole setup...${GREY}"
 echo
 
-echo -e "${GREY}Synchronising the install script suite with installation settings..."
+echo -e "${GREY}Synchronising the install script suite with the selected installation options..."
 # Sync the various manual config scripts with the relevant variables selected at install
 # This way scripts can be run at a later time without modification to match the original install
 sed -i "s|MYSQL_HOST=|MYSQL_HOST='${MYSQL_HOST}'|g" $DOWNLOAD_DIR/backup-guac.sh
