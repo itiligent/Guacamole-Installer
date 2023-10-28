@@ -97,7 +97,7 @@ MYSQL_VERSION=""
 # Guacamole default install URL
 GUAC_URL=http://localhost:8080/guacamole/
 
-# Get the default route interface IP. Manually update for multi homed systems.
+# Get the default route interface IP. Manually update for multi homed systems or where cloud images may use 127.0.x.x
 DEFAULT_IP=$(ip addr show $(ip route | awk '/default/ { print $5 }') | grep "inet" | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1)
 
 # Install log Location
@@ -139,8 +139,8 @@ LE_DNS_NAME=""                  # Public DNS name for Lets Encrypt certificates
 LE_EMAIL=""                     # Webmaster/admin email for Lets Encrypt notifications
 BACKUP_EMAIL=""                 # Email address for backup notifications
 BACKUP_RETENTION="30"           # How many days to keep SQL backups locally for
-RDP_SHARE_HOST=""               # Customise RDP share name shown in Windows Explorer. (e.g. RDP_SHARE_LABEL on RDP_SHARE_HOST)
 RDP_SHARE_LABEL="RDP Share"     # Customise RDP shared drive name shown in Windows Explorer (e.g. RDP_SHARE_LABEL on RDP_SHARE_HOST)
+RDP_SHARE_HOST=""               # Customise RDP share name shown in Windows Explorer. (e.g. RDP_SHARE_LABEL on RDP_SHARE_HOST)
 RDP_PRINTER_LABEL="RDP Printer" # Customise RDP printer name shown in Windows
 
 #######################################################################################################################
@@ -182,7 +182,7 @@ chmod +x *.sh
 echo -e "${LYELLOW}Ctrl+Z now to exit now if you wish to customise 1-setup.sh options or create an unattended install."
 echo
 
-# Use this first sudo command as a trigger to pause for setup script customisation, or continue as sudo where needed.
+# This first sudo command is a trigger to pause for setup script customisation shown above, or continue as sudo where needed.
 sudo apt-get update -qq &> /dev/null
 
 #######################################################################################################################
@@ -228,12 +228,12 @@ if [[ -z "${MYSQL_VERSION}" ]]; then
     # Use Linux distro default version.
     MYSQLSRV="default-mysql-server default-mysql-client mysql-common" # Server
     MYSQLCLIENT="default-mysql-client" # Client
-    DB_CMD="mysql" # The mysql command is depricated on some versions, option to substitute another.
+    DB_CMD="mysql" # The mysql -v command is depricated on some versions, here is an option to substitute any another.
 else
     # Use official mariadb.org repo
     MYSQLSRV="mariadb-server mariadb-client mariadb-common" # Server
     MYSQLCLIENT="mariadb-client" # Client
-    DB_CMD="mariadb" # The mysql command is depricated on some versions, option to substitute another.
+    DB_CMD="mariadb" # The mysql -v command is depricated on some versions, option to substitute any another.
 fi
 # Standardise on a lexicon for the differing dependency package names between distros
 # Current package names for various distros are referenced at https://guacamole.apache.org/doc/gug/installing-guacamole.html
@@ -253,7 +253,7 @@ fi
 # DO NOT EDIT PAST THIS POINT! ########################################################################################
 #######################################################################################################################
 
-# A default dns suffix is needed for initial prompts & default starting values.
+# An intitial dns suffix is needed as a starting value for the script prompts.
 get_domain_suffix() {
     echo "$1" | awk '{print $2}'
 }
@@ -286,9 +286,9 @@ fi
 # Begin install menu prompts ##########################################################################################
 #######################################################################################################################
 
-# We need to ensure consistent default hostname and domain suffix values for TLS implementation. The below approach
-# allows the user to either hit enter at the prompt to keep current values, or to manually update values. Silent install
-# pre-set values (if provided) will bypass all prompts.
+# Consistent /etc/hosts and domain suffix values are needed for TLS implementation. The below approach
+# allows the user to either hit enter at the prompt to keep current values, or enter new values for both. Silent install
+# pre-set values (if provided) will bypass these prompts.
 
 # Ensure SERVER_NAME is consistent with local host entries
 if [[ -z ${SERVER_NAME} ]]; then
@@ -300,7 +300,7 @@ if [[ -z ${SERVER_NAME} ]]; then
     fi
     echo
     # A SERVER_NAME was derived via the prompt
-    # Apply the SERVER_NAME value & remove and update any old 127.0.1.1 local host references
+    # Apply the SERVER_NAME value & remove and update any old 127.0.1.1 localhost references
     $(sudo hostnamectl set-hostname $SERVER_NAME &> /dev/null &) &> /dev/null
     sudo sed -i '/127.0.1.1/d' /etc/hosts &>>${INSTALL_LOG}
     echo '127.0.1.1       '${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${INSTALL_LOG}
@@ -308,14 +308,14 @@ if [[ -z ${SERVER_NAME} ]]; then
 else
     echo
     # A SERVER_NAME value was derived from a pre-set silent install option.
-    # Apply the SERVER_NAME value & remove and update any old 127.0.1.1 local host references
+    # Apply the SERVER_NAME value & remove and update any old 127.0.1.1 localhost references
     $(sudo hostnamectl set-hostname $SERVER_NAME &> /dev/null &) &> /dev/null
     sudo sed -i '/127.0.1.1/d' /etc/hosts &>>${INSTALL_LOG}
     echo '127.0.1.1       '${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${INSTALL_LOG}
     $(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
 fi
 
-# Ensure SERVER_NAME, LOCAL_DOMAIN suffix and host entries are all consistent
+# Ensure LOCAL_DOMAIN suffix and localhost entries are consistent
 if [[ -z ${LOCAL_DOMAIN} ]]; then
     echo -e "${LYELLOW}Update Linux LOCAL DNS DOMAIN [Enter to keep: ${DOMAIN_SUFFIX}]${LGREEN}"
     read -p "              Enter FULL LOCAL DOMAIN NAME: " LOCAL_DOMAIN
@@ -325,7 +325,7 @@ if [[ -z ${LOCAL_DOMAIN} ]]; then
     fi
     echo
     # A LOCAL_DOMAIN value was derived via the prompt
-    # Remove any old hosts & resolv file values and update these with the new LOCAL_DOMAIN value
+    # Remove any old localhost & resolv file values and update these with the new LOCAL_DOMAIN value
     sudo sed -i "/${DEFAULT_IP}/d" /etc/hosts
     sudo sed -i '/domain/d' /etc/resolv.conf
     sudo sed -i '/search/d' /etc/resolv.conf
@@ -338,7 +338,7 @@ if [[ -z ${LOCAL_DOMAIN} ]]; then
 else
     echo
     # A LOCAL_DOMIN value was derived from a pre-set silent install option.
-    # Remove any old hosts & resolv file values and update these with the new LOCAL_DOMAIN value
+    # Remove any old localhost & resolv file values and update these with the new LOCAL_DOMAIN value
     sudo sed -i "/${DEFAULT_IP}/d" /etc/hosts
     sudo sed -i '/domain/d' /etc/resolv.conf
     sudo sed -i '/search/d' /etc/resolv.conf
@@ -350,11 +350,11 @@ else
     $(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
 fi
 
-# Now that $SERVER_NAME and $LOCAL_DOMAIN values are updated and refreshed:
-# Values are merged to build a local FQDN value (used for the default reverse proxy site name.)
+# Now that $SERVER_NAME and $LOCAL_DOMAIN values are updated and refreshed values are merged to build 
+# a local FQDN value (this is later used for the default reverse proxy site name.)
 DEFAULT_FQDN=$SERVER_NAME.$LOCAL_DOMAIN
 
-# The RDP share label default can now assume the updated $SERVER_NAME value (if not manually specified in silent setup options).
+# Default RDP share and host labels will now assume the updated $SERVER_NAME value (if not otherwise specified in silent setup options).
 if [[ -z ${RDP_SHARE_HOST} ]]; then
     RDP_SHARE_HOST=$SERVER_NAME
 fi
@@ -382,7 +382,7 @@ if [[ -z ${SECURE_MYSQL} ]] && [[ "${INSTALL_MYSQL}" = true ]]; then
     fi
 fi
 
-# Get additional MYSQL values
+# Prompt for additional MYSQL settings and values
 if [[ "${INSTALL_MYSQL}" = false ]]; then
     [[ -z "${MYSQL_HOST}" ]] &&
         read -p "SQL: Enter remote MySQL server hostname or IP: " MYSQL_HOST
@@ -410,7 +410,7 @@ if [[ -z "${GUAC_USER}" ]]; then
     GUAC_USER="guacamole_user"
 fi
 
-# Get MySQL root password, confirm correct password entry and prevent blank passwords. No root pw needed for remote instances.
+# Prompt for MySQL root password, confirm correct password entry and prevent blank passwords. No root pw needed for remote instances.
 if [[ -z "${MYSQL_ROOT_PWD}" ]] && [[ "${INSTALL_MYSQL}" = true ]]; then
     while true; do
         read -s -p "SQL: Enter ${MYSQL_HOST}'s MySQL ROOT password: " MYSQL_ROOT_PWD
@@ -422,7 +422,7 @@ if [[ -z "${MYSQL_ROOT_PWD}" ]] && [[ "${INSTALL_MYSQL}" = true ]]; then
     done
 fi
 
-# Get Guacamole User password, confirm correct password entry and prevent blank passwords
+# Prompt for Guacamole User password, confirm correct password entry and prevent blank passwords
 if [[ -z "${GUAC_PWD}" ]]; then
     while true; do
         read -s -p "SQL: Enter ${MYSQL_HOST}'s MySQL ${GUAC_USER} password: " GUAC_PWD
@@ -444,7 +444,7 @@ if [[ -z ${BACKUP_EMAIL} ]]; then
         # echo -e "${LRED}You must enter an email address. Please try again.${GREY}" 1>&2
     done
 fi
-# If no backup notification email address is given, provide a default value
+# If no backup notification email address is given, provide a non blank default value
 if [[ -z ${BACKUP_EMAIL} ]]; then
     BACKUP_EMAIL="backup-email@yourdomain.com"
 fi
@@ -524,7 +524,7 @@ if [[ -z ${HISTREC_PATH} ]] && [[ "${INSTALL_HISTREC}" = true ]]; then
     done
 fi
 
-# If no custom path is given, lets assume the default path on hitting enter
+# If no custom path is given, assume the Apache default path on hitting enter
 if [[ -z "${HISTREC_PATH}" ]]; then
     HISTREC_PATH="${HISTREC_PATH_DEFAULT}"
 fi
@@ -543,7 +543,7 @@ if [[ -z ${INSTALL_NGINX} ]]; then
     fi
 fi
 
-# Prompt to remove the trailing /guacamole dir from the default front end url. Don't redirect if using reverse proxy
+# Prompt to redirect http://root:8080 to http://root:8080/guacamole if not installing reverse proxy
 if [[ -z ${GUAC_URL_REDIR} ]] && [[ "${INSTALL_NGINX}" = false ]]; then
     echo -e -n "FRONT END: Redirect Guacamole http://domain.root:8080 to /guacamole [Y/n]? [default y]: "
     read PROMPT
@@ -552,13 +552,6 @@ if [[ -z ${GUAC_URL_REDIR} ]] && [[ "${INSTALL_NGINX}" = false ]]; then
     else
         GUAC_URL_REDIR=true
     fi
-fi
-
-# Checking the redirect logic with unattended installs, if not explicitly set correctly, set to false
-if [[ -z ${GUAC_URL_REDIR} ]] && [[ "${INSTALL_NGINX}" = true ]]; then
-    GUAC_URL_REDIR=false
-  elif [[ -z ${GUAC_URL_REDIR} ]]; then
-    GUAC_URL_REDIR=false
 fi
 
 # We must assign a DNS name for the new proxy site
@@ -590,11 +583,13 @@ if [[ -z ${SELF_SIGN} ]] && [[ "${INSTALL_NGINX}" = true ]]; then
     fi
 fi
 
-# Optional prompt to manually enter a self sign TLS certificate expiry date, un-comment to force manual entry
-#if [[ "${SELF_SIGN}" = true ]]; then
-#	read - p "PROXY: Enter number of days till TLS certificate expires [default 3650]: " CERT_DAYS
-#fi
-
+# Prompt to enter a self sign TLS certificate expiry
+if [[ "${SELF_SIGN}" = true ]]; then
+    while true; do
+    read -p "FRONT END: Enter number of days till TLS certificates will expire [Enter for 3650]: " CERT_DAYS
+        [[ "${CERT_DAYS}" = "" ]] || [[ "${CERT_DAYS}" != "" ]] && break
+    done
+fi
 # If no self sign TLS certificate expiry given, lets assume a generous 10 year default certificate expiry
 if [[ -z "${CERT_DAYS}" ]]; then
     CERT_DAYS="3650"
