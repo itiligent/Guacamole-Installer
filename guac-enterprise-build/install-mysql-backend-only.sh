@@ -60,7 +60,7 @@ GUAC_VERSION="1.5.3"
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
 
 # Install log Location
-INSTALL_LOG="${DOWNLOAD_DIR}/guacamole_${GUAC_VERSION}_mysql_install.log"
+INSTALL_LOG="${DOWNLOAD_DIR}/mysql_install.log"
 
 clear
 

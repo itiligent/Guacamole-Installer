@@ -1,6 +1,6 @@
 #!/bin/bash
 ######################################################################################################################
-# Guacamole appliance upgrade script
+# Guacamole appliance mysql upgrade script
 # For Ubuntu / Debian / Raspbian
 # David Harrop
 # April 2023
@@ -61,7 +61,7 @@ OLD_GUAC_VERSION="1.5.0"
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${NEW_GUAC_VERSION}"
 
 # Install log Location
-INSTALL_LOG="${DOWNLOAD_DIR}/guacamole_${NEW_GUAC_VERSION}_mysql_install.log"
+INSTALL_LOG="${DOWNLOAD_DIR}/mysql_upgrade.log"
 
 # Database details
 GUAC_DB="guacamole_db"

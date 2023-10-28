@@ -101,7 +101,7 @@ GUAC_URL=http://localhost:8080/guacamole/
 DEFAULT_IP=$(ip addr show $(ip route | awk '/default/ { print $5 }') | grep "inet" | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1)
 
 # Install log Location
-INSTALL_LOG="${DOWNLOAD_DIR}/guacamole_setup.log"
+INSTALL_LOG="${DOWNLOAD_DIR}/guacamole_install.log"
 
 #######################################################################################################################
 # Silent setup options - true/false or specific values below prevents prompt at install. EDIT TO SUIT #################
