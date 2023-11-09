@@ -116,7 +116,7 @@ GUAC_DB=""                      # If blank default is guacamole_db
 GUAC_USER=""                    # If blank default is guacamole_user
 MYSQL_ROOT_PWD=""               # Requires an entry here or at script prompt.
 GUAC_PWD=""                     # Requires an entry here or at script prompt.
-DB_TZ=$(cat /etc/timezone)      # MySQL timezone default=(cat /etc/timezone) or change to "UTC" if required.
+DB_TZ=$(cat /etc/timezone)      # Leave blank for UTC, for local tz $(cat /etc/timezone)
 INSTALL_TOTP=""                 # Add TOTP MFA extension (true/false)
 INSTALL_DUO=""                  # Add DUO MFA extension (can't be installed simultaneously with TOTP, true/false)
 INSTALL_LDAP=""                 # Add Active Directory extension (true/false)

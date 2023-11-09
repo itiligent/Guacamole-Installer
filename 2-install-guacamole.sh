@@ -568,7 +568,7 @@ ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PWD';"
         else
             timezone=${DB_TZ}
             if [[ -z "${DB_TZ}" ]]; then
-                echo -e "Couldn't find system timezone, using UTC$"
+                echo -e "No timezone specified, using UTC"
                 timezone="UTC"
             fi
             echo -e "Setting MySQL database timezone as ${timezone}${GREY}"
