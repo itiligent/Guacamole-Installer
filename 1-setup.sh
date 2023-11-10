@@ -85,7 +85,7 @@ GITHUB="https://raw.githubusercontent.com/itiligent/Guacamole-Install/main"
 GUAC_VERSION="1.5.3"
 
 # MySQL Connector/J version to install
-MYSQLJCON="8.1.0"
+MYSQLJCON="8.2.0"
 
 # Set preferred Apache CDN download link
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
