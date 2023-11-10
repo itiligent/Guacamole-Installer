@@ -1,10 +1,11 @@
 # 
-<h1 align="center">:avocado: Guacamole Installer (& full appliance builder)</h1>
-<p align="center">
-  <img src="https://img.shields.io/badge/GitHub-GPL--3.0-informational.svg" alt="License">
-</p>
+<h1 align="center">:avocado: Easy Guacamole Installer & Jump-Host Builder</h1> 
+ <p align="center">
+<a href="https://www.paypal.com/donate/?business=PSZ878JBJDMB8&amount=10&no_recurring=0&item_name=Thankyou+for+your+support+in+maintaining+this+project&currency_code=AUD">
+  <img src="https://github.com/itiligent/Guacamole-Install/raw/main/.github/ISSUE_TEMPLATE/paypal-donate-button.png" width="125" />
+</a>
 
-This suite of build and management scripts makes setting and operating Guacamole a breeze. Its got installer support for TLS reverse proxy (self sign or LetsEncrypt), Active Directory integration, multi-factor authentication, Quick Connect & History Recording Storage UI enhancements, a custom UI theme creation template with dark mode as default, auto database backup, O365 email alerts, internal daemon security hardening options and even a fail2ban policy for defence against brute force attacks. There's also code in here to get you up and running with an enterprise deployment approach very similar to [Amazon's Guacmole Bastion Cluster](http://netcubed-ami.s3-website-us-east-1.amazonaws.com/guaws/v2.3.1/cluster/), if that's your thing!
+This suite of build and management scripts makes setting up a secure Guacamole jump server a breeze. Its got installer support for TLS reverse proxy (self sign or LetsEncrypt), Active Directory integration, multi-factor authentication, Quick Connect & History Recording Storage UI enhancements, a custom UI theme creation template with dark mode as default, auto database backup, O365 email alerts, internal daemon security hardening options and even a fail2ban policy for defence against brute force attacks. There's also code in here to get you up and running with an enterprise deployment approach very similar to [Amazon's Guacmole Bastion Cluster](http://netcubed-ami.s3-website-us-east-1.amazonaws.com/guaws/v2.3.1/cluster/), if that's your thing!
 
 ## Automatic Installation
 
@@ -13,8 +14,8 @@ This suite of build and management scripts makes setting and operating Guacamole
 ```shell
 wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.sh && chmod +x 1-setup.sh && ./1-setup.sh
 ```
-## Docker Image Creation
-For customised & branded Docker builds, unattended installation options are available. Read on...
+## Docker + Guacamole as a customised & branded container 
+For highly customised & branded Docker builds, a Docker unattended version of this auto installer is currently in development...
 
 ## Prerequisites 
 
@@ -29,7 +30,7 @@ For customised & branded Docker builds, unattended installation options are avai
     - **Official vendor cloud images equivalent to the above versions.** 
       - (if your cloud image uses an IP of 127.0.1.1, [see here to use TLS with Nginx](https://github.com/itiligent/Guacamole-Install/issues/21))
 - **1 CPU core + 2GB RAM for every 25 users (plus minimum RAM & disk space for your selected OS).**
-- **Open TCP ports: 22, 80, and 443 (no other services using 80 & 443)**
+- **Open TCP ports: 22, 80, and 443 (no other services using 80, 8080 & 443)**
 - **If selecting either of the TLS reverse proxy options, you must create an internal DNS record for the internal proxy site, and an additional public DNS record if using the LetsEncypt option.**
 
 ## Setup Script Menu
@@ -40,7 +41,7 @@ For customised & branded Docker builds, unattended installation options are avai
 2. Choose either a fresh local MySQL install or use a pre-existing remote MySQL instance.
 3. Pick an authentication extension: DUO, TOTP, LDAP/Active Directory, or none.
 4. Select optional console features: Quick Connect & History Recorded Storage UI integration.
-5. Decide on the Guacamole front end: Nginx reverse proxy (http or https) or keep the native Guacamole interface
+5. Decide on the Guacamole front end: Nginx reverse proxy (http or https) or keep the native Guacamole interface on port 8080
     - If you opt to install Nginx with self signed TLS:
       - New server and client browser certificates are saved to `$HOME/guac-setup/tls-certs/[date-time]`
       - Pay attention to on-screen instructions for client certificate import (no more pesky browser warnings). 
@@ -58,7 +59,7 @@ For customised & branded Docker builds, unattended installation options are avai
 - **Caution: Be aware that running the auto-installer link again re-downloads the suite of scripts and will overwrite all script edits. You must run setup locally after editing the setup script.** If any other scripts are edited, their corresponding download links in the setup script must also be commented out in the main setup script else these will be overwritten even when setup is run locally. There should be no reason to edit any script other than the main `1-setup.sh`
 
 - Many of the scripts in the suite are **automatically adjusted with your chosen installation settings at 1st install** to form a matched set. This allows you to uprade Guacamole or add extra features after the original installation without any configuration mismatches or errors. Editing any scripts other than the main setup may break this function.
-- Nginx is automatically configured to default to at least TLS 1.2, therefore ancient browsers and industrial control apps may not work out of the box. This can be reverted via the the `/etc/nginx/nginx.conf` file.
+- Nginx is automatically configured to default to at least TLS 1.2, therefore ancient browsers or API connections using TLS 1.1 will not work out of the box. This can be reverted via the the `/etc/nginx/nginx.conf` file.
 - A daily MySQL backup job will be automatically configured under the script owner's crontab.
 - **Security note:** The Quick Connect option brings a few extra security implications; so be aware of potential risks in your particular environment.
 
@@ -86,14 +87,14 @@ For customised & branded Docker builds, unattended installation options are avai
 
 <img src="https://github.githubassets.com/images/icons/emoji/globe_with_meridians.png" width="23"> To upgrade Guacamole, edit `upgrade-guac.sh` to relfect the latest versions of Guacamole and MySQL connector/J before running it. This script will automatically update the installed extensions too.
 
-## High Availability (Or Docker Multi-Container) Deployments 
+## High Availability Deployment 
 
-<img src="https://github.githubassets.com/images/icons/emoji/unicode/1f454.png" width="23"> For Enterprise or highly custom Docker deployment, did you know that Guacamole can be run in a load balanced farm with physical/logical separation between TLS front end, application and database layers? To achieve this, the MySQL, Guacamole and Nginx front end components are typically split into 3 systems or containers. (VLANs & firewalls between these layers help greatly with security too.)
+<img src="https://github.githubassets.com/images/icons/emoji/unicode/1f454.png" width="23"> Did you know that Guacamole can run in a load balanced farm with layered physical/virutual separation between the web front end, application and database layers? To achieve this, the MySQL, Guacamole and Nginx front end components are typically split into 3 systems (or containers). VLANs & firewalls between these layers help greatly with defence in depth security concepts too.
 
- A simple benefit of using a separate MySQL backend server or MYSQL container means you can upgrade and test whilst keeping all your data and connection profiles intact. Just point this installer (or a fresh Docker application container) to your MySQL instance and immediately all your connection profiles and settings are right there!
+ A simple benefit of using a separate MySQL backend server or MYSQL container means you can upgrade and test whilst keeping all your data and connection profiles intact. Just point this installer to your MySQL instance and immediately all your connection profiles and settings are right there!
 
 - **For the DATABASE layer:** Find the included  `install-mysql-backend-only.sh` [here](https://github.com/itiligent/Guacamole-Install/tree/main/guac-enterprise-build) to install a standalone instance of the Guacamole MySQL database for your backend.
-- **For the APPLICATION layer:** Simply use the main setup script to build as many application servers as you like, just use the main installer to point new installations to the remote backend database, making sure to **say no to both the "Install MySQL locally" option and any proxy install options**.
+- **For the APPLICATION layer:** You can use the main setup script to build as many application servers as you like.  Simply run the main installer to point new installations to a separate remote backend database, just make sure to say **no** to both the "Install MySQL locally" option and any other reverse proxy install options.
 - **For the Front end**: There are so many choices available that are already very well documented. You could even use the Nginx scripts to build a separate TLS front end layer. Be aware that [HA Proxy](https://www.haproxy.org/) generally provides far superior session persistence/affinity under load balanced conditions [when compared to Open Source Nginx](https://www.nginx.com/products/nginx/compare-models/) as only Nginx Plus subscribers get all the proper load balancing stuff!
 
 ### Installer script download manifest
