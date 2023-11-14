@@ -207,8 +207,8 @@ else
     TOMCAT_VERSION="tomcat9"
 fi
 
-# Workaround for current Debian 12 & Tomcat 10 incompatibilities
-if [[ ${OS_NAME,,} = "debian" ]] && [[ ${OS_CODENAME,,} = *"bookworm"* ]]; then #(checks for upper and lower case)
+# Workaround for current Tomcat incompatibilities with Debian 12 (stable and testing repos)
+if [[ ${OS_NAME,,} = "debian" && ${OS_CODENAME,,} = *"bookworm"* ]] || [[ ${OS_NAME,,} = "debian" && ${OS_CODENAME,,} = *"trixie"* ]]; then #(checks for upper and lower case)
     # Add the oldstable repo and downgrade tomcat version install
     echo "deb http://deb.debian.org/debian/ bullseye main" | sudo tee /etc/apt/sources.list.d/bullseye.list &> /dev/null
     sudo apt-get update -qq &> /dev/null
@@ -223,7 +223,7 @@ fi
 # Uncomment here to force a specific Tomcat version.
 # TOMCAT_VERSION="tomcat9"
 
-# Standardise on a lexicon for the different MySQL package optiions
+# Standardise on a lexicon for the different MySQL package options
 if [[ -z "${MYSQL_VERSION}" ]]; then
     # Use Linux distro default version.
     MYSQLSRV="default-mysql-server default-mysql-client mysql-common" # Server
@@ -239,7 +239,7 @@ fi
 # Current package names for various distros are referenced at https://guacamole.apache.org/doc/gug/installing-guacamole.html
 JPEGTURBO=""
 LIBPNG=""
-if [[ $OS_NAME == "ubuntu" ]] || [[ $OS_NAME == *"ubuntu"* ]]; then # potentially expand out distro choices here
+if [[ $OS_NAME == "ubuntu" ]] || [[ $OS_NAME == *"ubuntu"* ]]; then # expand out distro choices here
     JPEGTURBO="libjpeg-turbo8-dev"
     LIBPNG="libpng-dev"
     # Just in case this repo is not present in the distro
