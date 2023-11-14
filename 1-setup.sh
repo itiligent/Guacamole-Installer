@@ -106,7 +106,7 @@ INSTALL_LOG="${DOWNLOAD_DIR}/guacamole_install.log"
 #######################################################################################################################
 # Silent setup options - true/false or specific values below prevents prompt at install. EDIT TO SUIT #################
 #######################################################################################################################
-SERVER_NAME=""                  # Server hostname
+SERVER_NAME=""                  # Server hostname. (Blank = use the current hostname.)
 LOCAL_DOMAIN=""                 # Local DNS namespace/domain suffix
 INSTALL_MYSQL=""                # Install MySQL locally (true/false)
 SECURE_MYSQL=""                 # Apply mysql secure configuration tool (true/false)
@@ -139,8 +139,8 @@ LE_DNS_NAME=""                  # Public DNS name for Lets Encrypt certificates
 LE_EMAIL=""                     # Webmaster/admin email for Lets Encrypt notifications
 BACKUP_EMAIL=""                 # Email address for backup notifications
 BACKUP_RETENTION="30"           # How many days to keep SQL backups locally for
-RDP_SHARE_LABEL="RDP Share"     # Customise RDP shared drive name shown in Windows Explorer (e.g. RDP_SHARE_LABEL on RDP_SHARE_HOST)
-RDP_SHARE_HOST=""               # Customise RDP share name shown in Windows Explorer. (e.g. RDP_SHARE_LABEL on RDP_SHARE_HOST)
+RDP_SHARE_LABEL="RDP Share"     # Customise RDP shared drive name in Windows Explorer (e.g. RDP_SHARE_LABEL on RDP_SHARE_HOST)
+RDP_SHARE_HOST=""               # Customise RDP share name in Windows Explorer. Blank = $SERVER_NAME. (e.g. RDP_SHARE_LABEL on RDP_SHARE_HOST)
 RDP_PRINTER_LABEL="RDP Printer" # Customise RDP printer name shown in Windows
 
 #######################################################################################################################
@@ -207,8 +207,8 @@ else
     TOMCAT_VERSION="tomcat9"
 fi
 
-# Workaround for current Debian 12 & Tomcat 10 incompatibilities
-if [[ ${OS_NAME,,} = "debian" ]] && [[ ${OS_CODENAME,,} = *"bookworm"* ]]; then #(checks for upper and lower case)
+# Workaround for current Tomcat incompatibilities with Debian 12 (stable and testing repos)
+if [[ ${OS_NAME,,} = "debian" && ${OS_CODENAME,,} = *"bookworm"* ]] || [[ ${OS_NAME,,} = "debian" && ${OS_CODENAME,,} = *"trixie"* ]]; then #(checks for upper and lower case)
     # Add the oldstable repo and downgrade tomcat version install
     echo "deb http://deb.debian.org/debian/ bullseye main" | sudo tee /etc/apt/sources.list.d/bullseye.list &> /dev/null
     sudo apt-get update -qq &> /dev/null
@@ -223,7 +223,7 @@ fi
 # Uncomment here to force a specific Tomcat version.
 # TOMCAT_VERSION="tomcat9"
 
-# Standardise on a lexicon for the different MySQL package optiions
+# Standardise on a lexicon for the different MySQL package options
 if [[ -z "${MYSQL_VERSION}" ]]; then
     # Use Linux distro default version.
     MYSQLSRV="default-mysql-server default-mysql-client mysql-common" # Server
@@ -239,7 +239,7 @@ fi
 # Current package names for various distros are referenced at https://guacamole.apache.org/doc/gug/installing-guacamole.html
 JPEGTURBO=""
 LIBPNG=""
-if [[ $OS_NAME == "ubuntu" ]] || [[ $OS_NAME == *"ubuntu"* ]]; then # potentially expand out distro choices here
+if [[ $OS_NAME == "ubuntu" ]] || [[ $OS_NAME == *"ubuntu"* ]]; then # expand out distro choices here
     JPEGTURBO="libjpeg-turbo8-dev"
     LIBPNG="libpng-dev"
     # Just in case this repo is not present in the distro

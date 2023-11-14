@@ -90,3 +90,8 @@ Nginx load / DoS testing
 https://ourcodeworld.com/articles/read/949/how-to-perform-a-dos-attack-slow-http-with-slowhttptest-test-your-server-slowloris-protection-in-kali-linux
 slowhttptest -c 10000 -H -g -o ./output_file -i 3 -r 500 -t GET -u http://jumpbox.domain.com -x 24 -p 2
 
+
+#####################################################
+Allow local browser microphone redirect without TLS
+#####################################################
+chrome://flags/#unsafely-treat-insecure-origin-as-secure
