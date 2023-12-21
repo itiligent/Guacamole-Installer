@@ -86,6 +86,7 @@ GUAC_VERSION="1.5.3"
 
 # MySQL Connector/J version to install
 MYSQLJCON="8.2.0"
+MYSQLJCON_LINK="https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${MYSQLJCON}.tar.gz"
 
 # Set preferred Apache CDN download link
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
@@ -93,6 +94,7 @@ GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guac
 # See https://mariadb.org/mariadb/all-releases/ for available versions.
 # Provide a specific MySQL version e.g. 11.1.2 or leave blank to use distro default MySQL packages.
 MYSQL_VERSION=""
+MARIADB_LINK="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
 
 # Guacamole default install URL
 GUAC_URL=http://localhost:8080/guacamole/
@@ -704,7 +706,9 @@ export DOWNLOAD_DIR="${DOWNLOAD_DIR}"
 export GUAC_VERSION=$GUAC_VERSION
 export GUAC_SOURCE_LINK=$GUAC_SOURCE_LINK
 export MYSQLJCON=$MYSQLJCON
+export MYSQLJCON_LINK=$MYSQLJCON_LINK
 export MYSQL_VERSION=$MYSQL_VERSION
+export MARIADB_LINK=$MARIADB_LINK
 export MYSQLSRV=$MYSQLSRV
 export MYSQLCLIENT=$MYSQLCLIENT
 export DB_CMD=$DB_CMD

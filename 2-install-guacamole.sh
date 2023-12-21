@@ -58,7 +58,7 @@ if [[ -n "${MYSQL_VERSION}" ]]; then
     echo -e "${GREY}Adding the official MariaDB repository and installing version ${MYSQL_VERSION}..."
     # Add the Official MariaDB repo.
     apt-get -qq -y install curl gnupg2 &>>${INSTALL_LOG}
-    curl -LsS -O https://downloads.mariadb.com/MariaDB/mariadb_repo_setup &>>${INSTALL_LOG}
+    curl -LsS -O ${MARIADB_LINK} &>>${INSTALL_LOG}
     bash mariadb_repo_setup --mariadb-server-version=$MYSQL_VERSION &>>${INSTALL_LOG}
     if [[ $? -ne 0 ]]; then
         echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
@@ -165,10 +165,10 @@ else
 fi
 
 # Download MySQL connector/j
-wget -q --show-progress -O mysql-connector-j-${MYSQLJCON}.tar.gz https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${MYSQLJCON}.tar.gz
+wget -q --show-progress -O mysql-connector-j-${MYSQLJCON}.tar.gz ${MYSQLJCON_LINK}
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}Failed to download mysql-connector-j-${MYSQLJCON}.tar.gz" 1>&2
-    echo -e "https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${MYSQLJCON}}.tar.gz${GREY}"
+    echo -e "${MYSQLJCON_LINK}${GREY}"
     exit 1
 else
     tar -xzf mysql-connector-j-${MYSQLJCON}.tar.gz
