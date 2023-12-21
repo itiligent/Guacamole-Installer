@@ -50,7 +50,7 @@ mkdir -p $DOWNLOAD_DIR
 chown -R $SUDO_USER:root $DOWNLOAD_DIR
 
 # Version of Guacamole to upgrade to. See https://guacamole.apache.org/releases/ for latest version info.
-NEW_GUAC_VERSION="1.5.3"
+NEW_GUAC_VERSION="1.5.4"
 
 # MySQL Connector/J version. See https://dev.mysql.com/downloads/connector/j/ for latest version number.
 NEW_MYSQLJCON="8.2.0"
