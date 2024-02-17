@@ -86,7 +86,9 @@ echo
 # Start upgrade actions  ##############################################################################################
 #######################################################################################################################
 
+sudo apt-get update -qq
 apt-get upgrade -qq -y
+apt-get -qq -y install build-essential
 
 # Stop tomcat and guacd
 systemctl stop ${TOMCAT_VERSION}
@@ -336,6 +338,7 @@ fi
 
 # Cleanup
 echo -e "${GREY}Clean up install files...${GREY}"
+sudo apt remove build-essential
 rm -rf guacamole-*
 rm -rf mysql-connector-j-*
 if [[ $? -ne 0 ]]; then

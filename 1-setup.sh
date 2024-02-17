@@ -91,8 +91,8 @@ MYSQLJCON_LINK="https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-
 # Set preferred Apache CDN download link
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
 
+# Provide a specific MySQL version e.g. 11.1.2 or leave blank "" to use distro default MySQL packages.
 # See https://mariadb.org/mariadb/all-releases/ for available versions.
-# Provide a specific MySQL version e.g. 11.1.2 or leave blank to use distro default MySQL packages.
 MYSQL_VERSION=""
 MARIADB_LINK="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
 
@@ -118,7 +118,7 @@ GUAC_DB=""                      # If blank default is guacamole_db
 GUAC_USER=""                    # If blank default is guacamole_user
 MYSQL_ROOT_PWD=""               # Requires an entry here or at script prompt.
 GUAC_PWD=""                     # Requires an entry here or at script prompt.
-DB_TZ=$(cat /etc/timezone)      # Leave blank for UTC, for local tz $(cat /etc/timezone)
+DB_TZ=$(cat /etc/timezone)      # Set to "" for UTC, for local tz $(cat /etc/timezone)
 INSTALL_TOTP=""                 # Add TOTP MFA extension (true/false)
 INSTALL_DUO=""                  # Add DUO MFA extension (can't be installed simultaneously with TOTP, true/false)
 INSTALL_LDAP=""                 # Add Active Directory extension (true/false)
@@ -184,7 +184,7 @@ chmod +x *.sh
 echo -e "${LYELLOW}Ctrl+Z now to exit now if you wish to customise 1-setup.sh options or create an unattended install."
 echo
 
-# This first sudo command is a trigger to pause for setup script customisation shown above, or continue as sudo where needed.
+# This first sudo command is a trigger to pause for setup script customisation shown above, then to continue as sudo where needed.
 sudo apt-get update -qq &> /dev/null
 
 #######################################################################################################################
@@ -197,7 +197,7 @@ OS_NAME=$ID
 OS_VERSION=$VERSION_ID
 OS_CODENAME=$VERSION_CODENAME
 
-# Check for the latest version of Tomcat currently supported by the distro
+# Check for the more recent versions of Tomcat currently supported by the distro
 if [[ $(apt-cache show tomcat10 2>/dev/null | egrep "Version: 10" | wc -l) -gt 0 ]]; then
     TOMCAT_VERSION="tomcat10"
 elif [[ $(apt-cache show tomcat9 2>/dev/null | egrep "Version: 9" | wc -l) -gt 0 ]]; then
@@ -241,12 +241,12 @@ fi
 # Current package names for various distros are referenced at https://guacamole.apache.org/doc/gug/installing-guacamole.html
 JPEGTURBO=""
 LIBPNG=""
-if [[ $OS_NAME == "ubuntu" ]] || [[ $OS_NAME == *"ubuntu"* ]]; then # expand out distro choices here
+if [[ $OS_NAME == "ubuntu" ]] || [[ $OS_NAME == *"ubuntu"* ]]; then 
     JPEGTURBO="libjpeg-turbo8-dev"
     LIBPNG="libpng-dev"
     # Just in case this repo is not present in the distro
     sudo add-apt-repository -y universe &>>${INSTALL_LOG}
-elif [[ $OS_NAME == "debian" ]] || [[ $OS_NAME == "raspbian" ]]; then # expand distro choices here if required
+elif [[ $OS_NAME == "debian" ]] || [[ $OS_NAME == "raspbian" ]]; then 
     JPEGTURBO="libjpeg62-turbo-dev"
     LIBPNG="libpng-dev"
 fi
@@ -352,16 +352,16 @@ else
     $(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
 fi
 
-# Now that $SERVER_NAME and $LOCAL_DOMAIN values are updated and refreshed values are merged to build 
+# Now that $SERVER_NAME and $LOCAL_DOMAIN values are updated and refreshed, both values are merged to build 
 # a local FQDN value (this is later used for the default reverse proxy site name.)
 DEFAULT_FQDN=$SERVER_NAME.$LOCAL_DOMAIN
 
-# Default RDP share and host labels will now assume the updated $SERVER_NAME value (if not otherwise specified in silent setup options).
+# Default RDP share and host labels will now use the updated $SERVER_NAME value as default (if not otherwise specified in silent setup options).
 if [[ -z ${RDP_SHARE_HOST} ]]; then
     RDP_SHARE_HOST=$SERVER_NAME
 fi
 
-# Prompt the user to install MySQL
+# Prompt to install MySQL
 echo -e "${LGREEN}MySQL setup options:${GREY}"
 if [[ -z ${INSTALL_MYSQL} ]]; then
     echo -e -n "SQL: Install MySQL locally? (For a REMOTE MySQL server select 'n') [Y/n] [default y]: ${GREY}"
@@ -373,7 +373,7 @@ if [[ -z ${INSTALL_MYSQL} ]]; then
     fi
 fi
 
-# Prompt the user to apply the Mysql secure installation locally
+# Prompt to apply the Mysql secure installation locally
 if [[ -z ${SECURE_MYSQL} ]] && [[ "${INSTALL_MYSQL}" = true ]]; then
     echo -e -n "${GREY}SQL: Apply MySQL secure installation settings to LOCAL db? [Y/n] [default y]: ${GREY}"
     read PROMPT
@@ -452,7 +452,7 @@ if [[ -z ${BACKUP_EMAIL} ]]; then
 fi
 
 echo
-# Prompt the user to install TOTP MFA
+# Prompt to install TOTP MFA
 echo -e "${LGREEN}Guacamole authentication extension options:${GREY}"
 if [[ -z "${INSTALL_TOTP}" ]] && [[ "${INSTALL_DUO}" != true ]]; then
     echo -e -n "AUTH: Install TOTP? (choose 'n' if you want Duo) [y/N]? [default n]: "
@@ -465,7 +465,7 @@ if [[ -z "${INSTALL_TOTP}" ]] && [[ "${INSTALL_DUO}" != true ]]; then
     fi
 fi
 
-# Prompt the user to install Duo MFA
+# Prompt to install Duo MFA
 if [[ -z "${INSTALL_DUO}" ]] && [[ "${INSTALL_TOTP}" != true ]]; then
     echo -e -n "${GREY}AUTH: Install Duo? [y/N] [default n]: "
     read PROMPT
@@ -483,7 +483,7 @@ if [[ "${INSTALL_TOTP}" = true ]] && [[ "${INSTALL_DUO}" = true ]]; then
     exit 1
 fi
 
-# Prompt the user to install Duo MFA
+# Prompt to install Duo MFA
 if [[ -z "${INSTALL_LDAP}" ]]; then
     echo -e -n "${GREY}AUTH: Install LDAP? [y/N] [default n]: "
     read PROMPT
@@ -495,7 +495,7 @@ if [[ -z "${INSTALL_LDAP}" ]]; then
 fi
 
 echo
-# Prompt the user to install the Quick Connect feature (some higher security use cases may not want this)
+# Prompt to install the Quick Connect feature (some higher security use cases may not want this)
 echo -e "${LGREEN}Guacamole console optional extras:${GREY}"
 if [[ -z "${INSTALL_QCONNECT}" ]]; then
     echo -e -n "${GREY}EXTRAS: Install Quick Connect feature? [y/N] [default n]: "
@@ -507,7 +507,7 @@ if [[ -z "${INSTALL_QCONNECT}" ]]; then
     fi
 fi
 
-# Prompt the user to install the History Recorded Storage feature
+# Prompt to install the History Recorded Storage feature
 if [[ -z "${INSTALL_HISTREC}" ]]; then
     echo -e -n "${GREY}EXTRAS: Install History Recorded Storage feature [y/N] [default n]: "
     read PROMPT
@@ -812,10 +812,19 @@ if [[ $INSTALL_LDAP == "true" ]]; then
 fi
 
 # Tidy up
+echo
+echo -e "${GREY}Removing build-essential packages..."
 mv $USER_HOME_DIR/1-setup.sh $DOWNLOAD_DIR
-apt-get -y autoremove &>>${INSTALL_LOG}
+sudo apt remove -y build-essential &>>${INSTALL_LOG} # Lets not leave build resources installed on a secure system
+sudo apt-get -y autoremove &>>${INSTALL_LOG}
+if [[ $? -ne 0 ]]; then
+    echo -e "${LRED}Failed. See ${INSTALL_LOG}${GREY}" 1>&2
+    exit 1
+else
+    echo -e "${LGREEN}OK${GREY}"
+    echo
+fi
 
 # Done
-echo
 printf "${LGREEN}Guacamole ${GUAC_VERSION} install complete! \n${NC}"
 echo -e ${NC}
