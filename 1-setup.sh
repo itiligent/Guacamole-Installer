@@ -188,7 +188,7 @@ echo
 sudo apt-get update -qq &> /dev/null
 
 #######################################################################################################################
-# Logic for determining package dependencies between distros & database options. MODIFY ONLY IF NEEDED ################
+# Package dependency handling and workarounds for various distros MODIFY ONLY IF NEEDED ###############################
 #######################################################################################################################
 
 # Standardise on a distro version identification lexicon
@@ -196,6 +196,33 @@ source /etc/os-release
 OS_NAME=$ID
 OS_VERSION=$VERSION_ID
 OS_CODENAME=$VERSION_CODENAME
+
+# Standardise on a lexicon for the different MySQL package options
+if [[ -z "${MYSQL_VERSION}" ]]; then
+    # Use Linux distro default version.
+    MYSQLSRV="default-mysql-server default-mysql-client mysql-common" # Server
+    MYSQLCLIENT="default-mysql-client" # Client
+    DB_CMD="mysql" # The mysql -v command is depricated on some versions, here is an option to substitute any another.
+else
+    # Use official mariadb.org repo
+    MYSQLSRV="mariadb-server mariadb-client mariadb-common" # Server
+    MYSQLCLIENT="mariadb-client" # Client
+    DB_CMD="mariadb" # The mysql -v command is depricated on some versions, option to substitute any another.
+fi
+
+# Standardise on a lexicon for the differing dependency package names between distros
+# Current package names for various distros are referenced at https://guacamole.apache.org/doc/gug/installing-guacamole.html
+JPEGTURBO=""
+LIBPNG=""
+if [[ $OS_NAME == "ubuntu" ]] || [[ $OS_NAME == *"ubuntu"* ]]; then 
+    JPEGTURBO="libjpeg-turbo8-dev"
+    LIBPNG="libpng-dev"
+    # Just in case this repo is not present in the distro
+    sudo add-apt-repository -y universe &>>${INSTALL_LOG}
+elif [[ $OS_NAME == "debian" ]] || [[ $OS_NAME == "raspbian" ]]; then 
+    JPEGTURBO="libjpeg62-turbo-dev"
+    LIBPNG="libpng-dev"
+fi
 
 # Check for the more recent versions of Tomcat currently supported by the distro
 if [[ $(apt-cache show tomcat10 2>/dev/null | egrep "Version: 10" | wc -l) -gt 0 ]]; then
@@ -205,7 +232,7 @@ elif [[ $(apt-cache show tomcat9 2>/dev/null | egrep "Version: 9" | wc -l) -gt 0
 elif [[ $(apt-cache show tomcat8 2>/dev/null | egrep "Version: 8.[5-9]" | wc -l) -gt 0 ]]; then
     TOMCAT_VERSION="tomcat8"
 else
-    # Default to version
+    # Default to this version
     TOMCAT_VERSION="tomcat9"
 fi
 
@@ -225,30 +252,17 @@ fi
 # Uncomment here to force a specific Tomcat version.
 # TOMCAT_VERSION="tomcat9"
 
-# Standardise on a lexicon for the different MySQL package options
-if [[ -z "${MYSQL_VERSION}" ]]; then
-    # Use Linux distro default version.
-    MYSQLSRV="default-mysql-server default-mysql-client mysql-common" # Server
-    MYSQLCLIENT="default-mysql-client" # Client
-    DB_CMD="mysql" # The mysql -v command is depricated on some versions, here is an option to substitute any another.
-else
-    # Use official mariadb.org repo
-    MYSQLSRV="mariadb-server mariadb-client mariadb-common" # Server
-    MYSQLCLIENT="mariadb-client" # Client
-    DB_CMD="mariadb" # The mysql -v command is depricated on some versions, option to substitute any another.
-fi
-# Standardise on a lexicon for the differing dependency package names between distros
-# Current package names for various distros are referenced at https://guacamole.apache.org/doc/gug/installing-guacamole.html
-JPEGTURBO=""
-LIBPNG=""
-if [[ $OS_NAME == "ubuntu" ]] || [[ $OS_NAME == *"ubuntu"* ]]; then 
-    JPEGTURBO="libjpeg-turbo8-dev"
-    LIBPNG="libpng-dev"
-    # Just in case this repo is not present in the distro
-    sudo add-apt-repository -y universe &>>${INSTALL_LOG}
-elif [[ $OS_NAME == "debian" ]] || [[ $OS_NAME == "raspbian" ]]; then 
-    JPEGTURBO="libjpeg62-turbo-dev"
-    LIBPNG="libpng-dev"
+# Workaround for issue #31
+if [[ "${OS_NAME,,}" = "debian" && "${OS_CODENAME,,}" = *"bullseye"* ]] || [[ "${OS_NAME,,}" = "ubuntu" && "${OS_CODENAME,,}" = *"focal"* ]]; then
+    IFS='.' read -ra guac_version_parts <<< "${GUAC_VERSION}"
+    major="${guac_version_parts[0]}"
+    minor="${guac_version_parts[1]}"
+    patch="${guac_version_parts[2]}"
+    # Assume this will be correctly fixed in 1.5.5 and is a 1.5.4 specific bug. Uncomment 2nd line if issue persists >=1.5.4 (See https://issues.apache.org/jira/browse/GUACAMOLE-1892))
+	if (( major == 1 && minor == 5 && patch == 4 )); then
+	#if (( major > 1 || (major == 1 && minor > 5) || ( major == 1 && minor == 5 && patch >= 4 ) )); then
+      export LDFLAGS="-lrt"
+    fi
 fi
 
 #######################################################################################################################

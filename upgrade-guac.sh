@@ -76,6 +76,25 @@ GUAC_PWD=
 GUAC_DB=
 MYSQL_ROOT_PWD=
 
+# Standardise on a distro version identification lexicon
+source /etc/os-release
+OS_NAME=$ID
+OS_VERSION=$VERSION_ID
+OS_CODENAME=$VERSION_CODENAME
+
+# Workaround for issue #31
+if [[ "${OS_NAME,,}" = "debian" && "${OS_CODENAME,,}" = *"bullseye"* ]] || [[ "${OS_NAME,,}" = "ubuntu" && "${OS_CODENAME,,}" = *"focal"* ]]; then
+    IFS='.' read -ra guac_version_parts <<< "${GUAC_VERSION}"
+    major="${guac_version_parts[0]}"
+    minor="${guac_version_parts[1]}"
+    patch="${guac_version_parts[2]}"
+    # Assume this will be correctly fixed in 1.5.5 and is a 1.5.4 specific bug. Uncomment 2nd line if issue persists >=1.5.4 (See https://issues.apache.org/jira/browse/GUACAMOLE-1892))
+	if (( major == 1 && minor == 5 && patch == 4 )); then
+	#if (( major > 1 || (major == 1 && minor > 5) || ( major == 1 && minor == 5 && patch >= 4 ) )); then
+      export LDFLAGS="-lrt"
+    fi
+fi
+
 # Script branding header
 echo
 echo -e "${GREYB}Guacamole Appliance Auto Upgrade Script."
