@@ -258,7 +258,7 @@ echo -e "Source download complete.${GREY}"
 
 # Add customised RDP share names and printer labels, remove Guacamole default labelling
 sed -i -e 's/IDX_CLIENT_NAME, "Guacamole RDP"/IDX_CLIENT_NAME, "'"${RDP_SHARE_HOST}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${GUAC_VERSION}/src/protocols/rdp/settings.c
-sed -i -e 's/IDX_DRIVE_NAME, "Guacamole Filesystem"/IDX_CLIENT_NAME, "'"${RDP_SHARE_LABEL}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${GUAC_VERSION}/src/protocols/rdp/settings.c
+sed -i -e 's/IDX_DRIVE_NAME, "Guacamole Filesystem"/IDX_DRIVE_NAME, "'"${RDP_SHARE_LABEL}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${GUAC_VERSION}/src/protocols/rdp/settings.c
 sed -i -e 's/IDX_PRINTER_NAME, "Guacamole Printer"/IDX_PRINTER_NAME, "'"${RDP_PRINTER_LABEL}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${GUAC_VERSION}/src/protocols/rdp/settings.c
 
 # Make Guacamole directories
