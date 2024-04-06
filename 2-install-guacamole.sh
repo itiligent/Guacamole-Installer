@@ -36,6 +36,7 @@ spinner() {
   printf "       "
   tput rc
 }
+# We already ran apt-get update from the 1st setup script, now we begin to upgrade packages
 apt-get upgrade -qq -y &>>${INSTALL_LOG} &
 command_pid=$!
 spinner $command_pid
