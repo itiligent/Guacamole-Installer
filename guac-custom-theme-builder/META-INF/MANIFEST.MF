@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Name: branding
+Specification-Title: Custom Guacamole Theme CSS
+Specification-Version: 1.0
+Implementation-Title: Custom Guacamole Theme CSS
+Implementation-Version: 1.0
+
+
