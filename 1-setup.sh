@@ -82,10 +82,10 @@ mkdir -p $DB_BACKUP_DIR
 GITHUB="https://raw.githubusercontent.com/itiligent/Guacamole-Install/main"
 
 # Version of Guacamole to install
-GUAC_VERSION="1.5.4"
+GUAC_VERSION="1.5.5"
 
 # MySQL Connector/J version to install
-MYSQLJCON="8.2.0"
+MYSQLJCON="8.3.0"
 MYSQLJCON_LINK="https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${MYSQLJCON}.tar.gz"
 
 # Set preferred Apache CDN download link
