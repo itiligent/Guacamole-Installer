@@ -318,6 +318,7 @@ if [[ -z ${SERVER_NAME} ]]; then
     # A SERVER_NAME was derived via the prompt
     # Apply the SERVER_NAME value & remove and update any old 127.0.1.1 localhost references
     $(sudo hostnamectl set-hostname $SERVER_NAME &> /dev/null &) &> /dev/null
+	sleep 1
     sudo sed -i '/127.0.1.1/d' /etc/hosts &>>${INSTALL_LOG}
     echo '127.0.1.1       '${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${INSTALL_LOG}
     $(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
@@ -326,6 +327,7 @@ else
     # A SERVER_NAME value was derived from a pre-set silent install option.
     # Apply the SERVER_NAME value & remove and update any old 127.0.1.1 localhost references
     $(sudo hostnamectl set-hostname $SERVER_NAME &> /dev/null &) &> /dev/null
+	sleep 1
     sudo sed -i '/127.0.1.1/d' /etc/hosts &>>${INSTALL_LOG}
     echo '127.0.1.1       '${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${INSTALL_LOG}
     $(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
@@ -342,6 +344,8 @@ if [[ -z ${LOCAL_DOMAIN} ]]; then
     echo
     # A LOCAL_DOMAIN value was derived via the prompt
     # Remove any old localhost & resolv file values and update these with the new LOCAL_DOMAIN value
+	$(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
+	sleep 1
     sudo sed -i "/${DEFAULT_IP}/d" /etc/hosts
     sudo sed -i '/domain/d' /etc/resolv.conf
     sudo sed -i '/search/d' /etc/resolv.conf
@@ -355,6 +359,8 @@ else
     echo
     # A LOCAL_DOMIN value was derived from a pre-set silent install option.
     # Remove any old localhost & resolv file values and update these with the new LOCAL_DOMAIN value
+	$(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
+	sleep 1
     sudo sed -i "/${DEFAULT_IP}/d" /etc/hosts
     sudo sed -i '/domain/d' /etc/resolv.conf
     sudo sed -i '/search/d' /etc/resolv.conf
