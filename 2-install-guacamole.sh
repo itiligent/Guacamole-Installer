@@ -544,7 +544,8 @@ ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PWD';"
         echo
     fi
 
-    # Find the location of the MySQL or MariaDB config files. (Add more potential config file candidates here.)
+   # A simple method to find the correct file containing the default MySQL timezone setting from a potential list of candidates. 
+   # Add to this array if your distro uses a different path to the .cnf containing the default_time_zone value.
     for x in /etc/mysql/mariadb.conf.d/50-server.cnf \
         /etc/mysql/mysql.conf.d/mysqld.cnf \
         /etc/mysql/my.cnf; do

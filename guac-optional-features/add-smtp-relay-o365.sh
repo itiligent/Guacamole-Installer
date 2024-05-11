@@ -6,12 +6,10 @@
 # April 2023
 #######################################################################################################################
 
-# If run as standalone and not from the main installer script, check the below variables are correct.
-
 # Prerequisites:
 # An office 365 account with a mailbox (NON ADMIN!!)
 # An app password created for the above office 365 user at https://mysignins.microsoft.com/security-info
-# SMTP Auth enabled for that user under "manage mail apps in the Office365 admin centre
+# SMTP Auth enabled for that user under "manage mail apps" in the Office365 admin centre.
 
 # Prepare text output colours
 GREY='\033[0;37m'

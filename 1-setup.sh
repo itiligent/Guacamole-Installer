@@ -96,7 +96,7 @@ GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guac
 MYSQL_VERSION=""
 MARIADB_LINK="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
 
-# Guacamole default install URL
+# Reverse proxy uses this URL:
 GUAC_URL=http://localhost:8080/guacamole/
 
 # Get the default route interface IP. Manually update for multi homed systems or where cloud images may use 127.0.x.x
@@ -125,7 +125,7 @@ INSTALL_LDAP=""                 # Add Active Directory extension (true/false)
 INSTALL_QCONNECT=""             # Add Guacamole console quick connect feature (true/false)
 INSTALL_HISTREC=""              # Add Guacamole history recording storage feature (true/false)
 HISTREC_PATH=""                 # If blank sets Apache default /var/lib/guacamole/recordings
-GUAC_URL_REDIR=""               # Add auto redirect from http://xxx:8080 root to http://xxx:8080/guacamole)
+GUAC_URL_REDIR=""               # Add auto redirect of site root http://xxx:8080 to http://xxx:8080/guacamole
 INSTALL_NGINX=""                # Install and configure Nginx and reverse proxy Guacamole (via http port 80 only, true/false)
 PROXY_SITE=""                   # Local DNS name for reverse proxy site and/or self signed TLS certificates
 SELF_SIGN=""                    # Add self signed TLS support to Nginx (Let's Encrypt not available with this option, true/false)
@@ -252,13 +252,13 @@ fi
 # Uncomment here to force a specific Tomcat version.
 # TOMCAT_VERSION="tomcat9"
 
-# Workaround for issue #31
+# Workaround for 1.5.4 specific bug, see issue #31. This was fixed in 1.5.5
 if [[ "${OS_NAME,,}" = "debian" && "${OS_CODENAME,,}" = *"bullseye"* ]] || [[ "${OS_NAME,,}" = "ubuntu" && "${OS_CODENAME,,}" = *"focal"* ]]; then
     IFS='.' read -ra guac_version_parts <<< "${GUAC_VERSION}"
     major="${guac_version_parts[0]}"
     minor="${guac_version_parts[1]}"
     patch="${guac_version_parts[2]}"
-    # Assume this will be correctly fixed in 1.5.5 and is a 1.5.4 specific bug. Uncomment 2nd line if issue persists >=1.5.4 (See https://issues.apache.org/jira/browse/GUACAMOLE-1892))
+    # Uncomment 2nd line and comment first line if issue returns >=1.5.4 (See https://issues.apache.org/jira/browse/GUACAMOLE-1892))
 	if (( major == 1 && minor == 5 && patch == 4 )); then
 	#if (( major > 1 || (major == 1 && minor > 5) || ( major == 1 && minor == 5 && patch >= 4 ) )); then
       export LDFLAGS="-lrt"

@@ -6,8 +6,12 @@
 # April 2023
 #######################################################################################################################
 
-# The Guacamole schema have not been updated since late 2021, suggesting that its now quite mature and there will be
-# little need to use this, but just in case. Update the database packages separately via apt.
+### IMPORTANT ###
+# Update you MySQL database packages separately first via your package manager first 
+# You only need to run this script if the Guacamole schema have changed between versions (this has not been updated since late 2021 with 1.0, suggesting 
+# that Guacamole is now quite mature and changes may be rare in future. 
+# To acertain if there are schema changes required for an upgraded version, check inside the guacamole-auth-jdbc-GUAC_VERSION.tar.gz 
+# file under /mysql/schema/upgrade/ to find any relevant updates. Only run this script if there are. 
 
 #######################################################################################################################
 # Script pre-flight checks and settings ###############################################################################
@@ -52,10 +56,10 @@ mkdir -p $DOWNLOAD_DIR
 chown -R $SUDO_USER:root $DOWNLOAD_DIR
 
 # Version of Guacamole to upgrade to. See https://guacamole.apache.org/releases/ for latest version info.
-NEW_GUAC_VERSION="1.5.3"
+NEW_GUAC_VERSION="1.5.5"
 
 # The currently installed Guacamole schema version is needed to evaluate the required schema upgrades.
-OLD_GUAC_VERSION="1.5.0"
+OLD_GUAC_VERSION="1.5.4"
 
 # Set preferred Apache CDN download link)
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${NEW_GUAC_VERSION}"
@@ -79,6 +83,7 @@ echo
 #######################################################################################################################
 # Start install actions  ##############################################################################################
 #######################################################################################################################
+
 
 # Download and extract the Guacamole SQL authentication extension containing the database schema
 wget -q --show-progress -O guacamole-auth-jdbc-${NEW_GUAC_VERSION}.tar.gz ${GUAC_SOURCE_LINK}/binary/guacamole-auth-jdbc-${NEW_GUAC_VERSION}.tar.gz

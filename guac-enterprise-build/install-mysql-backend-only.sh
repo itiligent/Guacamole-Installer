@@ -54,7 +54,7 @@ mkdir -p $DOWNLOAD_DIR
 chown -R $SUDO_USER:root $DOWNLOAD_DIR
 
 # Version of Guacamole auth jdbc database schema to use
-GUAC_VERSION="1.5.3"
+GUAC_VERSION="1.5.5"
 
 # Set preferred Apache CDN download link)
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
@@ -85,6 +85,7 @@ GUAC_USER="guacamole_user" # Default is guacamole_user
 GUAC_PWD="test"            # Requires an entry
 MYSQL_ROOT_PWD="test"      # Requires an entry.
 DB_TZ=$(cat /etc/timezone) # Typically system default (cat /etc/timezone) or change to "UTC" if required.
+MYSQL_VERSION=""           # Blank "" will use distro default MySQL packages. Enter a specific MySQL version for official Maria repo eg. 11.1.2. See https://mariadb.org/mariadb/all-releases/ for available versions.
 
 # For a remotely accessed back end DB instance, keep this script set to BACKEND_MYSQL="true".
 # Other options are fairly straight forward. For a typical back end server only the $FRONTEND_NET and $MYSQL_BIND_ADDR
@@ -98,8 +99,7 @@ DB_TZ=$(cat /etc/timezone) # Typically system default (cat /etc/timezone) or cha
 # Start install actions  ##############################################################################################
 #######################################################################################################################
 
-# Choose a specific MySQL version e.g. 11.1.2 See https://mariadb.org/mariadb/all-releases/ for available versions.
-MYSQL_VERSION="" # Blank "" forces distro default MySQL packages.
+# Standardise on a lexicon for the different MySQL package options
 if [[ -z "${MYSQL_VERSION}" ]]; then
     # Use Linux distro default version.
     MYSQLPKG="default-mysql-server default-mysql-client mysql-common"
@@ -155,7 +155,7 @@ else
     echo
 fi
 
-# Set the root password without a reliance on debconf.
+# Set the MySQL root password without a reliance on debconf (may not be present in all distros).
 echo -e "${GREY}Setting MySQL root password..."
 SQLCODE="
 FLUSH PRIVILEGES;
@@ -169,7 +169,8 @@ else
     echo
 fi
 
-# Find the location of the MySQL or MariaDB config files. (Add to this list for more potential candidates.)
+# A simple method to find the correct file containing the default MySQL timezone setting from a potential list of candidates.
+# and then update that timzone value. Add to this array if your distro uses a different path to the .cnf contaiing the default_time_zone value.
 for x in /etc/mysql/mariadb.conf.d/50-server.cnf \
     /etc/mysql/mysql.conf.d/mysqld.cnf \
     /etc/mysql/my.cnf; do
