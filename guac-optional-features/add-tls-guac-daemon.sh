@@ -65,11 +65,13 @@ DNS.1               = localhost
 IP.1                = 127.0.0.1
 EOF
 
-# Create the self signing request, certificate & key
+# Create the self signing request, certificate & key. 
+# If splitting guacd (backend) and guacamole (front end) across separate systems, run this command on guacd and then copy certs to the same location on guacamole server.
+# Also consider omitting the setting -config cert_attributes.txt or IP.1 = 0.0.0.0 for future ip address changes if splitting.
 openssl req -x509 -nodes -days $CERT_DAYS -newkey rsa:$RSA_KEY_LENGTH -keyout /etc/guacamole/ssl/guacd.key -out /etc/guacamole/ssl/guacd.crt -config cert_attributes.txt
 rm -f cert_attributes.txt
 
-# Point Guacamole config file to certificate and key
+# Point Guacamole config file to certificate and key. (If splitting, run this on guacd after changing bind_ host to 0.0.0.0 ).
 cp /etc/guacamole/guacd.conf /etc/guacamole/guacd.conf.bak
 cat <<EOF | sudo tee /etc/guacamole/guacd.conf
 [server]
@@ -80,19 +82,19 @@ server_certificate = /etc/guacamole/ssl/guacd.crt
 server_key = /etc/guacamole/ssl/guacd.key
 EOF
 
-# Enable TLS backend
+# Enable TLS backend (Add this to guacamole server front end if splitting)
 cat <<EOF | sudo tee -a /etc/guacamole/guacamole.properties
 guacd-ssl: true
 EOF
 
-# Fix required permissions as guacd only runs as daemon
+# Fix required permissions as guacd only runs as daemon (Run on both systems if splitting)
 chown daemon:daemon /etc/guacamole/ssl
 chown daemon:daemon /etc/guacamole/ssl/guacd.key
 chown daemon:daemon /etc/guacamole/ssl/guacd.crt
 chmod 644 /etc/guacamole/ssl/guacd.crt
 chmod 644 /etc/guacamole/ssl/guacd.key
 
-# Add the new certificate into the Java Runtime certificate store and set JRE to trust it.
+# Add the new certificate into the Java Runtime certificate store and set JRE to trust it. (Run on guacamole server front end if splitting)
 cd /etc/guacamole/ssl
 keytool -importcert -alias guacd -noprompt -cacerts -storepass changeit -file guacd.crt
 
