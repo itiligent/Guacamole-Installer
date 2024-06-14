@@ -47,13 +47,13 @@ ldap-max-search-results:200
 
 - **Important note on `mysql-auto-create-accounts:`** This line is optional and can be deleted if using Active Directory authentication without Guacamole's implementation of MFA. This line ensures that all Active Directory user accounts will have a matching user account created in the Guacamole database at thier first Guacmaole logon with thier AD accout. Only if Gucamole's MFA feature is to be provisioned is a local Guacamole account required, and automating this step can aid MFA deployment. If you want to provision Guacamole MFA access to just a limited selection of Active Diretory users, you may remove this line and manually create the passwordless Guacamole database local account pairings as needed. [See below for more.](https://github.com/itiligent/Guacamole-Install/blob/main/ACTIVE-DIRECTORY-HOW-TO.md#busts_in_silhouette-manually-creating-and-configuring-new-guacamole-users-for-active-directory-authentication-with-mfa) 
 
-#### If your AD has TLS implemented via a self signed certificate you must also apply the 5 steps below, else skip... For more info see [#18](https://github.com/itiligent/Guacamole-Install/issues/18)
+#### If your AD has TLS implemented via a self signed certificate you must also apply the extra TLS tasks A to E below, else skip to Step 4 ... For more info see [#18](https://github.com/itiligent/Guacamole-Install/issues/18)
 
-1. Adjust this line in the above template for add-ldap-auth-guacamole.sh (Values can be none, ssl or stattls) 
+TLS task A. Adjust this line in the above template for add-ldap-auth-guacamole.sh (Values can be none, ssl or stattls) 
 ```
 ldap-encryption-method: starttls 
 ```
-2. Next, you must obtain your AD TLS cert. 
+TLS task B. Next, you must obtain your AD TLS cert. 
 ```
 openssl s_client -connect X.X.X.X:389 \
               -starttls ldap \
@@ -61,12 +61,12 @@ openssl s_client -connect X.X.X.X:389 \
               openssl x509 -text | \
               sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p'
 ```
-3. Copy the certificate contents from -----BEGIN CERTIFICATE----- to -----END CERTIFICATE----- and paste this into a file (e.g. adcert.pem as per below)
+TLS task C. Copy the certificate contents from -----BEGIN CERTIFICATE----- to -----END CERTIFICATE----- and paste this into a file (e.g. adcert.pem as per below)
 ```
 sudo nano /etc/ssl/certs/adcert.pem  # then paste certificate output
 ```
 
-4. Now import the AD cert file into the Java keystore
+TLS task D. Now import the AD cert file into the Java keystore
 ```
 sudo keytool -importcert -alias adcert \
 	-file /etc/ssl/certs/adcert.pem \
@@ -74,9 +74,9 @@ sudo keytool -importcert -alias adcert \
 	-storepass changeit \
 	-noprompt
 ```
-5. Restart Apache Tomcat
+TLS task E. Restart Apache Tomcat
 ````
-systemctl restart tomcat9
+TOMCAT=$(ls /etc/ | grep tomcat) && sudo systemctl restart ${TOMCAT}
 ````
 
 ### :computer: **Step 4: Run the (now customised) LDAP configuration script**
