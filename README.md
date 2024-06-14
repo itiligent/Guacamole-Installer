@@ -69,7 +69,7 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 
 ## Customise & Brand Your Guacamole Theme
 
-<img src="https://github.githubassets.com/images/icons/emoji/art.png" width="23"> **Want to give Guacamole your personal touch? Follow the theme and branding instructions** [here](https://github.com/itiligent/Guacamole-Install/tree/main/guac-custom-theme-builder). To revert to the Guacamole default theme, simply delete the branding.jar file from /etc/guacamole/extensions, run `TOMCAT=$(ls /etc/ | grep tomcat) && sudo systemctl restart  ${TOMCAT} && sudo systemctl restart guacd && sudo systemctl restart nginx`, then clear your browser's cache. 
+<img src="https://github.githubassets.com/images/icons/emoji/art.png" width="23"> **Want to give Guacamole your personal touch? Follow the theme and branding instructions** [here](https://github.com/itiligent/Guacamole-Install/tree/main/guac-custom-theme-builder). To revert to the Guacamole default theme, simply delete the branding.jar file from /etc/guacamole/extensions, run `TOMCAT=$(ls /etc/ | grep tomcat) && sudo systemctl restart ${TOMCAT} && sudo systemctl restart guacd && sudo systemctl restart nginx`, then clear your browser's cache. 
 
 ## Managing self signed TLS certs with Nginx (the easy way!)
 
