@@ -20,8 +20,8 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 <img src="https://github.githubassets.com/images/icons/emoji/lock.png" width="23"> **Before diving in, make sure you have:**
 
 - **A compatible OS (with sudo & wget packages installed):**
-    - **Debian 12, 11 or 10**
-    - **Ubuntu 23.04, 22.04, 20.04**
+    - **Debian: 12.x, 11.x 10.x**
+    - **Ubuntu LTS variants: 24.04, 23.04, 22.04, 20.04**
     - **Raspbian Buster or Bullseye**
     - **Official vendor cloud images equivalent to the above versions.** 
       - (if your cloud image uses an IP of 127.0.1.1, [see here to use TLS with Nginx](https://github.com/itiligent/Guacamole-Install/issues/21))

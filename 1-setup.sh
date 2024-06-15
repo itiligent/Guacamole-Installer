@@ -188,7 +188,7 @@ echo
 sudo apt-get update -qq &> /dev/null
 
 #######################################################################################################################
-# Package dependency handling and workarounds for various distros, MODIFY ONLY IF NEEDED ###############################
+# Package dependency handling and workarounds for various distros, MODIFY ONLY IF NEEDED ##############################
 #######################################################################################################################
 
 # Standardise on a distro version identification lexicon
@@ -229,23 +229,31 @@ if [[ $(apt-cache show tomcat10 2>/dev/null | egrep "Version: 10" | wc -l) -gt 0
     TOMCAT_VERSION="tomcat10"
 elif [[ $(apt-cache show tomcat9 2>/dev/null | egrep "Version: 9" | wc -l) -gt 0 ]]; then
     TOMCAT_VERSION="tomcat9"
-elif [[ $(apt-cache show tomcat8 2>/dev/null | egrep "Version: 8.[5-9]" | wc -l) -gt 0 ]]; then
-    TOMCAT_VERSION="tomcat8"
 else
     # Default to this version
     TOMCAT_VERSION="tomcat9"
 fi
 
-# Workaround for current Tomcat incompatibilities with Debian 12 (includes workaround for Debian 12 stable and testing repos)
+#######################################################################################################################
+# Ongoing fixes and workarounds as distros diverge/change #############################################################
+#######################################################################################################################
+
+# Workaround for Debian incompatibilities with latet Tomcat versions. (Add the oldstable repo and downgrade the Tomcat version to be installed)
 if [[ ${OS_NAME,,} = "debian" && ${OS_CODENAME,,} = *"bookworm"* ]] || [[ ${OS_NAME,,} = "debian" && ${OS_CODENAME,,} = *"trixie"* ]]; then #(checks for upper and lower case)
-    # Add the oldstable repo and downgrade tomcat version install
     echo "deb http://deb.debian.org/debian/ bullseye main" | sudo tee /etc/apt/sources.list.d/bullseye.list &> /dev/null
     sudo apt-get update -qq &> /dev/null
     TOMCAT_VERSION="tomcat9"
 fi
 
-# Workaround for Ubuntu 23.x & Tomcat 10 incompatibilities
+# Workaround for Ubuntu 23.x Tomcat 10 incompatibilities. Force older version 9 also found in the Lunar repo.
 if [[ ${OS_NAME,,} = "ubuntu" ]] && [[ ${OS_CODENAME,,} = *"lunar"* ]]; then  #(checks for upper and lower case)
+    TOMCAT_VERSION="tomcat9"
+fi
+
+# Workaround for Ubuntu 24.x Tomcat 10 incompatibilities, add old Jammy repo and downgrade the Tomcat version to be installed
+if [[ ${OS_NAME,,} = "ubuntu" && ${OS_CODENAME,,} = *"noble"* ]]; then #(checks for upper and lower case)
+    echo "deb http://archive.ubuntu.com/ubuntu/ jammy universe" | sudo tee /etc/apt/sources.list.d/jammy.list &> /dev/null
+    sudo apt-get update -qq &> /dev/null
     TOMCAT_VERSION="tomcat9"
 fi
 
