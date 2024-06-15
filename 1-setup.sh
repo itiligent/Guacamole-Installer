@@ -83,20 +83,18 @@ GITHUB="https://raw.githubusercontent.com/itiligent/Guacamole-Install/main"
 
 # Version of Guacamole to install
 GUAC_VERSION="1.5.5"
+GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
 
 # MySQL Connector/J version to install
-MYSQLJCON="8.3.0"
-MYSQLJCON_LINK="https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${MYSQLJCON}.tar.gz"
-
-# Set preferred Apache CDN download link
-GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
+MYSQLJCON="8.4.0"
+MYSQLJCON_SOURCE_LINK="https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${MYSQLJCON}.tar.gz"
 
 # Provide a specific MySQL version e.g. 11.1.2 or leave blank "" to use distro default MySQL packages.
 # See https://mariadb.org/mariadb/all-releases/ for available versions.
 MYSQL_VERSION=""
-MARIADB_LINK="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
+MARIADB_SOURCE_LINK="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
 
-# Reverse proxy uses this URL:
+# Reverse proxy uses this URL (Guacamole default is http://localhost:8080/guacamole/):
 GUAC_URL=http://localhost:8080/guacamole/
 
 # Get the default route interface IP. Manually update for multi homed systems or where cloud images may use 127.0.x.x
@@ -112,23 +110,23 @@ SERVER_NAME=""                  # Server hostname. (Blank = use the current host
 LOCAL_DOMAIN=""                 # Local DNS namespace/domain suffix
 INSTALL_MYSQL=""                # Install MySQL locally (true/false)
 SECURE_MYSQL=""                 # Apply mysql secure configuration tool (true/false)
-MYSQL_HOST=""                   # Blank or localhost for a local MySQL install, a specific IP for remote MySQL option.
-MYSQL_PORT=""                   # If blank default is 3306
-GUAC_DB=""                      # If blank default is guacamole_db
-GUAC_USER=""                    # If blank default is guacamole_user
+MYSQL_HOST=""                   # Blank "" = localhost/local MySQL install, a specific IP address will assume a remote MySQL instance.
+MYSQL_PORT=""                   # If blank "" default is 3306
+GUAC_DB=""                      # If blank "" default is guacamole_db
+GUAC_USER=""                    # If blank "" default is guacamole_user
 MYSQL_ROOT_PWD=""               # Manadatory entry here or at script prompt.
 GUAC_PWD=""                     # Manadatory entry here or at script prompt.
-DB_TZ=$(cat /etc/timezone)      # Set to "" for UTC, for local tz $(cat /etc/timezone)
+DB_TZ=$(cat /etc/timezone)      # Blank "" defaults to UTC, for local tz $(cat /etc/timezone)
 INSTALL_TOTP=""                 # Add TOTP MFA extension (true/false)
-INSTALL_DUO=""                  # Add DUO MFA extension (can't be installed simultaneously with TOTP, true/false)
+INSTALL_DUO=""                  # Add DUO MFA extension (true/false, can't be installed simultaneously with TOTP)
 INSTALL_LDAP=""                 # Add Active Directory extension (true/false)
 INSTALL_QCONNECT=""             # Add Guacamole console quick connect feature (true/false)
 INSTALL_HISTREC=""              # Add Guacamole history recording storage feature (true/false)
-HISTREC_PATH=""                 # If blank sets Apache default /var/lib/guacamole/recordings
-GUAC_URL_REDIR=""               # Add auto redirect of site root http://xxx:8080 to http://xxx:8080/guacamole
+HISTREC_PATH=""                 # If blank "" sets the Apache default of /var/lib/guacamole/recordings
+GUAC_URL_REDIR=""               # Auto redirect of host root URL http://xxx:8080 to http://xxx:8080/guacamole  (true/false)
 INSTALL_NGINX=""                # Install and configure Nginx and reverse proxy Guacamole (via http port 80 only, true/false)
-PROXY_SITE=""                   # Local DNS name for reverse proxy site and/or self signed TLS certificates
-SELF_SIGN=""                    # Add self signed TLS support to Nginx (Let's Encrypt not available with this option, true/false)
+PROXY_SITE=""                   # Local DNS name for reverse proxy site and/or self signed TLS certificates (Blank "" defaults to $DEFAULT_FQDN)
+SELF_SIGN=""                    # Add self signed TLS support to Nginx (true/false, Let's Encrypt not available with this option)
 RSA_KEYLENGTH="2048"            # Self signed RSA TLS key length. At least 2048, must not be blank.
 CERT_COUNTRY="AU"               # Self signed cert setup, 2 character country code only, must not be blank.
 CERT_STATE="Victoria"           # Self signed cert setup, must not be blank
@@ -136,13 +134,13 @@ CERT_LOCATION="Melbourne"       # Self signed cert setup, must not be blank
 CERT_ORG="Itiligent"            # Self signed cert setup, must not be blank
 CERT_OU="I.T."                  # Self signed cert setup, must not be blank
 CERT_DAYS=""                    # Self signed cert setup, days until self signed TLS cert expiry, blank = default 3650
-LETS_ENCRYPT=""                 # Add Lets Encrypt public TLS cert for Nginx (self signed TLS not available with this option) true/false)
+LETS_ENCRYPT=""                 # Add Lets Encrypt public TLS cert for Nginx (true/false, self signed TLS not available with this option) 
 LE_DNS_NAME=""                  # Public DNS name for Lets Encrypt certificates
 LE_EMAIL=""                     # Webmaster/admin email for Lets Encrypt notifications
-BACKUP_EMAIL=""                 # Email address for backup notifications
-BACKUP_RETENTION="30"           # How many days to keep SQL backups locally for
-RDP_SHARE_LABEL="RDP Share"     # Customise RDP shared drive name in Windows Explorer (e.g. RDP_SHARE_LABEL on RDP_SHARE_HOST)
-RDP_SHARE_HOST=""               # Customise RDP share name in Windows Explorer. Blank = $SERVER_NAME. (e.g. RDP_SHARE_LABEL on RDP_SHARE_HOST)
+BACKUP_EMAIL=""                 # Email address to send backup notifications to
+BACKUP_RETENTION="30"           # How many days to keep SQL backups locally
+RDP_SHARE_HOST=""               # Custom RDP host name in Windows Explorer as as RDP_SHARE_LABEL on RDP_SHARE_HOST. Blank "" = $SERVER_NAME
+RDP_SHARE_LABEL="RDP Share"     # Custom RDP shared drive name in Windows Explorer as "RDP_SHARE_LABEL on RDP_SHARE_HOST" eg. "RDP share on server01"
 RDP_PRINTER_LABEL="RDP Printer" # Customise RDP printer name shown in Windows
 
 #######################################################################################################################
@@ -737,9 +735,9 @@ export OS_NAME=$ID
 export OS_VERSION=$VERSION_ID
 export OS_CODENAME=$VERSION_CODENAME
 export MYSQLJCON=$MYSQLJCON
-export MYSQLJCON_LINK=$MYSQLJCON_LINK
+export MYSQLJCON_SOURCE_LINK=$MYSQLJCON_SOURCE_LINK
 export MYSQL_VERSION=$MYSQL_VERSION
-export MARIADB_LINK=$MARIADB_LINK
+export MARIADB_SOURCE_LINK=$MARIADB_SOURCE_LINK
 export MYSQLSRV=$MYSQLSRV
 export MYSQLCLIENT=$MYSQLCLIENT
 export DB_CMD=$DB_CMD
