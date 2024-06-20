@@ -67,6 +67,12 @@ if [[ "$(find . -maxdepth 1 \( -name 'guacamole-*' -o -name 'mysql-connector-j-*
     exit 1
 fi
 
+# Query the OS version and establish a common naming convention
+source /etc/os-release
+OS_NAME=$ID
+OS_VERSION=$VERSION_ID
+OS_CODENAME=$VERSION_CODENAME
+
 #######################################################################################################################
 # Core setup variables and mandatory inputs - EDIT VARIABLE VALUES TO SUIT ############################################
 #######################################################################################################################
@@ -189,12 +195,6 @@ sudo apt-get update -qq &> /dev/null
 # Package dependency handling and workarounds for various distros, MODIFY ONLY IF NEEDED ##############################
 #######################################################################################################################
 
-# Standardise on a distro version identification lexicon
-source /etc/os-release
-OS_NAME=$ID
-OS_VERSION=$VERSION_ID
-OS_CODENAME=$VERSION_CODENAME
-
 # Standardise on a lexicon for the different MySQL package options
 if [[ -z "${MYSQL_VERSION}" ]]; then
     # Use Linux distro default version.
@@ -212,12 +212,12 @@ fi
 # Current package names for various distros are referenced at https://guacamole.apache.org/doc/gug/installing-guacamole.html
 JPEGTURBO=""
 LIBPNG=""
-if [[ $OS_NAME == "ubuntu" ]] || [[ $OS_NAME == *"ubuntu"* ]]; then 
+if [[ ${OS_NAME,,} = "ubuntu" ]] || [[ ${OS_NAME,,} = *"ubuntu"* ]]; then
     JPEGTURBO="libjpeg-turbo8-dev"
     LIBPNG="libpng-dev"
     # Just in case this repo is not present in the distro
     sudo add-apt-repository -y universe &>>${INSTALL_LOG}
-elif [[ $OS_NAME == "debian" ]] || [[ $OS_NAME == "raspbian" ]]; then 
+elif [[ ${OS_NAME,,} = "debian" ]] || [[ ${OS_NAME,,} = "raspbian" ]]; then
     JPEGTURBO="libjpeg62-turbo-dev"
     LIBPNG="libpng-dev"
 fi
@@ -733,7 +733,7 @@ export GUAC_VERSION=$GUAC_VERSION
 export GUAC_SOURCE_LINK=$GUAC_SOURCE_LINK
 export OS_NAME=$ID
 export OS_VERSION=$VERSION_ID
-export OS_CODENAME=$VERSION_CODENAME
+export OS_CODENAME=$VERSION_CODNAME
 export MYSQLJCON=$MYSQLJCON
 export MYSQLJCON_SOURCE_LINK=$MYSQLJCON_SOURCE_LINK
 export MYSQL_VERSION=$MYSQL_VERSION
