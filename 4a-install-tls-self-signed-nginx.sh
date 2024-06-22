@@ -262,7 +262,7 @@ ${LGREEN}+ LINUX CLIENT SELF SIGNED TLS BROWSER CONFIG - SAVE THIS BEFORE CONTIN
 \n"
 echo -e "(If certutil is not installed, run apt-get install libnss3-tools)"
 echo -e "mkdir -p \$HOME/.pki/nssdb && certutil -d \$HOME/.pki/nssdb -N"
-echo -e "certutil -d sql:$HOME/.pki/nssdb -A -t "CT,C,c" -n $TLSNAME -i $TLSNAME.crt"
+echo -e "certutil -d sql:\$HOME/.pki/nssdb -A -t "CT,C,c" -n $TLSNAME -i $TLSNAME.crt"
 printf "+-------------------------------------------------------------------------------------------------------------\n"
 echo -e "${LYELLOW}The above TLS browser config instructions are saved in ${LGREEN}$INSTALL_LOG${GREY}"
 
