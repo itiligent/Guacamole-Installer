@@ -52,10 +52,9 @@ if ! command -v sudo &> /dev/null; then
 fi
 
 # Make sure the user running setup is a member of the sudo group
-if ! [[ $(id -nG "$USER" 2>/dev/null | egrep "sudo" | wc -l) -gt 0 ]]; then
+if ! id -nG "$USER" | grep -qw "sudo"; then
     echo
-    echo -e "${LRED}The current user (${USER}) must be a member of the 'sudo' group. Run: sudo usermod -aG sudo ${USER}" 1>&2
-    echo -e ${NC}
+    echo -e "${LRED}The current user (${USER}) must be a member of the 'sudo' group. Run: sudo usermod -aG sudo ${USER}${NC}" 1>&2
     exit 1
 fi
 
