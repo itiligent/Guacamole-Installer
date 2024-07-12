@@ -10,15 +10,14 @@
 # wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.sh && chmod +x 1-setup.sh && ./1-setup.sh
 
 # 1-setup.sh is a central script that manages all inputs, options and sequences other included 'install' scripts.
-# 2-install-guacamole is the main guts of the whole build. This script downloads and builds Guacamole from source.
-# 3-install-nginx.sh automatically installs and configures Nginx to work as an http port 80 front end to Guacamole
+# 2-install-guacamole downloads Guacamole source and exectutes all Guacamole's build instructions.
+# 3-install-nginx.sh automatically installs and configures Nginx to work as an http port 80 front end to Guacamole.
 # 4a-install-tls-self-signed-nginx.sh sets up the new Nginx/Guacamole front end with self signed TLS certificates.
 # 4b-install-tls-letsencrypt-nginx.sh sets up Nginx with public TLS certificates from LetsEncrypt.
-# Scripts with "add" in their name can be run post install to add optional features not included in the main install
+# Scripts with "add" in their name can be run post install to add optional features not included in the main install.
 
-# If something isn't working:
+# For troubleshooting check logs or place Guacamole in debug mode:
 #     tail -f /var/log/syslog /var/log/tomcat*/*.out guac-setup/guacamole_setup.log
-# Or for Guacamole debug mode & verbose logs in the console:
 #     sudo systemctl stop guacd && sudo /usr/local/sbin/guacd -L debug -f
 
 #######################################################################################################################
@@ -66,17 +65,17 @@ if [[ "$(find . -maxdepth 1 \( -name 'guacamole-*' -o -name 'mysql-connector-j-*
     exit 1
 fi
 
-# Query the OS version and establish a common naming convention
+# Query the OS version
 source /etc/os-release
-OS_NAME=$ID
-OS_VERSION=$VERSION_ID
-OS_CODENAME=$VERSION_CODENAME
+ID=$ID
+VERSION_ID=$VERSION_ID
+VERSION_CODENAME=$VERSION_CODENAME
 
 #######################################################################################################################
 # Core setup variables and mandatory inputs - EDIT VARIABLE VALUES TO SUIT ############################################
 #######################################################################################################################
 
-#  Setup download and temp directory paths
+# Setup download and temp directory paths
 USER_HOME_DIR=$(eval echo ~${SUDO_USER})
 DOWNLOAD_DIR=$USER_HOME_DIR/guac-setup
 DB_BACKUP_DIR=$USER_HOME_DIR/mysqlbackups
@@ -102,7 +101,7 @@ MARIADB_SOURCE_LINK="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
 # Reverse proxy uses this URL (Guacamole default is http://localhost:8080/guacamole/):
 GUAC_URL=http://localhost:8080/guacamole/
 
-# Get the default route interface IP. Manually update for multi homed systems or where cloud images may use 127.0.x.x
+# Get the default route interface IP. May need to manually override this for multi homed systems or where cloud images may use 127.0.x.x
 DEFAULT_IP=$(ip addr show $(ip route | awk '/default/ { print $5 }') | grep "inet" | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1)
 
 # Install log Location
@@ -112,26 +111,26 @@ INSTALL_LOG="${DOWNLOAD_DIR}/guacamole_install.log"
 # Silent setup options - true/false or specific values below will skip prompt at install. EDIT TO SUIT ################
 #######################################################################################################################
 SERVER_NAME=""                  # Server hostname. (Blank = use the current hostname.)
-LOCAL_DOMAIN=""                 # Local DNS namespace/domain suffix
+LOCAL_DOMAIN=""                 # Local DNS namespace/domain suffix. (Blank = keep the current suffix.)
 INSTALL_MYSQL=""                # Install MySQL locally (true/false)
 SECURE_MYSQL=""                 # Apply mysql secure configuration tool (true/false)
-MYSQL_HOST=""                   # Blank "" = localhost/local MySQL install, a specific IP address will assume a remote MySQL instance.
+MYSQL_HOST=""                   # Blank "" = localhost MySQL install, adding a specific IP address will assume a remote MySQL instance.
 MYSQL_PORT=""                   # If blank "" default is 3306
 GUAC_DB=""                      # If blank "" default is guacamole_db
 GUAC_USER=""                    # If blank "" default is guacamole_user
 MYSQL_ROOT_PWD=""               # Manadatory entry here or at script prompt.
 GUAC_PWD=""                     # Manadatory entry here or at script prompt.
-DB_TZ=$(cat /etc/timezone)      # Blank "" defaults to UTC, for local tz $(cat /etc/timezone)
-INSTALL_TOTP=""                 # Add TOTP MFA extension (true/false)
+DB_TZ=$(cat /etc/timezone)      # Blank "" defaults to UTC, for local timezone: $(cat /etc/timezone)
+INSTALL_TOTP=""                 # Add TOTP MFA extension (true/false), can't be installed simultaneously with DUO)
 INSTALL_DUO=""                  # Add DUO MFA extension (true/false, can't be installed simultaneously with TOTP)
 INSTALL_LDAP=""                 # Add Active Directory extension (true/false)
 INSTALL_QCONNECT=""             # Add Guacamole console quick connect feature (true/false)
 INSTALL_HISTREC=""              # Add Guacamole history recording storage feature (true/false)
-HISTREC_PATH=""                 # If blank "" sets the Apache default of /var/lib/guacamole/recordings
+HISTREC_PATH=""                 # If blank "" sets the Apache's default path of /var/lib/guacamole/recordings
 GUAC_URL_REDIR=""               # Auto redirect of host root URL http://xxx:8080 to http://xxx:8080/guacamole  (true/false)
-INSTALL_NGINX=""                # Install and configure Nginx and reverse proxy Guacamole (via http port 80 only, true/false)
+INSTALL_NGINX=""                # Install & configure Nginx reverse proxy http:80 frontend (true/false)
 PROXY_SITE=""                   # Local DNS name for reverse proxy site and/or self signed TLS certificates (Blank "" defaults to $DEFAULT_FQDN)
-SELF_SIGN=""                    # Add self signed TLS support to Nginx (true/false, Let's Encrypt not available with this option)
+SELF_SIGN=""                    # Add self signed TLS/https support to Nginx (true/false, Let's Encrypt not available with this option)
 RSA_KEYLENGTH="2048"            # Self signed RSA TLS key length. At least 2048, must not be blank.
 CERT_COUNTRY="AU"               # Self signed cert setup, 2 character country code only, must not be blank.
 CERT_STATE="Victoria"           # Self signed cert setup, must not be blank
@@ -140,13 +139,13 @@ CERT_ORG="Itiligent"            # Self signed cert setup, must not be blank
 CERT_OU="I.T."                  # Self signed cert setup, must not be blank
 CERT_DAYS=""                    # Self signed cert setup, days until self signed TLS cert expiry, blank = default 3650
 LETS_ENCRYPT=""                 # Add Lets Encrypt public TLS cert for Nginx (true/false, self signed TLS not available with this option) 
-LE_DNS_NAME=""                  # Public DNS name for Lets Encrypt certificates
-LE_EMAIL=""                     # Webmaster/admin email for Lets Encrypt notifications
-BACKUP_EMAIL=""                 # Email address to send backup notifications to
-BACKUP_RETENTION="30"           # How many days to keep SQL backups locally
-RDP_SHARE_HOST=""               # Custom RDP host name in Windows Explorer as as RDP_SHARE_LABEL on RDP_SHARE_HOST. Blank "" = $SERVER_NAME
-RDP_SHARE_LABEL="RDP Share"     # Custom RDP shared drive name in Windows Explorer as "RDP_SHARE_LABEL on RDP_SHARE_HOST" eg. "RDP share on server01"
-RDP_PRINTER_LABEL="RDP Printer" # Customise RDP printer name shown in Windows
+LE_DNS_NAME=""                  # Public DNS name for use with Lets Encrypt certificates, must match public DNS
+LE_EMAIL=""                     # Webmaster email for Lets Encrypt notifications
+BACKUP_EMAIL=""                 # Email address to send MySQL backup notifications to
+BACKUP_RETENTION="30"           # Days to keep SQL backups locally
+RDP_SHARE_HOST=""               # Custom RDP host name shown in Windows Explorer (eg. "RDP_SHARE_LABEL on RDP_SHARE_HOST"). Blank "" = $SERVER_NAME
+RDP_SHARE_LABEL="RDP Share"     # Custom RDP shared drive name in Windows Explorer (eg. "RDP_SHARE_LABEL on RDP_SHARE_HOST" eg. "your RDP share name on server01"
+RDP_PRINTER_LABEL="RDP Printer" # Custom RDP printer name shown in Windows
 
 #######################################################################################################################
 # Download GitHub setup scripts. BEFORE RUNNING SETUP, COMMENT OUT DOWNLOAD LINES OF ANY SCRIPTS YOU HAVE EDITED ! ####
@@ -211,12 +210,12 @@ fi
 # Current package names for various distros are referenced at https://guacamole.apache.org/doc/gug/installing-guacamole.html
 JPEGTURBO=""
 LIBPNG=""
-if [[ ${OS_NAME,,} = "ubuntu" ]] || [[ ${OS_NAME,,} = *"ubuntu"* ]]; then
+if [[ ${ID,,} = "ubuntu" ]] || [[ ${ID,,} = *"ubuntu"* ]]; then
     JPEGTURBO="libjpeg-turbo8-dev"
     LIBPNG="libpng-dev"
     # Just in case this repo is not present in the distro
     sudo add-apt-repository -y universe &>>${INSTALL_LOG}
-elif [[ ${OS_NAME,,} = "debian" ]] || [[ ${OS_NAME,,} = "raspbian" ]]; then
+elif [[ ${ID,,} = "debian" ]] || [[ ${ID,,} = "raspbian" ]]; then
     JPEGTURBO="libjpeg62-turbo-dev"
     LIBPNG="libpng-dev"
 fi
@@ -235,20 +234,20 @@ fi
 # Ongoing fixes and workarounds as distros diverge/change #############################################################
 #######################################################################################################################
 
-# Workaround for Debian incompatibilities with latet Tomcat versions. (Add the oldstable repo and downgrade the Tomcat version to be installed)
-if [[ ${OS_NAME,,} = "debian" && ${OS_CODENAME,,} = *"bookworm"* ]] || [[ ${OS_NAME,,} = "debian" && ${OS_CODENAME,,} = *"trixie"* ]]; then #(checks for upper and lower case)
+# Workaround for Debian incompatibilities with latet Tomcat versions. (Adds the oldstable repo and downgrades the Tomcat version to be installed)
+if [[ ${ID,,} = "debian" && ${VERSION_CODENAME,,} = *"bookworm"* ]] || [[ ${ID,,} = "debian" && ${VERSION_CODENAME,,} = *"trixie"* ]]; then #(checks for upper and lower case)
     echo "deb http://deb.debian.org/debian/ bullseye main" | sudo tee /etc/apt/sources.list.d/bullseye.list &> /dev/null
     sudo apt-get update -qq &> /dev/null
     TOMCAT_VERSION="tomcat9"
 fi
 
 # Workaround for Ubuntu 23.x Tomcat 10 incompatibilities. Force older version 9 also found in the Lunar repo.
-if [[ ${OS_NAME,,} = "ubuntu" ]] && [[ ${OS_CODENAME,,} = *"lunar"* ]]; then  #(checks for upper and lower case)
+if [[ ${ID,,} = "ubuntu" ]] && [[ ${VERSION_CODENAME,,} = *"lunar"* ]]; then  #(checks for upper and lower case)
     TOMCAT_VERSION="tomcat9"
 fi
 
-# Workaround for Ubuntu 24.x Tomcat 10 incompatibilities, add old Jammy repo and downgrade the Tomcat version to be installed
-if [[ ${OS_NAME,,} = "ubuntu" && ${OS_CODENAME,,} = *"noble"* ]]; then #(checks for upper and lower case)
+# Workaround for Ubuntu 24.x Tomcat 10 incompatibilities. (Adds old Jammy repo and downgrades the Tomcat version to be installed)
+if [[ ${ID,,} = "ubuntu" && ${VERSION_CODENAME,,} = *"noble"* ]]; then #(checks for upper and lower case)
     echo "deb http://archive.ubuntu.com/ubuntu/ jammy universe" | sudo tee /etc/apt/sources.list.d/jammy.list &> /dev/null
     sudo apt-get update -qq &> /dev/null
     TOMCAT_VERSION="tomcat9"
@@ -258,7 +257,7 @@ fi
 # TOMCAT_VERSION="tomcat9"
 
 # Workaround for 1.5.4 specific bug, see issue #31. This was fixed in 1.5.5
-if [[ "${OS_NAME,,}" = "debian" && "${OS_CODENAME,,}" = *"bullseye"* ]] || [[ "${OS_NAME,,}" = "ubuntu" && "${OS_CODENAME,,}" = *"focal"* ]]; then
+if [[ "${ID,,}" = "debian" && "${VERSION_CODENAME,,}" = *"bullseye"* ]] || [[ "${ID,,}" = "ubuntu" && "${VERSION_CODENAME,,}" = *"focal"* ]]; then
     IFS='.' read -ra guac_version_parts <<< "${GUAC_VERSION}"
     major="${guac_version_parts[0]}"
     minor="${guac_version_parts[1]}"
@@ -377,7 +376,7 @@ else
     $(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
 fi
 
-# Now that $SERVER_NAME and $LOCAL_DOMAIN values are updated and refreshed, both values are merged to build 
+# Now that $SERVER_NAME and $LOCAL_DOMAIN values are updated and refreshed, both values are merged to build
 # a local FQDN value (this is later used for the default reverse proxy site name.)
 DEFAULT_FQDN=$SERVER_NAME.$LOCAL_DOMAIN
 
@@ -730,9 +729,9 @@ fi
 export DOWNLOAD_DIR="${DOWNLOAD_DIR}"
 export GUAC_VERSION=$GUAC_VERSION
 export GUAC_SOURCE_LINK=$GUAC_SOURCE_LINK
-export OS_NAME=$ID
-export OS_VERSION=$VERSION_ID
-export OS_CODENAME=$VERSION_CODNAME
+export ID=$ID
+export VERSION_ID=$VERSION_ID
+export VERSION_CODENAME=$VERSION_CODENAME
 export MYSQLJCON=$MYSQLJCON
 export MYSQLJCON_SOURCE_LINK=$MYSQLJCON_SOURCE_LINK
 export MYSQL_VERSION=$MYSQL_VERSION
@@ -780,8 +779,8 @@ export RDP_PRINTER_LABEL="${RDP_PRINTER_LABEL}"
 export LOCAL_DOMAIN=$LOCAL_DOMAIN
 export DOMAIN_SUFFIX=$DOMAIN_SUFFIX
 
-# Run the Guacamole install script
-sudo -E ./2-install-guacamole.sh # Using -E to keep all exported variables and outputs within the current shell
+# Run the Guacamole install script keeping all exported variables from the current shell
+sudo -E ./2-install-guacamole.sh
 if [[ $? -ne 0 ]]; then
     echo -e "${LRED}2-install-guacamole.sh FAILED. See ${INSTALL_LOG}${GREY}" 1>&2
     exit 1
@@ -791,10 +790,10 @@ else
     echo -e "${LGREEN}Guacamole install complete\nhttp://${PROXY_SITE}:8080/guacamole - login user/pass: guacadmin/guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
 fi
 
-# Add a Guacamole database backup (mon-fri 12:00am) into the current user's cron
+# Add a Guacamole database backup (Mon-Fri 12:00am) into the current user's cron
 mv $DOWNLOAD_DIR/backup-guac.sh $DB_BACKUP_DIR
 crontab -l >cron_1
-# Remove any existing entry just in case
+# Remove any pre-existing entry just in case
 sed -i '/# backup guacamole/d' cron_1
 # Create the backup job
 echo "0 0 * * 1-5 ${DB_BACKUP_DIR}/backup-guac.sh # backup guacamole" >>cron_1
@@ -806,22 +805,21 @@ rm cron_1
 # Start optional setup actions   ######################################################################################
 #######################################################################################################################
 
-# Install Nginx reverse proxy front end to Guacamole if option is selected
+# Install Nginx reverse proxy front end to Guacamole if option is selected keeping all exported variables from the current shell
 if [[ "${INSTALL_NGINX}" = true ]]; then
-    sudo -E ./3-install-nginx.sh # Using -E to keep all exported variables and outputs within the current shell
+    sudo -E ./3-install-nginx.sh
     echo -e "${LGREEN}Nginx install complete\nhttp://${PROXY_SITE} - admin login: guacadmin pass: guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
 fi
 
-# Apply self signed TLS certificates to Nginx reverse proxy if option is selected
+# Apply self signed TLS certificates to Nginx reverse proxy if option is selected keeping all exported variables from the current shell
 if [[ "${INSTALL_NGINX}" = true ]] && [[ "${SELF_SIGN}" = true ]] && [[ "${LETS_ENCRYPT}" != true ]]; then
-    # Using -E to keep all exported variables and outputs within the current shell
     sudo -E ./4a-install-tls-self-signed-nginx.sh ${PROXY_SITE} ${CERT_DAYS} ${DEFAULT_IP} | tee -a ${INSTALL_LOG} # Logged to capture client cert import instructions
     echo -e "${LGREEN}Self signed certificate configured for Nginx \n${LYELLOW}https:${LGREEN}//${PROXY_SITE}  - login user/pass: guacadmin/guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
 fi
 
-# Apply Let's Encrypt TLS certificates to Nginx reverse proxy if option is selected
+# Apply Let's Encrypt TLS certificates to Nginx reverse proxy if option is selected keeping all exported variables from the current shell
 if [[ "${INSTALL_NGINX}" = true ]] && [[ "${LETS_ENCRYPT}" = true ]] && [[ "${SELF_SIGN}" != true ]]; then
-    sudo -E ./4b-install-tls-letsencrypt-nginx.sh # Using -E to keep all exported variables and outputs within the current shell
+    sudo -E ./4b-install-tls-letsencrypt-nginx.sh
     echo -e "${LGREEN}Let's Encrypt TLS configured for Nginx \n${LYELLOW}https:${LGREEN}//${LE_DNS_NAME}  - login user/pass: guacadmin/guacadmin\n${LYELLOW}***Be sure to change the password***${GREY}"
 fi
 
