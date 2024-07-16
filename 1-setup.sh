@@ -416,7 +416,7 @@ if [[ "${INSTALL_MYSQL}" = false ]]; then
         read -p "SQL: Enter remote MySQL server port [3306]: " MYSQL_PORT
     [[ -z "${GUAC_DB}" ]] &&
         read -p "SQL: Enter remote Guacamole database name [guacamole_db]: " GUAC_DB
-    [[-z "${GUAC_USER}" ]] &&
+    [[ -z "${GUAC_USER}" ]] &&
         read -p "SQL: Enter remote Guacamole user name [guacamole_user]: " GUAC_USER
 fi
 # Checking if a mysql host given, if not set a default
