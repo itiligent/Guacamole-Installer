@@ -78,12 +78,13 @@ MYSQL_ROOT_PWD=
 
 # Standardise on a distro version identification lexicon
 source /etc/os-release
-OS_NAME=$ID
-OS_VERSION=$VERSION_ID
-OS_CODENAME=$VERSION_CODENAME
+ID=$ID
+VERSION_ID=$VERSION_ID
+VERSION_CODENAME=$VERSION_CODENAME
+
 
 # Workaround for issue #31
-if [[ "${OS_NAME,,}" = "debian" && "${OS_CODENAME,,}" = *"bullseye"* ]] || [[ "${OS_NAME,,}" = "ubuntu" && "${OS_CODENAME,,}" = *"focal"* ]]; then
+if [[ "${ID,,}" = "debian" && "${VERSION_CODENAME,,}" = *"bullseye"* ]] || [[ "${ID,,}" = "ubuntu" && "${VERSION_CODENAME,,}" = *"focal"* ]]; then
     IFS='.' read -ra guac_version_parts <<< "${GUAC_VERSION}"
     major="${guac_version_parts[0]}"
     minor="${guac_version_parts[1]}"
