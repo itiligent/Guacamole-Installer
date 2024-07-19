@@ -55,7 +55,7 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 
 **Other useful custom install notes:**
 - **Caution:** Re-running the auto-installer re-downloads the suite of scripts and this will overwrite your script edits. Run setup locally after editing the setup script. If any other scripts are edited, their corresponding download links in the setup script must also be commented out in the main setup script.
-- Many scripts are **automatically adjusted with your chosen installation settings at 1st install** to create a matched set that allows for application upgrades or extra feature additions in future without fiddly configuration tasks.
+- Many scripts are **automatically adjusted with your chosen installation settings at 1st install** to create a matched set that allows for future upgrades or extra feature additions and a consistent build.
 - Nginx reverse proxy is configured to default to at least TLS 1.2. To revert, see commented sections of the `/etc/nginx/nginx.conf` file after install.
 - A daily MySQL backup job is automatically configured under the script owner's crontab.
 - **Security note:** The Quick Connect option brings some extra security implications, be aware of potential risks in your environment.
@@ -86,7 +86,7 @@ TOMCAT=$(ls /etc/ | grep tomcat) && sudo systemctl restart ${TOMCAT} && sudo sys
 
 ## Upgrading Guacamole
 
-🌐 **To upgrade Guacamole, edit `upgrade-guac.sh` to reflect the latest versions of Guacamole & MySQL connector/J before running.** This script will also automatically update TOTP, DUO, LDAP, Quick Connect, and History Recorded Storage extensions if present.
+🌐 **To upgrade Guacamole, edit `upgrade-guacamole.sh` to reflect the latest versions of Guacamole & MySQL connector/J before running.** This script will also automatically update TOTP, DUO, LDAP, Quick Connect, and History Recorded Storage extensions if present.
 
 ## High Availability Deployment
 
@@ -114,7 +114,7 @@ TOMCAT=$(ls /etc/ | grep tomcat) && sudo systemctl restart ${TOMCAT} && sudo sys
 - `add-tls-guac-daemon.sh`: Wraps internal traffic between guacd server & Guacamole web app in TLS.
 - `add-fail2ban.sh`: Fail2ban (& Guacamole protection policy) installer script.
 - `backup-guacamole.sh`: MySQL backup setup script.
-- `upgrade-guac.sh`: Guacamole application, extension, and MySQL connector upgrade script.
+- `upgrade-guacamole.sh`: Guacamole application, extension, and MySQL connector upgrade script.
 - `branding.jar`: Base template for customizing Guacamole's UI theme.
 
 😄🥑
