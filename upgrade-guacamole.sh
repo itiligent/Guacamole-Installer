@@ -75,13 +75,15 @@ GUAC_USER=
 GUAC_PWD=
 GUAC_DB=
 MYSQL_ROOT_PWD=
+RDP_SHARE_HOST=
+RDP_SHARE_LABEL=
+RDP_PRINTER_LABEL=
 
 # Standardise on a distro version identification lexicon
 source /etc/os-release
 ID=$ID
 VERSION_ID=$VERSION_ID
 VERSION_CODENAME=$VERSION_CODENAME
-
 
 # Workaround for issue #31
 if [[ "${ID,,}" = "debian" && "${VERSION_CODENAME,,}" = *"bullseye"* ]] || [[ "${ID,,}" = "ubuntu" && "${VERSION_CODENAME,,}" = *"focal"* ]]; then
@@ -167,6 +169,11 @@ else
     tar -xzf guacamole-server-${NEW_GUAC_VERSION}.tar.gz
 fi
 echo -e "${LGREEN}Downloaded guacamole-server-${NEW_GUAC_VERSION}.tar.gz${GREY}"
+
+# Add customised RDP share names and printer labels, remove Guacamole default labelling
+sed -i -e 's/IDX_CLIENT_NAME, "Guacamole RDP"/IDX_CLIENT_NAME, "'"${RDP_SHARE_HOST}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${NEW_GUAC_VERSION}/src/protocols/rdp/settings.c
+sed -i -e 's/IDX_DRIVE_NAME, "Guacamole Filesystem"/IDX_DRIVE_NAME, "'"${RDP_SHARE_LABEL}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${NEW_GUAC_VERSION}/src/protocols/rdp/settings.c
+sed -i -e 's/IDX_PRINTER_NAME, "Guacamole Printer"/IDX_PRINTER_NAME, "'"${RDP_PRINTER_LABEL}"'"/' ${DOWNLOAD_DIR}/guacamole-server-${NEW_GUAC_VERSION}/src/protocols/rdp/settings.c
 
 # Make and install guacd (Guacamole-Server)
 cd guacamole-server-${NEW_GUAC_VERSION}/

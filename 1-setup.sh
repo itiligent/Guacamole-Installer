@@ -175,8 +175,8 @@ wget -q --show-progress ${GITHUB}/guac-optional-features/add-xtra-histrecstor.sh
 wget -q --show-progress ${GITHUB}/guac-optional-features/add-smtp-relay-o365.sh -O add-smtp-relay-o365.sh
 wget -q --show-progress ${GITHUB}/guac-optional-features/add-tls-guac-daemon.sh -O add-tls-guac-daemon.sh
 wget -q --show-progress ${GITHUB}/guac-optional-features/add-fail2ban.sh -O add-fail2ban.sh
-wget -q --show-progress ${GITHUB}/guac-management/backup-guac.sh -O backup-guac.sh
-wget -q --show-progress ${GITHUB}/upgrade-guac.sh -O upgrade-guac.sh
+wget -q --show-progress ${GITHUB}/guac-management/backup-guacamole.sh -O backup-guacamole.sh
+wget -q --show-progress ${GITHUB}/upgrade-guacamole.sh -O upgrade-guacamole.sh
 
 # Download the (customisable) dark theme & branding template
 wget -q --show-progress ${GITHUB}/branding.jar -O branding.jar
@@ -668,14 +668,14 @@ echo
 echo -e "${GREY}Synchronising the install script suite with the selected installation options..."
 # Sync the various manual config scripts with the relevant variables selected at install
 # This way scripts can be run at a later time without modification to match the original install
-sed -i "s|MYSQL_HOST=|MYSQL_HOST='${MYSQL_HOST}'|g" $DOWNLOAD_DIR/backup-guac.sh
-sed -i "s|MYSQL_PORT=|MYSQL_PORT='${MYSQL_PORT}'|g" $DOWNLOAD_DIR/backup-guac.sh
-sed -i "s|GUAC_USER=|GUAC_USER='${GUAC_USER}'|g" $DOWNLOAD_DIR/backup-guac.sh
-sed -i "s|GUAC_PWD=|GUAC_PWD='${GUAC_PWD}'|g" $DOWNLOAD_DIR/backup-guac.sh
-sed -i "s|GUAC_DB=|GUAC_DB='${GUAC_DB}'|g" $DOWNLOAD_DIR/backup-guac.sh
-sed -i "s|DB_BACKUP_DIR=|DB_BACKUP_DIR='${DB_BACKUP_DIR}'|g" $DOWNLOAD_DIR/backup-guac.sh
-sed -i "s|BACKUP_EMAIL=|BACKUP_EMAIL='${BACKUP_EMAIL}'|g" $DOWNLOAD_DIR/backup-guac.sh
-sed -i "s|BACKUP_RETENTION=|BACKUP_RETENTION='${BACKUP_RETENTION}'|g" $DOWNLOAD_DIR/backup-guac.sh
+sed -i "s|MYSQL_HOST=|MYSQL_HOST='${MYSQL_HOST}'|g" $DOWNLOAD_DIR/backup-guacamole.sh
+sed -i "s|MYSQL_PORT=|MYSQL_PORT='${MYSQL_PORT}'|g" $DOWNLOAD_DIR/backup-guacamole.sh
+sed -i "s|GUAC_USER=|GUAC_USER='${GUAC_USER}'|g" $DOWNLOAD_DIR/backup-guacamole.sh
+sed -i "s|GUAC_PWD=|GUAC_PWD='${GUAC_PWD}'|g" $DOWNLOAD_DIR/backup-guacamole.sh
+sed -i "s|GUAC_DB=|GUAC_DB='${GUAC_DB}'|g" $DOWNLOAD_DIR/backup-guacamole.sh
+sed -i "s|DB_BACKUP_DIR=|DB_BACKUP_DIR='${DB_BACKUP_DIR}'|g" $DOWNLOAD_DIR/backup-guacamole.sh
+sed -i "s|BACKUP_EMAIL=|BACKUP_EMAIL='${BACKUP_EMAIL}'|g" $DOWNLOAD_DIR/backup-guacamole.sh
+sed -i "s|BACKUP_RETENTION=|BACKUP_RETENTION='${BACKUP_RETENTION}'|g" $DOWNLOAD_DIR/backup-guacamole.sh
 
 sed -i "s|CERT_COUNTRY=|CERT_COUNTRY='${CERT_COUNTRY}'|g" $DOWNLOAD_DIR/add-tls-guac-daemon.sh
 sed -i "s|CERT_STATE=|CERT_STATE='${CERT_STATE}'|g" $DOWNLOAD_DIR/add-tls-guac-daemon.sh
@@ -684,13 +684,17 @@ sed -i "s|CERT_ORG=|CERT_ORG='${CERT_ORG}'|g" $DOWNLOAD_DIR/add-tls-guac-daemon.
 sed -i "s|CERT_OU=|CERT_OU='${CERT_OU}'|g" $DOWNLOAD_DIR/add-tls-guac-daemon.sh
 sed -i "s|CERT_DAYS=|CERT_DAYS='${CERT_DAYS}'|g" $DOWNLOAD_DIR/add-tls-guac-daemon.sh
 
-sed -i "s|INSTALL_MYSQL=|INSTALL_MYSQL='${INSTALL_MYSQL}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
-sed -i "s|MYSQL_HOST=|MYSQL_HOST='${MYSQL_HOST}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
-sed -i "s|MYSQL_PORT=|MYSQL_PORT='${MYSQL_PORT}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
-sed -i "s|GUAC_DB=|GUAC_DB='${GUAC_DB}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
-sed -i "s|MYSQL_ROOT_PWD=|MYSQL_ROOT_PWD='${MYSQL_ROOT_PWD}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
-sed -i "s|GUAC_USER=|GUAC_USER='${GUAC_USER}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
-sed -i "s|GUAC_PWD=|GUAC_PWD='${GUAC_PWD}'|g" $DOWNLOAD_DIR/upgrade-guac.sh
+sed -i "s|INSTALL_MYSQL=|INSTALL_MYSQL='${INSTALL_MYSQL}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
+sed -i "s|MYSQL_HOST=|MYSQL_HOST='${MYSQL_HOST}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
+sed -i "s|MYSQL_PORT=|MYSQL_PORT='${MYSQL_PORT}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
+sed -i "s|GUAC_DB=|GUAC_DB='${GUAC_DB}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
+sed -i "s|MYSQL_ROOT_PWD=|MYSQL_ROOT_PWD='${MYSQL_ROOT_PWD}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
+sed -i "s|GUAC_USER=|GUAC_USER='${GUAC_USER}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
+sed -i "s|GUAC_PWD=|GUAC_PWD='${GUAC_PWD}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
+
+sed -i "s|RDP_SHARE_HOST=|RDP_SHARE_HOST='${RDP_SHARE_HOST}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
+sed -i "s|RDP_SHARE_LABEL=|RDP_SHARE_LABEL='${RDP_SHARE_LABEL}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
+sed -i "s|RDP_PRINTER_LABEL=|RDP_PRINTER_LABEL='${RDP_PRINTER_LABEL}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
 
 sed -i "s|PROXY_SITE=|PROXY_SITE='${PROXY_SITE}'|g" $DOWNLOAD_DIR/3-install-nginx.sh
 sed -i "s|INSTALL_LOG=|INSTALL_LOG='${INSTALL_LOG}'|g" $DOWNLOAD_DIR/3-install-nginx.sh
@@ -791,12 +795,12 @@ else
 fi
 
 # Add a Guacamole database backup (Mon-Fri 12:00am) into the current user's cron
-mv $DOWNLOAD_DIR/backup-guac.sh $DB_BACKUP_DIR
+mv $DOWNLOAD_DIR/backup-guacamole.sh $DB_BACKUP_DIR
 crontab -l >cron_1
 # Remove any pre-existing entry just in case
 sed -i '/# backup guacamole/d' cron_1
 # Create the backup job
-echo "0 0 * * 1-5 ${DB_BACKUP_DIR}/backup-guac.sh # backup guacamole" >>cron_1
+echo "0 0 * * 1-5 ${DB_BACKUP_DIR}/backup-guacamole.sh # backup guacamole" >>cron_1
 # Overwrite the old cron settings and cleanup
 crontab cron_1
 rm cron_1
@@ -839,7 +843,7 @@ fi
 
 # Tidy up
 echo
-echo -e "${GREY}Removing build-essential packages..."
+echo -e "${GREY}Removing build-essential package & cleaning up..."
 mv $USER_HOME_DIR/1-setup.sh $DOWNLOAD_DIR
 sudo apt remove -y build-essential &>>${INSTALL_LOG} # Lets not leave build resources installed on a secure system
 sudo apt-get -y autoremove &>>${INSTALL_LOG}
