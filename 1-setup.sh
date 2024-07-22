@@ -210,12 +210,12 @@ fi
 # Current package names for various distros are referenced at https://guacamole.apache.org/doc/gug/installing-guacamole.html
 JPEGTURBO=""
 LIBPNG=""
-if [[ ${ID,,} = "ubuntu" ]] || [[ ${ID,,} = *"ubuntu"* ]]; then
+if [[ ${ID,,} = "ubuntu" ]] || [[ ${ID,,} = *"ubuntu"* ]] || [[ ${ID,,} = *"linuxmint"* ]] ; then
     JPEGTURBO="libjpeg-turbo8-dev"
     LIBPNG="libpng-dev"
     # Just in case this repo is not present in the distro
     sudo add-apt-repository -y universe &>>${INSTALL_LOG}
-elif [[ ${ID,,} = "debian" ]] || [[ ${ID,,} = "raspbian" ]]; then
+elif [[ ${ID,,} = "debian" ]] || [[ ${ID,,} = "raspbian" ]] ||[[ ${ID,,} = *"kali"* ]] ; then
     JPEGTURBO="libjpeg62-turbo-dev"
     LIBPNG="libpng-dev"
 fi
@@ -242,12 +242,12 @@ if [[ ${ID,,} = "debian" && ${VERSION_CODENAME,,} = *"bookworm"* ]] || [[ ${ID,,
 fi
 
 # Workaround for Ubuntu 23.x Tomcat 10 incompatibilities. Force older version 9 also found in the Lunar repo.
-if [[ ${ID,,} = "ubuntu" ]] && [[ ${VERSION_CODENAME,,} = *"lunar"* ]]; then  #(checks for upper and lower case)
+if [[ ${ID,,} = "ubuntu" ]] && [[ ${VERSION_CODENAME,,} = *"lunar"* ]]; then
     TOMCAT_VERSION="tomcat9"
 fi
 
 # Workaround for Ubuntu 24.x Tomcat 10 incompatibilities. (Adds old Jammy repo and downgrades the Tomcat version to be installed)
-if [[ ${ID,,} = "ubuntu" && ${VERSION_CODENAME,,} = *"noble"* ]]; then #(checks for upper and lower case)
+if [[ ${ID,,} = "ubuntu" && ${VERSION_CODENAME,,} = *"noble"* ]]; then
     echo "deb http://archive.ubuntu.com/ubuntu/ jammy universe" | sudo tee /etc/apt/sources.list.d/jammy.list &> /dev/null
     sudo apt-get update -qq &> /dev/null
     TOMCAT_VERSION="tomcat9"
