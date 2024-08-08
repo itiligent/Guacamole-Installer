@@ -210,12 +210,12 @@ fi
 # Current package names for various distros are referenced at https://guacamole.apache.org/doc/gug/installing-guacamole.html
 JPEGTURBO=""
 LIBPNG=""
-if [[ ${ID,,} = "ubuntu" ]] || [[ ${ID,,} = *"ubuntu"* ]] || [[ ${ID,,} = *"linuxmint"* ]] ; then
+if [[ ${ID,,} = "ubuntu" ]] || [[ ${ID,,} = *"ubuntu"* ]] || [[ ${ID,,} = *"linuxmint"* ]]; then
     JPEGTURBO="libjpeg-turbo8-dev"
     LIBPNG="libpng-dev"
     # Just in case this repo is not present in the distro
     sudo add-apt-repository -y universe &>>${INSTALL_LOG}
-elif [[ ${ID,,} = "debian" ]] || [[ ${ID,,} = "raspbian" ]] ||[[ ${ID,,} = *"kali"* ]] ; then
+elif [[ ${ID,,} = "debian" ]] || [[ ${ID,,} = "raspbian" ]]; then
     JPEGTURBO="libjpeg62-turbo-dev"
     LIBPNG="libpng-dev"
 fi
@@ -312,68 +312,68 @@ fi
 
 # Ensure SERVER_NAME is consistent with local host entries
 if [[ -z ${SERVER_NAME} ]]; then
-    echo -e "${LYELLOW}Update Linux system HOSTNAME [Enter to keep: ${HOSTNAME}]${LGREEN}"
-    read -p "              Enter new HOSTNAME : " SERVER_NAME
+    echo -e "${LYELLOW}Update Linux system HOSTNAME? [Enter to keep: ${HOSTNAME}]${LGREEN}"
+    read -p "              Enter Linux hostname : " SERVER_NAME
     # If hit enter making no SERVER_NAME change, assume the existing hostname as current
     if [[ "${SERVER_NAME}" = "" ]]; then
         SERVER_NAME=$HOSTNAME
     fi
     echo
     # A SERVER_NAME was derived via the prompt
-    # Apply the SERVER_NAME value & remove and update any old 127.0.1.1 localhost references
-    $(sudo hostnamectl set-hostname $SERVER_NAME &> /dev/null &) &> /dev/null
+    # Apply the SERVER_NAME value & remove & update any old 127.0.1.1 localhost references
+    $(sudo hostnamectl set-hostname $SERVER_NAME &>/dev/null &) &>/dev/null
 	sleep 1
     sudo sed -i '/127.0.1.1/d' /etc/hosts &>>${INSTALL_LOG}
     echo '127.0.1.1       '${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${INSTALL_LOG}
-    $(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
+    $(sudo systemctl restart systemd-hostnamed &>/dev/null &) &>/dev/null
 else
     echo
     # A SERVER_NAME value was derived from a pre-set silent install option.
-    # Apply the SERVER_NAME value & remove and update any old 127.0.1.1 localhost references
-    $(sudo hostnamectl set-hostname $SERVER_NAME &> /dev/null &) &> /dev/null
+    # Apply the SERVER_NAME value & remove & update any old 127.0.1.1 localhost references
+    $(sudo hostnamectl set-hostname $SERVER_NAME &>/dev/null &) &>/dev/null
 	sleep 1
     sudo sed -i '/127.0.1.1/d' /etc/hosts &>>${INSTALL_LOG}
     echo '127.0.1.1       '${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${INSTALL_LOG}
-    $(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
+    $(sudo systemctl restart systemd-hostnamed &>/dev/null &) &>/dev/null
 fi
 
-# Ensure LOCAL_DOMAIN suffix and localhost entries are consistent
+# Ensure LOCAL_DOMAIN suffix & localhost entries are consistent
 if [[ -z ${LOCAL_DOMAIN} ]]; then
-    echo -e "${LYELLOW}Update Linux LOCAL DNS DOMAIN [Enter to keep: ${DOMAIN_SUFFIX}]${LGREEN}"
-    read -p "              Enter FULL LOCAL DOMAIN NAME: " LOCAL_DOMAIN
+    echo -e "${LYELLOW} Update Linux LOCAL DNS SUFFIX [Enter to keep: .${DOMAIN_SUFFIX}]${LGREEN}"
+    read -p "              Complete this local domain suffix: $SERVER_NAME." LOCAL_DOMAIN
     # If hit enter making no LOCAL_DOMAIN name change, assume the existing domain suffix as current
     if [[ "${LOCAL_DOMAIN}" = "" ]]; then
         LOCAL_DOMAIN=$DOMAIN_SUFFIX
     fi
     echo
     # A LOCAL_DOMAIN value was derived via the prompt
-    # Remove any old localhost & resolv file values and update these with the new LOCAL_DOMAIN value
-	$(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
+    # Remove any old localhost & resolv file values & update these with the new LOCAL_DOMAIN value
+	$(sudo systemctl restart systemd-hostnamed &>/dev/null &) &>/dev/null
 	sleep 1
     sudo sed -i "/${DEFAULT_IP}/d" /etc/hosts
     sudo sed -i '/domain/d' /etc/resolv.conf
     sudo sed -i '/search/d' /etc/resolv.conf
-    # Refresh the /etc/hosts file with the server name and new local domain value
+    # Refresh the /etc/hosts file with the server name & new local domain value
     echo ''${DEFAULT_IP}'	'${SERVER_NAME}.${LOCAL_DOMAIN} ${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${INSTALL_LOG}
-    # Refresh /etc/resolv.conf with new domain and search suffix values
+    # Refresh /etc/resolv.conf with new domain & search suffix values
     echo 'domain	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${INSTALL_LOG}
     echo 'search	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${INSTALL_LOG}
-    $(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
+    $(sudo systemctl restart systemd-hostnamed &>/dev/null &) &>/dev/null
 else
     echo
     # A LOCAL_DOMIN value was derived from a pre-set silent install option.
-    # Remove any old localhost & resolv file values and update these with the new LOCAL_DOMAIN value
-	$(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
+    # Remove any old localhost & resolv file values & update these with the new LOCAL_DOMAIN value
+	$(sudo systemctl restart systemd-hostnamed &>/dev/null &) &>/dev/null
 	sleep 1
     sudo sed -i "/${DEFAULT_IP}/d" /etc/hosts
     sudo sed -i '/domain/d' /etc/resolv.conf
     sudo sed -i '/search/d' /etc/resolv.conf
-    # Refresh the /etc/hosts file with the server name and new local domain value
+    # Refresh the /etc/hosts file with the server name & new local domain value
     echo ''${DEFAULT_IP}'	'${SERVER_NAME}.${LOCAL_DOMAIN} ${SERVER_NAME}'' | sudo tee -a /etc/hosts &>>${INSTALL_LOG}
-    # Refresh /etc/resolv.conf with new domain and search suffix values
+    # Refresh /etc/resolv.conf with new domain & search suffix values
     echo 'domain	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${INSTALL_LOG}
     echo 'search	'${LOCAL_DOMAIN}'' | sudo tee -a /etc/resolv.conf &>>${INSTALL_LOG}
-    $(sudo systemctl restart systemd-hostnamed &> /dev/null &) &> /dev/null
+    $(sudo systemctl restart systemd-hostnamed &>/dev/null &) &>/dev/null
 fi
 
 # Now that $SERVER_NAME and $LOCAL_DOMAIN values are updated and refreshed, both values are merged to build
@@ -388,7 +388,7 @@ fi
 # Prompt to install MySQL
 echo -e "${LGREEN}MySQL setup options:${GREY}"
 if [[ -z ${INSTALL_MYSQL} ]]; then
-    echo -e -n "SQL: Install MySQL locally? (For a REMOTE MySQL server select 'n') [Y/n] [default y]: ${GREY}"
+    echo -e -n "SQL: Install MySQL locally? (For a REMOTE MySQL server select 'n') [y/n] [default y]: ${GREY}"
     read PROMPT
     if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
         INSTALL_MYSQL=false
@@ -399,7 +399,7 @@ fi
 
 # Prompt to apply the Mysql secure installation locally
 if [[ -z ${SECURE_MYSQL} ]] && [[ "${INSTALL_MYSQL}" = true ]]; then
-    echo -e -n "${GREY}SQL: Apply MySQL secure installation settings to LOCAL db? [Y/n] [default y]: ${GREY}"
+    echo -e -n "${GREY}SQL: Apply MySQL secure installation settings to LOCAL db? [y/n] [default y]: ${GREY}"
     read PROMPT
     if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
         SECURE_MYSQL=false
@@ -479,7 +479,7 @@ echo
 # Prompt to install TOTP MFA
 echo -e "${LGREEN}Guacamole authentication extension options:${GREY}"
 if [[ -z "${INSTALL_TOTP}" ]] && [[ "${INSTALL_DUO}" != true ]]; then
-    echo -e -n "AUTH: Install TOTP? (choose 'n' if you want Duo) [y/N]? [default n]: "
+    echo -e -n "AUTH: Install TOTP? (choose 'n' if you want Duo) [y/n]? [default n]: "
     read PROMPT
     if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
         INSTALL_TOTP=true
@@ -491,7 +491,7 @@ fi
 
 # Prompt to install Duo MFA
 if [[ -z "${INSTALL_DUO}" ]] && [[ "${INSTALL_TOTP}" != true ]]; then
-    echo -e -n "${GREY}AUTH: Install Duo? [y/N] [default n]: "
+    echo -e -n "${GREY}AUTH: Install Duo? [y/n] [default n]: "
     read PROMPT
     if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
         INSTALL_DUO=true
@@ -509,7 +509,7 @@ fi
 
 # Prompt to install Duo MFA
 if [[ -z "${INSTALL_LDAP}" ]]; then
-    echo -e -n "${GREY}AUTH: Install LDAP? [y/N] [default n]: "
+    echo -e -n "${GREY}AUTH: Install LDAP? [y/n] [default n]: "
     read PROMPT
     if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
         INSTALL_LDAP=true
@@ -522,7 +522,7 @@ echo
 # Prompt to install the Quick Connect feature (some higher security use cases may not want this)
 echo -e "${LGREEN}Guacamole console optional extras:${GREY}"
 if [[ -z "${INSTALL_QCONNECT}" ]]; then
-    echo -e -n "${GREY}EXTRAS: Install Quick Connect feature? [y/N] [default n]: "
+    echo -e -n "${GREY}EXTRAS: Install Quick Connect feature? [y/n] [default n]: "
     read PROMPT
     if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
         INSTALL_QCONNECT=true
@@ -533,7 +533,7 @@ fi
 
 # Prompt to install the History Recorded Storage feature
 if [[ -z "${INSTALL_HISTREC}" ]]; then
-    echo -e -n "${GREY}EXTRAS: Install History Recorded Storage feature [y/N] [default n]: "
+    echo -e -n "${GREY}EXTRAS: Install History Recorded Storage feature [y/n] [default n]: "
     read PROMPT
     if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
         INSTALL_HISTREC=true
@@ -559,7 +559,7 @@ echo
 # Prompt for Guacamole front end reverse proxy option
 echo -e "${LGREEN}Reverse Proxy & front end options:${GREY}"
 if [[ -z ${INSTALL_NGINX} ]]; then
-    echo -e -n "FRONT END: Protect Guacamole behind Nginx reverse proxy [y/N]? [default n]: "
+    echo -e -n "FRONT END: Protect Guacamole behind Nginx reverse proxy [y/n]? [default n]: "
     read PROMPT
     if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
         INSTALL_NGINX=true
@@ -571,7 +571,7 @@ fi
 
 # Prompt to redirect http://root:8080 to http://root:8080/guacamole if not installing reverse proxy
 if [[ -z ${GUAC_URL_REDIR} ]] && [[ "${INSTALL_NGINX}" = false ]]; then
-    echo -e -n "FRONT END: Redirect Guacamole http://domain.root:8080 to /guacamole [Y/n]? [default y]: "
+    echo -e -n "FRONT END: Redirect Guacamole http://domain.root:8080 to /guacamole [y/n]? [default y]: "
     read PROMPT
     if [[ ${PROMPT} =~ ^[Nn]$ ]]; then
         GUAC_URL_REDIR=false
@@ -599,7 +599,7 @@ fi
 # Prompt for self signed TLS reverse proxy option
 if [[ -z ${SELF_SIGN} ]] && [[ "${INSTALL_NGINX}" = true ]]; then
     # Prompt the user to see if they would like to install self signed TLS support for Nginx, default of no
-    echo -e -n "FRONT END: Add self signed TLS support to Nginx? [y/N]? (choose 'n' for Let's Encrypt)[default n]: "
+    echo -e -n "FRONT END: Add self signed TLS support to Nginx? [y/n]? (choose 'n' for Let's Encrypt)[default n]: "
     read PROMPT
     if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
         SELF_SIGN=true
@@ -623,7 +623,7 @@ fi
 
 # Prompt for Let's Encrypt TLS reverse proxy configuration option
 if [[ -z ${LETS_ENCRYPT} ]] && [[ "${INSTALL_NGINX}" = true ]] && [[ "${SELF_SIGN}" = false ]]; then
-    echo -e -n "FRONT END: Add Let's Encrypt TLS support to Nginx reverse proxy [y/N] [default n]: ${GREY}"
+    echo -e -n "FRONT END: Add Let's Encrypt TLS support to Nginx reverse proxy [y/n] [default n]: ${GREY}"
     read PROMPT
     if [[ ${PROMPT} =~ ^[Yy]$ ]]; then
         LETS_ENCRYPT=true
