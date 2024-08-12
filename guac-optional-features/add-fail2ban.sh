@@ -104,6 +104,10 @@ destemail = yourname@example.com
 sender = yourname@example.com
 action = %(action_mwl)s
 ignoreip =
+
+[sshd]
+backend=systemd
+enabled = true
 EOF
 
     # We need to discover all interfaces to ascertain what network ranges to add to fail2ban "ignoreip" policy override defaults
