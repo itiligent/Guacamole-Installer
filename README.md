@@ -6,14 +6,14 @@
 </a>
 </p>
 
-This suite of build and management scripts makes setting up a secure Guacamole jump server a breeze. It supports TLS reverse proxy (self-signed or Let's Encrypt), Active Directory integration, multi-factor authentication, Quick Connect & History Recording Storage UI enhancements, a custom UI theme creation tool & template (dark themed), auto database backup, email alerts, internal security hardening options, and a fail2ban policy for defence against brute force attacks. The suite also includes code for an enterprise deployment similar to [Amazon's Guacamole Bastion Cluster](http://netcubed-ami.s3-website-us-east-1.amazonaws.com/guaws/v2.3.1/cluster/).
+This modular suite of build and management scripts makes provisioning a secure Guacamole jump server a breeze. It supports TLS reverse proxy (self-signed or Let's Encrypt), Active Directory integration, multi-factor authentication, Quick Connect & History Recording Storage UI enhancements, a custom UI theme creation tool & template (dark themed), auto database backup, email alerts, internal security hardening options, and a fail2ban policy for defence against brute force attacks. The suite also includes code for an enterprise deployment similar to [Amazon's Guacamole Bastion Cluster](http://netcubed-ami.s3-website-us-east-1.amazonaws.com/guaws/v2.3.1/cluster/).
 
 ## Automatic Installation
 
 🚀 To start building your Guacamole appliance, paste the below link into a terminal & follow the prompts (**A secure build requires that you do NOT run this script as sudo or root, however the script will prompt for sudo as needed**): 
 
 ```shell
-wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.sh && chmod +x 1-setup.sh && ./1-setup.sh
+curl -sSL https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.sh | bash
 ```
 
 ## Prerequisites
@@ -28,7 +28,7 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
   - **1 CPU core + 2GB RAM for every 25 users (plus minimum RAM & disk space for your selected OS).**
 - **Open TCP ports: 22, 80, and 443 (no other services using 80, 8080 & 443)**
 - **If selecting either of the TLS reverse proxy options, you must create a PRIVATE DNS record for the internal proxy site, and an additional PUBLIC DNS record if selecting the Let's Encrypt option.**
-- **Sudo & wget packages installed**
+- **Sudo & curl packages installed**
 - **The user running the 1-setup.sh script must have sudo permissions**
 
 ## Setup Script Menu
