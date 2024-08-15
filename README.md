@@ -13,7 +13,7 @@ This modular suite of build and management scripts makes provisioning a secure G
 🚀 To start building your Guacamole appliance, paste the below link into a terminal & follow the prompts (**A secure build requires that you do NOT run this script as sudo or root, however the script will prompt for sudo as needed**): 
 
 ```shell
-curl -sSL https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.sh | bash
+wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.sh && chmod +x 1-setup.sh && ./1-setup.sh
 ```
 
 ## Prerequisites
@@ -28,7 +28,7 @@ curl -sSL https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-s
   - **1 CPU core + 2GB RAM for every 25 users (plus minimum RAM & disk space for your selected OS).**
 - **Open TCP ports: 22, 80, and 443 (no other services using 80, 8080 & 443)**
 - **If selecting either of the TLS reverse proxy options, you must create a PRIVATE DNS record for the internal proxy site, and an additional PUBLIC DNS record if selecting the Let's Encrypt option.**
-- **Sudo & curl packages installed**
+- **Sudo & wget packages installed**
 - **The user running the 1-setup.sh script must have sudo permissions**
 
 ## Setup Script Menu
