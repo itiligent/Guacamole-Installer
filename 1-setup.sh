@@ -339,7 +339,7 @@ fi
 
 # Ensure LOCAL_DOMAIN suffix & localhost entries are consistent
 if [[ -z ${LOCAL_DOMAIN} ]]; then
-    echo -e "${LYELLOW} Update Linux LOCAL DNS SUFFIX [Enter to keep: .${DOMAIN_SUFFIX}]${LGREEN}"
+    echo -e "${LYELLOW} Update Linux LOCAL DNS SUFFIX [Enter to keep: ${SERVER_NAME}.${DOMAIN_SUFFIX}]${LGREEN}"
     read -p "              Complete this local domain suffix: $SERVER_NAME." LOCAL_DOMAIN
     # If hit enter making no LOCAL_DOMAIN name change, assume the existing domain suffix as current
     if [[ "${LOCAL_DOMAIN}" = "" ]]; then
