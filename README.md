@@ -22,7 +22,7 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 
 - **A compatible OS:**
   - **Debian: 12.x or 11.x**
-  - **Ubuntu LTS variants: 24.04, 23.04, 22.04 or 20.04**
+  - **Ubuntu LTS variants: 24.04, 23.04, 22.04**
   - **Raspbian Buster or Bullseye**
   - **Official vendor cloud images equivalent to the above versions.** 
   - **1 CPU core + 2GB RAM for every 25 users (plus minimum RAM & disk space for your selected OS).**
