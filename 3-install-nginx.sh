@@ -98,7 +98,7 @@ ln -s /etc/nginx/sites-available/$PROXY_SITE /etc/nginx/sites-enabled/
 # Make sure the default Nginx site is unlinked
 unlink /etc/nginx/sites-enabled/default
 
-# Do mandatory Nginx tweaks for logging actual client IPs through a proxy IP of 127.0.0.1 - DO NOT CHANGE COMMAND FORMATING!
+# Do mandatory Nginx tweaks for logging actual client IPs through a proxy IP of 127.0.0.1 - DO NOT CHANGE COMMAND FORMATTING!
 echo -e "${GREY}Configuring Apache Tomcat valve for pass through of client IPs to Guacamole logs...${GREY}"
 sed -i '/pattern="%h %l %u %t &quot;%r&quot; %s %b"/a        \        <!-- Allow host IP to pass through to guacamole.-->\n        <Valve className="org.apache.catalina.valves.RemoteIpValve"\n               internalProxies="127\.0\.0\.1|0:0:0:0:0:0:0:1"\n               remoteIpHeader="x-forwarded-for"\n               remoteIpProxiesHeader="x-forwarded-by"\n               protocolHeader="x-forwarded-proto" />' /etc/$TOMCAT_VERSION/server.xml
 if [[ $? -ne 0 ]]; then
