@@ -21,7 +21,7 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 🔒 **Before diving in, make sure you have:**
 
 - **A compatible OS:**
-  - **Debian: 12.x, 11.x or 10.x**
+  - **Debian: 12.x or 11.x**
   - **Ubuntu LTS variants: 24.04, 23.04, 22.04 or 20.04**
   - **Raspbian Buster or Bullseye**
   - **Official vendor cloud images equivalent to the above versions.** 
