@@ -95,3 +95,31 @@ slowhttptest -c 10000 -H -g -o ./output_file -i 3 -r 500 -t GET -u http://jumpbo
 Allow local browser microphone redirect without TLS
 #####################################################
 chrome://flags/#unsafely-treat-insecure-origin-as-secure
+
+
+#####################################################
+Build Custom Console
+####################################################
+# clone and edit source
+sudo apt update && sudo apt install git
+git clone https://github.com/apache/guacamole-client.git
+Wdit the en.json file to the values you need
+
+# Install Older Java 8 prerequisites
+https://www.oracle.com/java/technologies/javase/javase8u211-later-archive-downloads.html (needs oracle sign in)
+sudo mkdir -p /usr/lib/jvm
+sudo tar zxvf jdk-8u411-linux-x64.tar.gz -C /usr/lib/jvm
+sudo update-alternatives --install "/usr/bin/java" "java" "/usr/lib/jvm/jdk1.8.0_411/bin/java" 1
+sudo update-alternatives --set java /usr/lib/jvm/jdk1.8.0_411/bin/java
+
+# Install maven to build the new war file
+sudo apt install maven
+cd ~/guacamole-client
+mvn package
+new .war file is found in guacamole-client/guacamole/target
+
+# Install the bew .war file into Guacamole
+sudo mv -f guacamole-1.5.5.war /etc/guacamole/guacamole.war # copy and rename the new war file
+sudo chmod 664 /etc/guacamole/guacamole.war
+sudo ln -sf /etc/guacamole/guacamole.war /var/lib/tomcat9/webapps/
+sudo systemctl restart tomcat9 && sudo systemctl restart guacd
