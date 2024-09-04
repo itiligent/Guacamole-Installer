@@ -610,9 +610,9 @@ if [[ -z ${SELF_SIGN} ]] && [[ "${INSTALL_NGINX}" = true ]]; then
 fi
 
 # Prompt to enter a self sign TLS certificate expiry
-if [[ "${SELF_SIGN}" = true ]]; then
+if [[ -z "${CERT_DAYS}" ]] && [[ "${SELF_SIGN}" = true ]]; then
     while true; do
-    read -p "FRONT END: Enter number of days till TLS certificates will expire [Enter for 3650]: " CERT_DAYS
+    read -p "FRONT END: Enter number of days till TLS certificates will expire [Enter for ${CERT_DAYS}]: " CERT_DAYS
         [[ "${CERT_DAYS}" = "" ]] || [[ "${CERT_DAYS}" != "" ]] && break
     done
 fi
