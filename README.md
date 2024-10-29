@@ -49,7 +49,7 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 ⚙️ **To customize with the many available script options:**
 
 - Exit `1-setup.sh` at the first prompt.
-- All configurable script options are noted at the start of `1-setup.sh` under **Silent setup options**. Re-run the edited setup script after making your changes. (Run this locally, do not re-run the automatic install web link). 
+- All configurable script options are noted at the start of `1-setup.sh` under **Silent setup options**. Re-run the edited setup script after making your changes. (Re-run script locally, do not re-run the automatic install web link). 
 - Certain combinations of the **Silent setup options** will allow for a fully unattended install supporting mass deployment or highly customized docker builds.
 
 **Other useful custom install notes:**
@@ -63,7 +63,7 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 
 - `add-fail2ban.sh`: Adds a lockdown policy for Guacamole to guard against brute force password attacks.
 - `add-tls-guac-daemon.sh`: Wraps internal traffic between the guac server & guac application in TLS.
-- `add-auth-ldap.sh`: Template script for simplified Active Directory SSO integration.
+- `add-auth-ldap.sh`: Template script for simplified Active Directory integration.
 - `add-smtp-relay-o365.sh`: Template script for email alert integration with MSO65 (BYO app password).
 
 ## Customise & Brand Your Guacamole Theme
@@ -79,9 +79,12 @@ TOMCAT=$(ls /etc/ | grep tomcat) && sudo systemctl restart ${TOMCAT} && sudo sys
 **To renew self-signed certificates or change the reverse proxy local DNS name/IP address:** 
 - Re-run `4a-install-tls-self-signed-nginx.sh` to create a new certificate for Nginx (accompanying browser client certificates will also be updated). Refer to the script's comments for further command line options and always clear your browser cache after changing certificates.
 
-## Active Directory SSO Integration
+## Active Directory Integration
 
-🔑 **Need help with Active Directory integration & SSO authentication?** Check [here](https://github.com/itiligent/Guacamole-Install/blob/main/ACTIVE-DIRECTORY-HOW-TO.md).
+🔑 **Need help with Active Directory integration?** Check [here](https://github.com/itiligent/Guacamole-Install/blob/main/ACTIVE-DIRECTORY-HOW-TO.md).
+
+## For Radius or SS0 (Base, CAS, OpenID, SAML, Dist) 
+🔑 See [here](https://github.com/itiligent/Guacamole-Installer/issues/66)
 
 ## Upgrading Guacamole
 
