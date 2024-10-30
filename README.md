@@ -1,4 +1,13 @@
-# 🥑 Easy Guacamole Installer & Jump-Host Builder
+<div align="center">
+
+# 🥑 Easy Guacamole Jump-Host Builder
+
+</div>
+
+## Introduction
+
+This project allows you to easily set up a Guacamole jump-host for secure remote access.
+
 
 <p align="center">
 <a href="https://www.paypal.com/donate/?business=PSZ878JBJDMB8&amount=10&no_recurring=0&item_name=Thankyou+for+your+support+in+maintaining+this+project&currency_code=AUD">
