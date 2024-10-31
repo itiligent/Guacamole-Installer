@@ -67,9 +67,6 @@ fi
 
 # Query the OS version
 source /etc/os-release
-ID=$ID
-VERSION_ID=$VERSION_ID
-VERSION_CODENAME=$VERSION_CODENAME
 
 #######################################################################################################################
 # Core setup variables and mandatory inputs - EDIT VARIABLE VALUES TO SUIT ############################################
@@ -90,7 +87,7 @@ GUAC_VERSION="1.5.5"
 GUAC_SOURCE_LINK="http://apache.org/dyn/closer.cgi?action=download&filename=guacamole/${GUAC_VERSION}"
 
 # MySQL Connector/J version to install
-MYSQLJCON="8.4.0"
+MYSQLJCON="9.1.0"
 MYSQLJCON_SOURCE_LINK="https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-j-${MYSQLJCON}.tar.gz"
 
 # Provide a specific MySQL version e.g. 11.1.2 or leave blank "" to use distro default MySQL packages.

@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🥑 Easy Guacamole Jump-Host Builder
+# 🥑 Easy Guacamole Installer
 
 </div>
 
