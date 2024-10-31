@@ -12,13 +12,11 @@
 
 ## Introduction
 
-This project allows you to easily set up a Guacamole jump-host for secure remote access.
-
-This modular suite of build and management scripts makes provisioning a secure Guacamole jump server a breeze. It supports TLS reverse proxy (self-signed or Let's Encrypt), Active Directory integration, multi-factor authentication, Quick Connect & History Recording Storage UI enhancements, a custom UI theme creation tool & template (dark themed), auto database backup, email alerts, internal security hardening options, and a fail2ban policy for defence against brute force attacks. The suite also includes code for an enterprise deployment similar to [Amazon's Guacamole Bastion Cluster](http://netcubed-ami.s3-website-us-east-1.amazonaws.com/guaws/v2.3.1/cluster/).
+This project allows you to easily set up a Guacamole jump-host with optional TLS reverse proxy (self-signed or Let's Encrypt), Active Directory integration, multi-factor authentication, Quick Connect & History Recording Storage UI enhancements, a custom UI dark themed template, auto database backup, email alerts and internal hardening options including fail2ban for defence against brute force attacks. There are also options for enterprise deployments similar to [Amazon's Guacamole Bastion Cluster](http://netcubed-ami.s3-website-us-east-1.amazonaws.com/guaws/v2.3.1/cluster/).
 
 ## Automatic Installation
 
-🚀 To start building your Guacamole appliance, paste the below link into a terminal & follow the prompts (**A secure build requires that you do NOT run this script as sudo or root, however the script will prompt for sudo as needed**): 
+🚀 To start building your Guacamole appliance, paste the below link into a terminal & follow the prompts (**do NOT run as root, the script will prompt for sudo as needed**): 
 
 ```shell
 wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.sh && chmod +x 1-setup.sh && ./1-setup.sh
@@ -26,9 +24,7 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 
 ## Prerequisites
 
-🔒 **Before diving in, make sure you have:**
-
-- **A compatible OS:**
+🔒 **A Compatible OS:**
   - **Debian: 12.x or 11.x**
   - **Ubuntu LTS variants: 24.04, 23.04, 22.04**
   - **Raspbian Buster or Bullseye**
@@ -41,7 +37,7 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 
 ## Setup Script Menu
 
-🔧 **The main 1-setup.sh script guides you through the installation options in the following steps:**
+🔧 **The main `1-setup.sh` script guides the installation with the following steps:**
 
 1. Setup the system hostname & local DNS name (Local DNS must be consistent for TLS proxy).
 2. Select either a local MySQL install or use a pre-existing local or remote MySQL instance.
@@ -49,25 +45,25 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 4. Select optional console features: Quick Connect & History Recorded Storage UI integrations.
 5. Select the Guacamole front end: Nginx reverse proxy (HTTP or HTTPS) or use the native Guacamole interface on port 8080.
    - If you opt to install Nginx with self-signed TLS:
-     - New server & client browser certificates are saved to `$HOME/guac-setup/tls-certs/[date-time]`.
+     - New server & client browser certificates are saved to `$HOME/guac-setup/tls-certs/[date-time]/`.
      - Optionally follow on-screen instructions for client certificate import to avoid https browser warnings.
 
 ## Custom Installation Instructions
 
-⚙️ **To customize with the many available script options:**
+⚙️ **To customize the many available script options:**
 
 - Exit `1-setup.sh` at the first prompt.
 - All configurable script options are noted at the start of `1-setup.sh` under **Silent setup options**. Re-run the edited setup script after making your changes. (Re-run script locally, do not re-run the automatic install web link). 
 - Certain combinations of the **Silent setup options** will allow for a fully unattended install supporting mass deployment or highly customized docker builds.
 
-**Other useful custom install notes:**
+**Other custom install notes:**
 - **Caution:** Re-running the auto-installer re-downloads the suite of scripts and this will overwrite all your script edits. You must therefore run 1-setup.sh LOCALLY after editing. If any other scripts are edited, their corresponding download links in the 1-setup.sh script must also be commented out.
-- Scripts are **automatically updated with your chosen installation settings at 1st install** to create a matched set for consistent future upgrades or feature additions. (Re-downloading from the auto install link will overwrite these updates.)
+- Upgrade scripts are **automatically customised with your specifc installation settings** for consistent future updates. (Re-downloading from the auto install link after install will overwrite all custom settings as above.)
 - Nginx reverse proxy is configured to default to at least TLS 1.2. For ancient systems, see commented sections of the `/etc/nginx/nginx.conf` file after install.
 - A daily MySQL backup job is automatically configured under the script owner's crontab.
-- **Security note:** The Quick Connect option brings some extra security implications, be aware of potential risks in your environment.
+- The Quick Connect option brings some extra security implications, be aware of potential risks in your environment.
 
-**Post-install hardening script options available:**
+**Post-install manual hardening options:**
 
 - `add-fail2ban.sh`: Adds a lockdown policy for Guacamole to guard against brute force password attacks.
 - `add-tls-guac-daemon.sh`: Wraps internal traffic between the guac server & guac application in TLS.
@@ -76,35 +72,29 @@ wget https://raw.githubusercontent.com/itiligent/Guacamole-Install/main/1-setup.
 
 ## Customise & Brand Your Guacamole Theme
 
-🎨 **Want to give Guacamole your own personal touch? Follow the theme and branding instructions** [here](https://github.com/itiligent/Guacamole-Install/tree/main/guac-custom-theme-builder). To revert to the default theme, after install simply delete the branding.jar file from `/etc/guacamole/extensions`, clear your browser cache, then run:
+🎨 **Follow the theme and branding instructions** [here](https://github.com/itiligent/Guacamole-Install/tree/main/guac-custom-theme-builder). To revert to the default theme, simply delete the branding.jar file from `/etc/guacamole/extensions`, clear your browser cache and restart.
 
-```shell
-TOMCAT=$(ls /etc/ | grep tomcat) && sudo systemctl restart ${TOMCAT} && sudo systemctl restart guacd
-```
-
-## Managing Self-Signed TLS Certs with Nginx (the Easy Way!)
+## Managing Self-Signed TLS Certs with Nginx (the easy way!)
 
 **To renew self-signed certificates or change the reverse proxy local DNS name/IP address:** 
-- Re-run `4a-install-tls-self-signed-nginx.sh` to create a new certificate for Nginx (accompanying browser client certificates will also be updated). Refer to the script's comments for further command line options and always clear your browser cache after changing certificates.
+- Re-run `4a-install-tls-self-signed-nginx.sh` to create a new certificate for Nginx (accompanying browser client certificates will also be updated). Always clear your browser cache after changing certificates.
 
 ## Active Directory Integration
 
-🔑 **Need help with Active Directory integration?** Check [here](https://github.com/itiligent/Guacamole-Install/blob/main/ACTIVE-DIRECTORY-HOW-TO.md).
+🔑 See [here](https://github.com/itiligent/Guacamole-Install/blob/main/ACTIVE-DIRECTORY-HOW-TO.md).
 
-## For Radius or SS0 (Base, CAS, OpenID, SAML, Dist) 
-🔑 See [here](https://github.com/itiligent/Guacamole-Installer/issues/66)
+## For SS0 Extensions (Radius, Base, CAS, OpenID, SAML, Dist)
+🔑 See [here](https://github.com/itiligent/Guacamole-Installer/blob/main/SSO-EXTENSIONS-HOW-TO.md)
 
 ## Upgrading Guacamole
 
-🌐 **To upgrade Guacamole, edit `upgrade-guacamole.sh` to reflect the latest versions of Guacamole & MySQL connector/J before running.** This script will also automatically update TOTP, DUO, LDAP, Quick Connect, and History Recorded Storage extensions if present.
+🌐 To upgrade Guacamole, edit `upgrade-guacamole.sh` to reflect the latest versions of Guacamole & MySQL connector/J before running. This script will automatically update TOTP, DUO, LDAP, Quick Connect, and History Recorded Storage extensions if present.
 
 ## High Availability Deployment
 
-👔 **Did you know that Guacamole can run in a load-balanced high availability farm with layered physical/virtual separation between front end, application, and database layers?**
-
-- **For a separate DATABASE layer:** Use the `install-mysql-backend-only.sh` [here](https://github.com/itiligent/Guacamole-Install/tree/main/guac-enterprise-build) to install a standalone instance of the Guacamole MySQL database.
-- **For a separate APPLICATION layer:** Run 1-setup.sh and point new installations to your separate/remote backend database. Just say **no** to the "Install MySQL locally" option and any other local reverse proxy install options.
-- **For a separate WEB layer:** Use the included Nginx installer scripts to build the basis of a separate TLS front end layer, and then apply your preferred Nginx load balancing technique. There are too many load balancing strategies to list here, but as an example [HA Proxy](https://www.haproxy.org/) generally provides superior session persistence & affinity under load-balanced conditions [compared to Open Source Nginx](https://www.nginx.com/products/nginx/compare-models/).
+- 👔 **For a separate DATABASE layer:** Use the `install-mysql-backend-only.sh` [here](https://github.com/itiligent/Guacamole-Install/tree/main/guac-enterprise-build) to install a standalone instance of the Guacamole MySQL database.
+- 👔 **For a separate APPLICATION layer:** Run `1-setup.sh` and point new installations to your separate database instance. Just say **no** to the "Install MySQL locally" option and any other local reverse proxy install options.
+- 👔 **For a separate FRONT END layer:** Use the included Nginx installer scripts to build out a separate Nginx front end layer, and then apply your preferred TLS load balancing technique. Alternatively, AWS/Azure/GCP load balancers or [HA Proxy](https://www.haproxy.org/) may provide superior session persistence & affinity compared to [Open Source Nginx](https://www.nginx.com/products/nginx/compare-models/).
 
 ### Installer Script Download Manifest
 
