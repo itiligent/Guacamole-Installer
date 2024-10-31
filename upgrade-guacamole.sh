@@ -78,6 +78,7 @@ MYSQL_ROOT_PWD=
 RDP_SHARE_HOST=
 RDP_SHARE_LABEL=
 RDP_PRINTER_LABEL=
+GUACD_ACCOUNT=
 
 # Standardise on a distro version identification lexicon
 source /etc/os-release
@@ -342,16 +343,20 @@ for file in /etc/guacamole/extensions/guacamole-history-recording-storage*.jar; 
     fi
 done
 
-# Setup freerdp profile permissions for storing certificates
-mkdir -p /usr/sbin/.config/freerdp
-chown daemon:daemon /usr/sbin/.config/freerdp
-
-# Setup correct permissions for history recorded storage feature
-mkdir -p /var/guacamole
-chown daemon:daemon /var/guacamole
-
 # Bring guacd and Tomcat back up
 echo -e "${GREY}Starting guacd and Tomcat services..."
+
+# Reset freerdp profile permissions for storing certificates
+mkdir -p /home/"${GUACD_ACCOUNT}"/.config/freerdp
+chown ${GUACD_ACCOUNT}:${GUACD_ACCOUNT} /home/"${GUACD_ACCOUNT}"/.config/freerdp
+
+# Reset guacamole permissions
+mkdir -p /var/guacamole
+chown "${GUACD_ACCOUNT}":"${GUACD_ACCOUNT}" /var/guacamole
+
+# Reset the guacd systemd unit file's default service account 
+sudo sed -i "s/\bdaemon\b/${GUACD_ACCOUNT}/g" /etc/systemd/system/guacd.service
+systemctl daemon-reload
 systemctl enable guacd
 systemctl start guacd
 systemctl start ${TOMCAT_VERSION}

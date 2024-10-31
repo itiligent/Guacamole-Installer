@@ -120,6 +120,7 @@ GUAC_DB=""                      # If blank "" default is guacamole_db
 GUAC_USER=""                    # If blank "" default is guacamole_user
 MYSQL_ROOT_PWD=""               # Manadatory entry here or at script prompt
 GUAC_PWD=""                     # Manadatory entry here or at script prompt
+GUACD_ACCOUNT="guacd"           # Service account guacd will run under (and will be very heavily locked down)
 DB_TZ=$(cat /etc/timezone)      # Blank "" defaults to UTC, for local timezone: $(cat /etc/timezone)
 INSTALL_TOTP=""                 # Add TOTP MFA extension (true/false), can't be installed simultaneously with DUO)
 INSTALL_DUO=""                  # Add DUO MFA extension (true/false, can't be installed simultaneously with TOTP)
@@ -146,6 +147,7 @@ BACKUP_RETENTION="30"           # Days to keep SQL backups locally
 RDP_SHARE_HOST=""               # Custom RDP host name shown in Windows Explorer (eg. "RDP_SHARE_LABEL on RDP_SHARE_HOST"). Blank "" = $SERVER_NAME
 RDP_SHARE_LABEL="RDP Share"     # Custom RDP shared drive name in Windows Explorer (eg. "RDP_SHARE_LABEL on RDP_SHARE_HOST" eg. "your RDP share name on server01"
 RDP_PRINTER_LABEL="RDP Printer" # Custom RDP printer name shown in Windows
+CRON_DENY_FILE="/etc/cron.deny" # Distro's cron deny file
 
 #######################################################################################################################
 # Download GitHub setup scripts. BEFORE RUNNING SETUP, COMMENT OUT DOWNLOAD LINES OF ANY SCRIPTS YOU HAVE EDITED ! ####
@@ -691,6 +693,7 @@ sed -i "s|GUAC_DB=|GUAC_DB='${GUAC_DB}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
 sed -i "s|MYSQL_ROOT_PWD=|MYSQL_ROOT_PWD='${MYSQL_ROOT_PWD}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
 sed -i "s|GUAC_USER=|GUAC_USER='${GUAC_USER}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
 sed -i "s|GUAC_PWD=|GUAC_PWD='${GUAC_PWD}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
+sed -i "s|GUACD_ACCOUNT=|GUACD_ACCOUNT='${GUACD_ACCOUNT}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
 
 sed -i "s|RDP_SHARE_HOST=|RDP_SHARE_HOST='${RDP_SHARE_HOST}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
 sed -i "s|RDP_SHARE_LABEL=|RDP_SHARE_LABEL='${RDP_SHARE_LABEL}'|g" $DOWNLOAD_DIR/upgrade-guacamole.sh
@@ -756,6 +759,7 @@ export GUAC_DB=$GUAC_DB
 export GUAC_USER=$GUAC_USER
 export MYSQL_ROOT_PWD="${MYSQL_ROOT_PWD}"
 export GUAC_PWD="${GUAC_PWD}"
+export GUACD_ACCOUNT=$GUACD_ACCOUNT
 export DB_TZ="${DB_TZ}"
 export INSTALL_TOTP=$INSTALL_TOTP
 export INSTALL_DUO=$INSTALL_DUO
@@ -782,6 +786,7 @@ export RDP_SHARE_LABEL="${RDP_SHARE_LABEL}"
 export RDP_PRINTER_LABEL="${RDP_PRINTER_LABEL}"
 export LOCAL_DOMAIN=$LOCAL_DOMAIN
 export DOMAIN_SUFFIX=$DOMAIN_SUFFIX
+export CRON_DENY_FILE=$CRON_DENY_FILE
 
 # Run the Guacamole install script (with all exported variables from this current shell)
 sudo -E ./2-install-guacamole.sh

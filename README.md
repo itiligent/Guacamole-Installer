@@ -4,16 +4,15 @@
 
 </div>
 
-## Introduction
-
-This project allows you to easily set up a Guacamole jump-host for secure remote access.
-
-
 <p align="center">
 <a href="https://www.paypal.com/donate/?business=PSZ878JBJDMB8&amount=10&no_recurring=0&item_name=Thankyou+for+your+support+in+maintaining+this+project&currency_code=AUD">
   <img src="https://github.com/itiligent/Guacamole-Install/raw/main/.github/ISSUE_TEMPLATE/paypal-donate-button.png" width="125" />
 </a>
 </p>
+
+## Introduction
+
+This project allows you to easily set up a Guacamole jump-host for secure remote access.
 
 This modular suite of build and management scripts makes provisioning a secure Guacamole jump server a breeze. It supports TLS reverse proxy (self-signed or Let's Encrypt), Active Directory integration, multi-factor authentication, Quick Connect & History Recording Storage UI enhancements, a custom UI theme creation tool & template (dark themed), auto database backup, email alerts, internal security hardening options, and a fail2ban policy for defence against brute force attacks. The suite also includes code for an enterprise deployment similar to [Amazon's Guacamole Bastion Cluster](http://netcubed-ami.s3-website-us-east-1.amazonaws.com/guaws/v2.3.1/cluster/).
 
